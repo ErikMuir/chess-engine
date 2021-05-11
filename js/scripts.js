@@ -3,6 +3,8 @@ const _darkCol = '#a97a65';
 const _squareSize = 80;
 let _board;
 let _ctx;
+let _blackPieces;
+let _whitePieces;
 
 class Board {
   constructor(copyBoard) {
@@ -63,34 +65,22 @@ class Square {
   get textColor() { return this.isLightSquare ? _darkCol : _lightCol; }
   get xPos() { return this.file * _squareSize; }
   get yPos() { return (_squareSize * 7) - (this.rank * _squareSize); }
-  get symbol() {
-    let sym = '';
+  get img() {
+    if (!this.piece) return null;
+    const set = this.piece < 16 ? _whitePieces : _blackPieces;
     let piece = this.piece;
     while (piece >= 8) {
       piece -= 8;
     }
     switch (piece) {
-      case Piece.King:
-        sym = 'k';
-        break;
-      case Piece.Pawn:
-        sym = 'p';
-        break;
-      case Piece.Knight:
-        sym = 'n';
-        break;
-      case Piece.Bishop:
-        sym = 'b';
-        break;
-      case Piece.Rook:
-        sym = 'r';
-        break;
-      case Piece.Queen:
-        sym = 'q';
-        break;
+      case Piece.King: return set.King;
+      case Piece.Pawn: return set.Pawn;
+      case Piece.Knight: return set.Knight;
+      case Piece.Bishop: return set.Bishop;
+      case Piece.Rook: return set.Rook;
+      case Piece.Queen: return set.Queen;
+      default: return null;
     }
-    if (sym === '') return sym;
-    return (this.piece < 16) ? sym.toUpperCase() : sym;
   }
 
   draw = () => {
@@ -129,11 +119,11 @@ class Square {
   };
 
   drawPiece = () => {
-    const x = this.xPos + proportion(0.3);
-    const y = this.yPos + _squareSize - proportion(0.3);
-    _ctx.fillStyle = this.piece >= 16 ? '#000000' : '#ffffff';
-    _ctx.font = `400 ${proportion(0.6)}px sans-serif`;
-    _ctx.fillText(this.symbol, x, y);
+    const offset = proportion(0.1);
+    const size = proportion(0.8);
+    const x = this.xPos + offset;
+    const y = this.yPos + offset;
+    _ctx.drawImage(this.img, x, y, size, size);
   };
 }
 
@@ -155,6 +145,22 @@ const proportion = (ratio) => Math.floor(_squareSize * ratio);
 const isDigit = (str) => /^\d+$/.test(str);
 
 function onLoad() {
+  _blackPieces = {
+    Queen: document.getElementById('black-queen'),
+    King: document.getElementById('black-king'),
+    Rook: document.getElementById('black-rook'),
+    Knight: document.getElementById('black-knight'),
+    Bishop: document.getElementById('black-bishop'),
+    Pawn: document.getElementById('black-pawn'),
+  };
+  _whitePieces = {
+    Queen: document.getElementById('white-queen'),
+    King: document.getElementById('white-king'),
+    Rook: document.getElementById('white-rook'),
+    Knight: document.getElementById('white-knight'),
+    Bishop: document.getElementById('white-bishop'),
+    Pawn: document.getElementById('white-pawn'),
+  };
   const canvas = document.getElementById('canvas');
   canvas.width = _squareSize * 8;
   canvas.height = _squareSize * 8;
