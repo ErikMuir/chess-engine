@@ -21,10 +21,9 @@ footer {
   border-radius: 3px;
 }
 
-img.sprite {
+img.hidden {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
   visibility: hidden;
 }

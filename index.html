@@ -4,17 +4,15 @@
 
 <head>
   <meta charset="utf-8">
-
   <title>Chess GUI</title>
   <meta name="description" content="Chess GUI">
   <meta name="author" content="Erik Muir">
 
   <link rel="stylesheet" href="css/styles.css?v=1.0">
-
+  <script src="js/scripts.js" defer></script>
 </head>
 
-<body onload="onLoad()">
-  <script src="js/scripts.js"></script>
+<body>
   <div class="container">
     <header>
       <h1>Chess GUI</h1>
@@ -24,19 +22,18 @@
     </main>
     <footer>&copy; Copyright 2021</footer>
   </div>
-  <img class="sprite" id="black-queen" src="./images/black-queen.png" />
-  <img class="sprite" id="black-king" src="./images/black-king.png" />
-  <img class="sprite" id="black-rook" src="./images/black-rook.png" />
-  <img class="sprite" id="black-knight" src="./images/black-knight.png" />
-  <img class="sprite" id="black-bishop" src="./images/black-bishop.png" />
-  <img class="sprite" id="black-pawn" src="./images/black-pawn.png" />
-  <img class="sprite" id="white-queen" src="./images/white-queen.png" />
-  <img class="sprite" id="white-king" src="./images/white-king.png" />
-  <img class="sprite" id="white-rook" src="./images/white-rook.png" />
-  <img class="sprite" id="white-knight" src="./images/white-knight.png" />
-  <img class="sprite" id="white-bishop" src="./images/white-bishop.png" />
-  <img class="sprite" id="white-pawn" src="./images/white-pawn.png" />
-  
+  <img class="hidden" id="white-king" src="./images/white-king.png" />
+  <img class="hidden" id="white-pawn" src="./images/white-pawn.png" />
+  <img class="hidden" id="white-knight" src="./images/white-knight.png" />
+  <img class="hidden" id="white-bishop" src="./images/white-bishop.png" />
+  <img class="hidden" id="white-rook" src="./images/white-rook.png" />
+  <img class="hidden" id="white-queen" src="./images/white-queen.png" />
+  <img class="hidden" id="black-king" src="./images/black-king.png" />
+  <img class="hidden" id="black-pawn" src="./images/black-pawn.png" />
+  <img class="hidden" id="black-knight" src="./images/black-knight.png" />
+  <img class="hidden" id="black-bishop" src="./images/black-bishop.png" />
+  <img class="hidden" id="black-rook" src="./images/black-rook.png" />
+  <img class="hidden" id="black-queen" src="./images/black-queen.png" />
 </body>
 
 </html>
