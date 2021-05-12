@@ -1,7 +1,6 @@
 // ------------------------------------
 // globals
 // ------------------------------------
-window.onload = onLoad;
 let _lightCol = '#f1d9c0';
 let _darkCol = '#a97a65';
 let _overlayColor = '#ffff00';
@@ -13,7 +12,80 @@ let _whitePieces, _blackPieces;
 let _fromSquare, _toSquare;
 let _dragX, _dragY, _dragPiece;
 let _directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
-let _numSquaresToEdge;
+let _numSquaresToEdge = new Array(64);
+
+// ------------------------------------
+// page load
+// ------------------------------------
+window.onload = onLoad;
+function onLoad() {
+  initCanvas();
+  initPieces();
+  initBoard();
+  initEngine();
+  return setInterval(draw, 10);
+}
+
+// ------------------------------------
+// initialization functions
+// ------------------------------------
+function initCanvas() {
+  _canvas = document.getElementById('canvas');
+  _canvas.width = _squareSize * 8;
+  _canvas.height = _squareSize * 8;
+  _canvas.onmousedown = onMouseDown;
+  _canvas.onmouseup = onMouseUp;
+  _ctx = canvas.getContext('2d');
+}
+
+function initPieces() {
+  _whitePieces = {
+    King: document.getElementById('white-king'),
+    Pawn: document.getElementById('white-pawn'),
+    Knight: document.getElementById('white-knight'),
+    Bishop: document.getElementById('white-bishop'),
+    Rook: document.getElementById('white-rook'),
+    Queen: document.getElementById('white-queen'),
+  };
+  _blackPieces = {
+    King: document.getElementById('black-king'),
+    Pawn: document.getElementById('black-pawn'),
+    Knight: document.getElementById('black-knight'),
+    Bishop: document.getElementById('black-bishop'),
+    Rook: document.getElementById('black-rook'),
+    Queen: document.getElementById('black-queen'),
+  };
+}
+
+function initBoard() {
+  const startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  _board = new Board();
+  _board.loadFen(startPosition);
+}
+
+function initEngine() {
+  for (let file = 0; file < 8; file++) {
+    for (let rank = 0; rank < 8; rank++) {
+      const numNorth = 7 - rank;
+      const numSouth = rank;
+      const numWest = file;
+      const numEast = 7 - file;
+
+      const squareIndex = rank * 8 + file;
+
+      _numSquaresToEdge[squareIndex] = [
+        numNorth,
+        numSouth,
+        numWest,
+        numEast,
+        Math.min(numNorth, numWest),
+        Math.min(numSouth, numEast),
+        Math.min(numNorth, numEast),
+        Math.min(numSouth, numWest),
+      ];
+    }
+  }
+}
 
 // ------------------------------------
 // classes
@@ -35,7 +107,6 @@ class Board {
   }
 
   draw = () => {
-    // _ctx.clearRect(0, 0, _squareSize * 8, _squareSize * 8);
     this.squares.forEach(sq => sq.draw());
   };
 
@@ -142,124 +213,75 @@ class Piece {
 }
 
 // ------------------------------------
-// helpers
+// helper functions
 // ------------------------------------
 const proportion = (ratio) => Math.floor(_squareSize * ratio);
 
 const isDigit = (str) => /^\d+$/.test(str);
 
-const getPieceImage = (piece) => {
-  if (!piece) return null;
-  const set = piece < 16 ? _whitePieces : _blackPieces;
-  while (piece >= 8) {
-    piece -= 8;
-  }
-  switch (piece) {
-    case Piece.King: return set.King;
-    case Piece.Pawn: return set.Pawn;
-    case Piece.Knight: return set.Knight;
-    case Piece.Bishop: return set.Bishop;
-    case Piece.Rook: return set.Rook;
-    case Piece.Queen: return set.Queen;
-    default: return null;
-  }
-}
-
 // ------------------------------------
-// handlers
+// drag & drop functions
 // ------------------------------------
 function onMouseDown(e) {
-  _fromSquare = null;
-  _toSquare = null;
   const square = getEventSquare(e);
   if (square.piece) {
-    _dragPiece = square.piece;
+    _fromSquare = null;
+    _toSquare = null;
     _dragX = e.offsetX;
     _dragY = e.offsetY;
+    _dragPiece = square.piece;
     square.piece = 0;
     _fromSquare = square;
     _canvas.onmousemove = onMouseMove;
+    _canvas.onmouseout = onMouseOut;
   }
 }
 
 function onMouseMove(e) {
-  if (_dragPiece) { // should never be false, right?
-    _dragX = e.offsetX;
-    _dragY = e.offsetY;
-  }
+  _dragX = e.offsetX;
+  _dragY = e.offsetY;
+}
+
+function onMouseOut(e) {
+  _fromSquare.piece = _dragPiece;
+  resetDrag();
 }
 
 function onMouseUp(e) {
-  if (!_fromSquare) return;
-  _toSquare = getEventSquare(e);
-  doMove();
+  const square = getEventSquare(e);
+  if (_fromSquare === square) {
+    _fromSquare.piece = _dragPiece;
+  } else {
+    _toSquare = square;
+    _toSquare.piece = _dragPiece || _fromSquare.piece;
+    _fromSquare.piece = 0;
+  }
+  resetDrag();
+}
+
+function getEventSquare(e) {
+  const rank = 7 - Math.floor(e.offsetY / _squareSize);
+  const file = Math.floor(e.offsetX / _squareSize);
+  return _board.squares[rank * 8 + file];
+}
+
+function getDragSquare() {
+  const rank = 7 - Math.floor(_dragY / _squareSize);
+  const file = Math.floor(_dragX / _squareSize);
+  return _board.squares[rank * 8 + file];
+}
+
+function resetDrag() {
   _dragPiece = null;
   _dragX = null;
   _dragY = null;
   _canvas.onmousemove = null;
+  _canvas.onmouseout = null;
 }
 
 // ------------------------------------
-// functions
+// drawing functions
 // ------------------------------------
-function initCanvas() {
-  _canvas = document.getElementById('canvas');
-  _canvas.width = _squareSize * 8;
-  _canvas.height = _squareSize * 8;
-  _canvas.onmousedown = onMouseDown;
-  _canvas.onmouseup = onMouseUp;
-  _ctx = canvas.getContext('2d');
-}
-
-function initPieces() {
-  _whitePieces = {
-    King: document.getElementById('white-king'),
-    Pawn: document.getElementById('white-pawn'),
-    Knight: document.getElementById('white-knight'),
-    Bishop: document.getElementById('white-bishop'),
-    Rook: document.getElementById('white-rook'),
-    Queen: document.getElementById('white-queen'),
-  };
-  _blackPieces = {
-    King: document.getElementById('black-king'),
-    Pawn: document.getElementById('black-pawn'),
-    Knight: document.getElementById('black-knight'),
-    Bishop: document.getElementById('black-bishop'),
-    Rook: document.getElementById('black-rook'),
-    Queen: document.getElementById('black-queen'),
-  };
-}
-
-function initBoard() {
-  const startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  _board = new Board();
-  _board.loadFen(startPosition);
-}
-
-function initEngine() {
-  for (let file = 0; file < 8; file++) {
-    for (let rank = 0; rank < 8; rank++) {
-      const numNorth = 7 - rank;
-      const numSouth = rank;
-      const numWest = file;
-      const numEast = 7 - file;
-
-      const squareIndex = rank * 8 + file;
-
-      _numSquaresToEdge[squareIndex] = [
-        numNorth,
-        numSouth,
-        numWest,
-        numEast,
-        Math.min(numNorth, numWest),
-        Math.min(numSouth, numEast),
-        Math.min(numNorth, numEast),
-        Math.min(numSouth, numWest),
-      ];
-    }
-  }
-}
-
 function draw() {
   _board.draw();
   if (_dragPiece) {
@@ -280,40 +302,26 @@ function drawDragPiece() {
 }
 
 function addOverlay(square) {
+  if (!square) return;
   _ctx.fillStyle = _overlayColor;
   _ctx.globalAlpha = 0.25;
   _ctx.fillRect(square.xPos, square.yPos, _squareSize, _squareSize);
   _ctx.globalAlpha = 1.0;
 }
 
-function getEventSquare(e) {
-  const rank = 7 - Math.floor(e.offsetY / _squareSize);
-  const file = Math.floor(e.offsetX / _squareSize);
-  return _board.squares[rank * 8 + file];
-}
-
-function getDragSquare() {
-  const rank = 7 - Math.floor(_dragY / _squareSize);
-  const file = Math.floor(_dragX / _squareSize);
-  return _board.squares[rank * 8 + file];
-}
-
-function doMove() {
-  if (_fromSquare === _toSquare) {
-    _fromSquare.piece = _dragPiece;
-  } else {
-    _toSquare.piece = _dragPiece;
-    _fromSquare.piece = 0;
+const getPieceImage = (piece) => {
+  if (!piece) return null;
+  const set = piece < 16 ? _whitePieces : _blackPieces;
+  while (piece >= 8) {
+    piece -= 8;
   }
-}
-
-// ------------------------------------
-// on page load
-// ------------------------------------
-function onLoad() {
-  initCanvas();
-  initPieces();
-  initBoard();
-  initEngine();
-  return setInterval(draw, 10);
+  switch (piece) {
+    case Piece.King: return set.King;
+    case Piece.Pawn: return set.Pawn;
+    case Piece.Knight: return set.Knight;
+    case Piece.Bishop: return set.Bishop;
+    case Piece.Rook: return set.Rook;
+    case Piece.Queen: return set.Queen;
+    default: return null;
+  }
 }
