@@ -1,24 +1,26 @@
 // ------------------------------------
 // globals
 // ------------------------------------
-let _lightCol = '#f1d9c0';
-let _darkCol = '#a97a65';
-let _overlayColor = '#ffff00';
+const _startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const _directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
+const _numSquaresToEdge = new Array(64);
+let _lightColor = '#f1d9c0';
+let _darkColor = '#a97a65';
+let _activeOverlay = '#00cc00';
+let _previousOverlay = '#cccc00';
 let _squareSize = 80;
 let _board;
 let _canvas;
 let _ctx;
 let _whitePieces, _blackPieces;
-let _fromSquare, _toSquare;
-let _dragX, _dragY, _dragPiece;
-let _directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
-let _numSquaresToEdge = new Array(64);
+let _prevMoveSquares = [];
+let _activeSquare, _hoverSquare;
+let _hoverX, _hoverY, _dragPiece;
 
 // ------------------------------------
 // page load
 // ------------------------------------
-window.onload = onLoad;
-function onLoad() {
+window.onload = () => {
   initCanvas();
   initPieces();
   initBoard();
@@ -35,6 +37,8 @@ function initCanvas() {
   _canvas.height = _squareSize * 8;
   _canvas.onmousedown = onMouseDown;
   _canvas.onmouseup = onMouseUp;
+  _canvas.onmousemove = onMouseMove;
+  _canvas.onmouseout = onMouseOut;
   _ctx = canvas.getContext('2d');
 }
 
@@ -58,9 +62,7 @@ function initPieces() {
 }
 
 function initBoard() {
-  const startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  _board = new Board();
-  _board.loadFen(startPosition);
+  _board = new Board(_startPosition);
 }
 
 function initEngine() {
@@ -91,17 +93,20 @@ function initEngine() {
 // classes
 // ------------------------------------
 class Board {
-  constructor(copyBoard) {
-    this.squares = [];
-    if (copyBoard) {
-      this.squares = copyBoard.squares.map(
+  constructor(board) {
+    this.squares = new Array(64);
+    if (board instanceof Board) {
+      this.squares = board.squares.map(
         ({ file, rank, piece }) => new Square(file, rank, piece)
       );
     } else {
       for (let rank = 0; rank < 8; rank++) {
         for (let file = 0; file < 8; file++) {
-          this.squares.push(new Square(file, rank));
+          this.squares[rank * 8 + file] = new Square(file, rank);
         }
+      }
+      if (typeof board === 'string') {
+        this.loadFen(board);
       }
     }
   }
@@ -145,8 +150,8 @@ class Square {
     this.isLightSquare = (file + rank) % 2 === 0;
   }
 
-  get squareColor() { return this.isLightSquare ? _lightCol : _darkCol; }
-  get textColor() { return this.isLightSquare ? _darkCol : _lightCol; }
+  get squareColor() { return this.isLightSquare ? _lightColor : _darkColor; }
+  get textColor() { return this.isLightSquare ? _darkColor : _lightColor; }
   get xPos() { return this.file * _squareSize; }
   get yPos() { return (_squareSize * 7) - (this.rank * _squareSize); }
 
@@ -162,8 +167,12 @@ class Square {
       this.drawFileLabel();
     }
 
-    if (this === _fromSquare || this === _toSquare) {
-      addOverlay(this);
+    if ([_activeSquare, _hoverSquare].includes(this)) {
+      this.drawOverlay(_activeOverlay);
+    }
+
+    if (_prevMoveSquares.includes(this)) {
+      this.drawOverlay(_previousOverlay);
     }
 
     if (this.piece) {
@@ -188,6 +197,13 @@ class Square {
     _ctx.font = `400 ${proportion(0.175)}px sans-serif`;
     _ctx.fillText(fileText, x, y);
   };
+
+  drawOverlay = (color) => {
+    _ctx.fillStyle = color;
+    _ctx.globalAlpha = 0.5;
+    _ctx.fillRect(this.xPos, this.yPos, _squareSize, _squareSize);
+    _ctx.globalAlpha = 1.0;
+  }
 
   drawPiece = () => {
     const img = getPieceImage(this.piece);
@@ -220,43 +236,74 @@ const proportion = (ratio) => Math.floor(_squareSize * ratio);
 const isDigit = (str) => /^\d+$/.test(str);
 
 // ------------------------------------
-// drag & drop functions
+// move functions
 // ------------------------------------
 function onMouseDown(e) {
   const square = getEventSquare(e);
-  if (square.piece) {
-    _fromSquare = null;
-    _toSquare = null;
-    _dragX = e.offsetX;
-    _dragY = e.offsetY;
-    _dragPiece = square.piece;
-    square.piece = 0;
-    _fromSquare = square;
-    _canvas.onmousemove = onMouseMove;
-    _canvas.onmouseout = onMouseOut;
+  if (square === _activeSquare) {
+    clearActiveSquares()
+  } else if (square.piece) {
+    initDrag(square);
+    initMove(square);
+    setHover(e);
+  }
+}
+
+function onMouseUp(e) {
+  if (!_activeSquare) return;
+  const square = getEventSquare(e);
+  if (_activeSquare !== square) {
+    doMove(square);
+  }
+  if (_dragPiece) {
+    cancelDrag();
   }
 }
 
 function onMouseMove(e) {
-  _dragX = e.offsetX;
-  _dragY = e.offsetY;
+  setHover(e);
 }
 
-function onMouseOut(e) {
-  _fromSquare.piece = _dragPiece;
-  resetDrag();
-}
-
-function onMouseUp(e) {
-  const square = getEventSquare(e);
-  if (_fromSquare === square) {
-    _fromSquare.piece = _dragPiece;
-  } else {
-    _toSquare = square;
-    _toSquare.piece = _dragPiece || _fromSquare.piece;
-    _fromSquare.piece = 0;
+function onMouseOut() {
+  _hoverSquare = null;
+  if (_dragPiece) {
+    cancelDrag();
+    _activeSquare = null;
   }
-  resetDrag();
+}
+
+function setHover(e) {
+  _hoverX = e.offsetX;
+  _hoverY = e.offsetY;
+  _hoverSquare = _activeSquare ? getEventSquare(e) : null;
+}
+
+function initDrag(square) {
+  _dragPiece = square.piece;
+}
+
+function cancelDrag() {
+  if (_activeSquare) {
+    _activeSquare.piece = _dragPiece;
+  }
+  _dragPiece = null;
+}
+
+function initMove(square) {
+  square.piece = 0;
+  _activeSquare = square;
+}
+
+function doMove(square) {
+  _prevMoveSquares = [_activeSquare, square];
+  square.piece = _dragPiece || _activeSquare.piece;
+  _activeSquare.piece = 0;
+  clearActiveSquares()
+}
+
+function clearActiveSquares() {
+  _activeSquare = null;
+  _hoverSquare = null;
 }
 
 function getEventSquare(e) {
@@ -265,30 +312,12 @@ function getEventSquare(e) {
   return _board.squares[rank * 8 + file];
 }
 
-function getDragSquare() {
-  const rank = 7 - Math.floor(_dragY / _squareSize);
-  const file = Math.floor(_dragX / _squareSize);
-  return _board.squares[rank * 8 + file];
-}
-
-function resetDrag() {
-  _dragPiece = null;
-  _dragX = null;
-  _dragY = null;
-  _canvas.onmousemove = null;
-  _canvas.onmouseout = null;
-}
-
 // ------------------------------------
-// drawing functions
+// draw functions
 // ------------------------------------
 function draw() {
   _board.draw();
   if (_dragPiece) {
-    const dragSquare = getDragSquare();
-    if (dragSquare !== _fromSquare) {
-      addOverlay(dragSquare);
-    }
     drawDragPiece();
   }
 }
@@ -296,17 +325,9 @@ function draw() {
 function drawDragPiece() {
   const img = getPieceImage(_dragPiece);
   const size = proportion(0.8);
-  const x = _dragX - (size / 2);
-  const y = _dragY - (size / 2);
+  const x = _hoverX - (size / 2);
+  const y = _hoverY - (size / 2);
   _ctx.drawImage(img, x, y, size, size);
-}
-
-function addOverlay(square) {
-  if (!square) return;
-  _ctx.fillStyle = _overlayColor;
-  _ctx.globalAlpha = 0.25;
-  _ctx.fillRect(square.xPos, square.yPos, _squareSize, _squareSize);
-  _ctx.globalAlpha = 1.0;
 }
 
 const getPieceImage = (piece) => {
@@ -325,3 +346,10 @@ const getPieceImage = (piece) => {
     default: return null;
   }
 }
+
+// BUGS:
+/*
+Steps: click on a piece, click it again
+Expected Behavior: it should deselect the square as active
+Actual Behavior: it removes the piece and square remains active
+*/
