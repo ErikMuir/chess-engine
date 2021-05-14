@@ -4,11 +4,12 @@
 const _startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const _directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
 const _numSquaresToEdge = new Array(64);
-let _lightColor = '#f1d9c0';
-let _darkColor = '#a97a65';
-let _activeOverlay = '#00cc00';
-let _previousOverlay = '#cccc00';
-let _squareSize = 80;
+const _lightColor = '#f1d9c0';
+const _darkColor = '#a97a65';
+const _activeOverlay = '#00cc00';
+const _previousOverlay = '#cccc00';
+const _overlayOpacity = 0.4;
+const _squareSize = 80;
 let _board;
 let _canvas;
 let _ctx;
@@ -92,6 +93,12 @@ function initEngine() {
 // ------------------------------------
 // classes
 // ------------------------------------
+class Game {
+  constructor() {
+    this.board = new Board();
+  }
+}
+
 class Board {
   constructor(board) {
     this.squares = new Array(64);
@@ -200,7 +207,7 @@ class Square {
 
   drawOverlay = (color) => {
     _ctx.fillStyle = color;
-    _ctx.globalAlpha = 0.5;
+    _ctx.globalAlpha = _overlayOpacity;
     _ctx.fillRect(this.xPos, this.yPos, _squareSize, _squareSize);
     _ctx.globalAlpha = 1.0;
   }
@@ -278,8 +285,8 @@ function setHover(e) {
   _hoverSquare = _activeSquare ? getEventSquare(e) : null;
 }
 
-function initDrag(square) {
-  _dragPiece = square.piece;
+function initDrag(fromSquare) {
+  _dragPiece = fromSquare.piece;
 }
 
 function cancelDrag() {
@@ -289,14 +296,14 @@ function cancelDrag() {
   _dragPiece = null;
 }
 
-function initMove(square) {
-  square.piece = 0;
-  _activeSquare = square;
+function initMove(fromSquare) {
+  fromSquare.piece = 0;
+  _activeSquare = fromSquare;
 }
 
-function doMove(square) {
-  _prevMoveSquares = [_activeSquare, square];
-  square.piece = _dragPiece || _activeSquare.piece;
+function doMove(toSquare) {
+  _prevMoveSquares = [_activeSquare, toSquare];
+  toSquare.piece = _dragPiece || _activeSquare.piece;
   _activeSquare.piece = 0;
   clearActiveSquares()
 }
