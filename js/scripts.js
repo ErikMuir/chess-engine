@@ -4,13 +4,13 @@ window.onload = () => {
 }
 
 class Utils {
+  static isDigit = (str) => /^\d+$/.test(str);
+
   static getImage = (filename) => {
     var img = new Image();
     img.src = `./images/${filename}`;
     return img;
   };
-
-  static isDigit = (str) => /^\d+$/.test(str);
 }
 
 class Game {
@@ -34,7 +34,7 @@ class Game {
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
-    this.colorToMove = Piece.White;
+    this.colorToMove = PieceColor.White;
   }
 
   init = () => {
@@ -164,7 +164,7 @@ class Game {
     toSquare.piece = this.dragPiece || this.activeSquare.piece;
     this.activeSquare.piece = 0;
     this.clearActiveSquares();
-    this.colorToMove = this.colorToMove === Piece.White ? Piece.Black : Piece.White;
+    this.colorToMove = this.colorToMove === PieceColor.White ? PieceColor.Black : PieceColor.White;
   }
 
   clearActiveSquares = () => {
@@ -202,15 +202,34 @@ class Game {
       piece -= 8;
     }
     switch (piece) {
-      case Piece.King: return set.King;
-      case Piece.Pawn: return set.Pawn;
-      case Piece.Knight: return set.Knight;
-      case Piece.Bishop: return set.Bishop;
-      case Piece.Rook: return set.Rook;
-      case Piece.Queen: return set.Queen;
+      case PieceType.King: return set.King;
+      case PieceType.Pawn: return set.Pawn;
+      case PieceType.Knight: return set.Knight;
+      case PieceType.Bishop: return set.Bishop;
+      case PieceType.Rook: return set.Rook;
+      case PieceType.Queen: return set.Queen;
       default: return null;
     }
   }
+
+  getMoves = () => {
+    let moves = [];
+
+    for (let from = 0; from < 64; from++) {
+      const piece = this.board.squares[from];
+      if (piece.color !== this.colorToMove) continue;
+      if (piece.isSlidingPiece()) {
+        this.generateSlidingMoves(from, piece);
+      }
+      // todo : else if () ...
+    }
+
+    return moves;
+  };
+
+  generateSlidingMoves = (from, piece) => {
+    // todo
+  };
 }
 
 class Board {
@@ -229,12 +248,12 @@ class Board {
 
   loadFen = (fen) => {
     const pieceTypeFromSymbol = {
-      k: Piece.King,
-      p: Piece.Pawn,
-      n: Piece.Knight,
-      b: Piece.Bishop,
-      r: Piece.Rook,
-      q: Piece.Queen,
+      k: PieceType.King,
+      p: PieceType.Pawn,
+      n: PieceType.Knight,
+      b: PieceType.Bishop,
+      r: PieceType.Rook,
+      q: PieceType.Queen,
     };
     const fenBoard = fen.split(' ')[0];
     let file = 0, rank = 7;
@@ -245,7 +264,7 @@ class Board {
       } else if (Utils.isDigit(symbol)) {
         file += parseInt(symbol);
       } else {
-        const pieceColor = symbol === symbol.toUpperCase() ? Piece.White : Piece.Black;
+        const pieceColor = symbol === symbol.toUpperCase() ? PieceColor.White : PieceColor.Black;
         const pieceType = pieceTypeFromSymbol[symbol.toLowerCase()];
         this.squares[rank * 8 + file].piece = pieceColor | pieceType;
         file++;
@@ -267,7 +286,7 @@ class Square {
   get textColor() { return this.isLightSquare ? this.game.darkColor : this.game.lightColor; }
   get xPos() { return this.file * this.game.squareSize; }
   get yPos() { return (this.game.squareSize * 7) - (this.rank * this.game.squareSize); }
-  get pieceColor() { return this.piece >= 16 ? Piece.Black : Piece.White; }
+  get pieceColor() { return this.piece >= 16 ? PieceColor.Black : PieceColor.White; }
 
   draw = () => {
     this.game.ctx.fillStyle = this.squareColor;
@@ -329,7 +348,12 @@ class Square {
   };
 }
 
-class Piece {
+class PieceColor {
+  static White = 8;
+  static Black = 16;
+}
+
+class PieceType {
   static None = 0;
   static King = 1;
   static Pawn = 2;
@@ -337,7 +361,24 @@ class Piece {
   static Bishop = 4;
   static Rook = 5;
   static Queen = 6;
+}
 
-  static White = 8;
-  static Black = 16;
+class Piece {
+  constructor(color, type) {
+    this.color = color;
+    this.type = type;
+    this.value = color | type;
+  }
+
+  isSlidingPiece = () => {
+    const slidingPieces = [PieceType.Bishop, PieceType.Rook, PieceType.Queen]
+    return slidingPieces.includes(this.type);
+  }
+}
+
+class Move {
+  constructor(from, to) {
+    this.from = from;
+    this.to = to;
+  }
 }
