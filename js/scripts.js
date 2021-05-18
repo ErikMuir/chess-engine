@@ -1,8 +1,16 @@
-// By en:User:Cburnett - Own work  This W3C-unspecified vector image was created with Inkscape ., CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=1499803
-
 window.onload = () => {
   const game = new Game();
   game.init();
+}
+
+class Utils {
+  static getImage = (filename) => {
+    var img = new Image();
+    img.src = `./images/${filename}`;
+    return img;
+  };
+
+  static isDigit = (str) => /^\d+$/.test(str);
 }
 
 class Game {
@@ -26,6 +34,7 @@ class Game {
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
+    this.colorToMove = Piece.White;
   }
 
   init = () => {
@@ -49,20 +58,20 @@ class Game {
 
   initPieces = () => {
     this.whitePieces = {
-      King: this.getImage('white-king.svg'),
-      Pawn: this.getImage('white-pawn.svg'),
-      Knight: this.getImage('white-knight.svg'),
-      Bishop: this.getImage('white-bishop.svg'),
-      Rook: this.getImage('white-rook.svg'),
-      Queen: this.getImage('white-queen.svg'),
+      King: Utils.getImage('white-king.svg'),
+      Pawn: Utils.getImage('white-pawn.svg'),
+      Knight: Utils.getImage('white-knight.svg'),
+      Bishop: Utils.getImage('white-bishop.svg'),
+      Rook: Utils.getImage('white-rook.svg'),
+      Queen: Utils.getImage('white-queen.svg'),
     };
     this.blackPieces = {
-      King: this.getImage('black-king.svg'),
-      Pawn: this.getImage('black-pawn.svg'),
-      Knight: this.getImage('black-knight.svg'),
-      Bishop: this.getImage('black-bishop.svg'),
-      Rook: this.getImage('black-rook.svg'),
-      Queen: this.getImage('black-queen.svg'),
+      King: Utils.getImage('black-king.svg'),
+      Pawn: Utils.getImage('black-pawn.svg'),
+      Knight: Utils.getImage('black-knight.svg'),
+      Bishop: Utils.getImage('black-bishop.svg'),
+      Rook: Utils.getImage('black-rook.svg'),
+      Queen: Utils.getImage('black-queen.svg'),
     };
   };
 
@@ -98,7 +107,7 @@ class Game {
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
       this.clearActiveSquares()
-    } else if (square.piece) {
+    } else if (square.piece && square.pieceColor === this.colorToMove) {
       this.initDrag(square);
       this.initMove(square);
       this.setHover(e);
@@ -154,7 +163,8 @@ class Game {
     this.prevMoveSquares = [this.activeSquare, toSquare];
     toSquare.piece = this.dragPiece || this.activeSquare.piece;
     this.activeSquare.piece = 0;
-    this.clearActiveSquares()
+    this.clearActiveSquares();
+    this.colorToMove = this.colorToMove === Piece.White ? Piece.Black : Piece.White;
   }
 
   clearActiveSquares = () => {
@@ -201,12 +211,6 @@ class Game {
       default: return null;
     }
   }
-
-  getImage = (fileName) => {
-    var img = new Image();
-    img.src = `./images/${fileName}`;
-    return img;
-  };
 }
 
 class Board {
@@ -221,11 +225,7 @@ class Board {
     this.loadFen(game.startPosition);
   }
 
-  draw = () => {
-    this.squares.forEach(sq => sq.draw());
-  };
-
-  isDigit = (str) => /^\d+$/.test(str);
+  draw = () => { this.squares.forEach(sq => sq.draw()); };
 
   loadFen = (fen) => {
     const pieceTypeFromSymbol = {
@@ -242,7 +242,7 @@ class Board {
       if (symbol === '/') {
         file = 0;
         rank--;
-      } else if (this.isDigit(symbol)) {
+      } else if (Utils.isDigit(symbol)) {
         file += parseInt(symbol);
       } else {
         const pieceColor = symbol === symbol.toUpperCase() ? Piece.White : Piece.Black;
@@ -267,6 +267,7 @@ class Square {
   get textColor() { return this.isLightSquare ? this.game.darkColor : this.game.lightColor; }
   get xPos() { return this.file * this.game.squareSize; }
   get yPos() { return (this.game.squareSize * 7) - (this.rank * this.game.squareSize); }
+  get pieceColor() { return this.piece >= 16 ? Piece.Black : Piece.White; }
 
   draw = () => {
     this.game.ctx.fillStyle = this.squareColor;
