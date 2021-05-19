@@ -107,7 +107,7 @@ class Game {
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
       this.clearActiveSquares()
-    } else if (square.piece && square.pieceColor === this.colorToMove) {
+    } else if (square.piece && square.piece.color === this.colorToMove) {
       this.initDrag(square);
       this.initMove(square);
       this.setHover(e);
@@ -155,14 +155,14 @@ class Game {
   }
 
   initMove = (fromSquare) => {
-    fromSquare.piece = 0;
+    fromSquare.piece = null;
     this.activeSquare = fromSquare;
   }
 
   doMove = (toSquare) => {
     this.prevMoveSquares = [this.activeSquare, toSquare];
     toSquare.piece = this.dragPiece || this.activeSquare.piece;
-    this.activeSquare.piece = 0;
+    this.activeSquare.piece = null;
     this.clearActiveSquares();
     this.colorToMove = this.colorToMove === PieceColor.White ? PieceColor.Black : PieceColor.White;
   }
@@ -197,11 +197,16 @@ class Game {
 
   getPieceImage = (piece) => {
     if (!piece) return null;
-    const set = piece < 16 ? this.whitePieces : this.blackPieces;
-    while (piece >= 8) {
-      piece -= 8;
+    let set;
+    switch (piece.color) {
+      case PieceColor.White:
+        set = this.whitePieces;
+        break;
+      case PieceColor.Black:
+        set = this.blackPieces;
+        break;
     }
-    switch (piece) {
+    switch (piece.type) {
       case PieceType.King: return set.King;
       case PieceType.Pawn: return set.Pawn;
       case PieceType.Knight: return set.Knight;
@@ -216,7 +221,7 @@ class Game {
     let moves = [];
 
     for (let from = 0; from < 64; from++) {
-      const piece = this.board.squares[from];
+      const piece = this.board.squares[from].piece;
       if (piece.color !== this.colorToMove) continue;
       if (piece.isSlidingPiece()) {
         this.generateSlidingMoves(from, piece);
@@ -266,7 +271,7 @@ class Board {
       } else {
         const pieceColor = symbol === symbol.toUpperCase() ? PieceColor.White : PieceColor.Black;
         const pieceType = pieceTypeFromSymbol[symbol.toLowerCase()];
-        this.squares[rank * 8 + file].piece = pieceColor | pieceType;
+        this.squares[rank * 8 + file].piece = new Piece(pieceColor, pieceType);
         file++;
       }
     });
@@ -278,7 +283,7 @@ class Square {
     this.file = file;
     this.rank = rank;
     this.game = game;
-    this.piece = 0;
+    this.piece = null;
     this.isLightSquare = (file + rank) % 2 === 0;
   }
 
@@ -286,7 +291,6 @@ class Square {
   get textColor() { return this.isLightSquare ? this.game.darkColor : this.game.lightColor; }
   get xPos() { return this.file * this.game.squareSize; }
   get yPos() { return (this.game.squareSize * 7) - (this.rank * this.game.squareSize); }
-  get pieceColor() { return this.piece >= 16 ? PieceColor.Black : PieceColor.White; }
 
   draw = () => {
     this.game.ctx.fillStyle = this.squareColor;
