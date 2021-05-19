@@ -39,7 +39,8 @@ class Game {
     this.hoverY = null;
     this.dragPiece = null;
     this.colorToMove = PieceColor.White;
-    this.possibleMoves = [];
+    this.pseudoLegalMoves = [];
+    this.legalMoves = [];
   }
 
   init = () => {
@@ -165,7 +166,7 @@ class Game {
   initMove = (fromSquare) => {
     fromSquare.piece = null;
     this.activeSquare = fromSquare;
-    this.possibleSquares = this.possibleMoves
+    this.possibleSquares = this.pseudoLegalMoves
       .filter(move => move.fromIndex === fromSquare.index)
       .map(move => move.toIndex);
   }
@@ -235,30 +236,45 @@ class Game {
   }
 
   generateMoves = () => {
-    this.possibleMoves = [];
+    this.pseudoLegalMoves = this.generatePseudoLegalMoves();
+    this.legalMoves = this.generateLegalMoves();
+  };
+
+  generatePseudoLegalMoves = () => {
+    let moves = [];
+
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
       const piece = this.board.squares[fromIndex].piece;
       if (!piece || piece.color !== this.colorToMove) continue;
       switch (piece.type) {
         case PieceType.Pawn:
-          this.generatePawnMoves(fromIndex, piece);
+          moves = [...moves, ...this.generatePawnMoves(fromIndex, piece)];
           break;
         case PieceType.Knight:
-          this.generateKnightMoves(fromIndex, piece);
+          moves = [...moves, ...this.generateKnightMoves(fromIndex, piece)];
           break;
         case PieceType.King:
-          this.generateKingMoves(fromIndex, piece);
+          moves = [...moves, ...this.generateKingMoves(fromIndex, piece)];
           break;
         case PieceType.Bishop:
         case PieceType.Rook:
         case PieceType.Queen:
-          this.generateSlidingMoves(fromIndex, piece);
+          moves = [...moves, ...this.generateSlidingMoves(fromIndex, piece)];
           break;
       }
     }
+
+    return moves;
+  };
+  
+  generateLegalMoves = () => {
+    // todo
+    return this.pseudoLegalMoves;
   };
 
   generatePawnMoves = (fromIndex, piece) => {
+    const moves = [];
+
     const moveForward = piece.color === PieceColor.White ? DirectionIndex.North : DirectionIndex.South;
     const attackLeft = piece.color === PieceColor.White ? DirectionIndex.NorthWest : DirectionIndex.SouthEast;
     const attackRight = piece.color === PieceColor.White ? DirectionIndex.NorthEast : DirectionIndex.SouthWest;
@@ -267,21 +283,21 @@ class Game {
     const forwardSquareIndex = fromIndex + this.directionOffsets[moveForward];
     const forwardSquarePiece = this.board.squares[forwardSquareIndex].piece;
     if (!forwardSquarePiece) {
-      this.possibleMoves.push(new Move(fromIndex, forwardSquareIndex));
+      moves.push(new Move(fromIndex, forwardSquareIndex));
     }
 
     // check attack left
     const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
     const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
     if (attackLeftSquarePiece && attackLeftSquarePiece.color !== this.colorToMove) {
-      this.possibleMoves.push(new Move(fromIndex, attackLeftSquareIndex));
+      moves.push(new Move(fromIndex, attackLeftSquareIndex));
     }
 
     // check attack right
     const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
     const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
     if (attackRightSquarePiece && attackRightSquarePiece.color !== this.colorToMove) {
-      this.possibleMoves.push(new Move(fromIndex, attackRightSquareIndex));
+      moves.push(new Move(fromIndex, attackRightSquareIndex));
     }
 
     // check two squares forward
@@ -291,40 +307,65 @@ class Game {
       ||
       (piece.color === PieceColor.Black && rank === 7)
     );
-    if (!isFirstMove) return;
-    const doubleSquareIndex = forwardSquareIndex + this.directionOffsets[moveForward];
-    const doubleSquarePiece = this.board.squares[doubleSquareIndex].piece;
-    if (!forwardSquarePiece && !doubleSquarePiece) {
-      this.possibleMoves.push(new Move(fromIndex, doubleSquareIndex));
+    if (isFirstMove) {
+      const doubleSquareIndex = forwardSquareIndex + this.directionOffsets[moveForward];
+      const doubleSquarePiece = this.board.squares[doubleSquareIndex].piece;
+      if (!forwardSquarePiece && !doubleSquarePiece) {
+        moves.push(new Move(fromIndex, doubleSquareIndex));
+      }
     }
+
+    return moves;
   };
 
   generateKnightMoves = (fromIndex, piece) => {
+    const moves = [];
     // todo
+    return moves;
   }
 
   generateKingMoves = (fromIndex, piece) => {
-    // todo
+    const moves = [];
+
+    for (let dirIndex = 0; dirIndex < 8; dirIndex++) {
+      const toIndex = fromIndex + this.directionOffsets[dirIndex];
+
+      // blocked by edge of board
+      if (this.numSquaresToEdge[fromIndex][dirIndex] === 0) continue;
+
+      const toPiece = this.board.squares[toIndex].piece;
+
+      // blocked by friendly piece
+      if (toPiece && toPiece.color === this.colorToMove) continue;
+
+      moves.push(new Move(fromIndex, toIndex));
+    }
+
+    return moves;
   }
 
   generateSlidingMoves = (fromIndex, piece) => {
+    const moves = [];
+
     const startDirIndex = piece.type === PieceType.Bishop ? 4 : 0;
     const endDirIndex = piece.type === PieceType.Rook ? 4 : 8;
 
     for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
       for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
         const toIndex = fromIndex + this.directionOffsets[dirIndex] * (n + 1);
-        const toSquarePiece = this.board.squares[toIndex].piece;
+        const toPiece = this.board.squares[toIndex].piece;
 
         // blocked by friendly piece, so can't move any further in this direction
-        if (toSquarePiece && toSquarePiece.color === this.colorToMove) break;
+        if (toPiece && toPiece.color === this.colorToMove) break;
 
-        this.possibleMoves.push(new Move(fromIndex, toIndex));
+        moves.push(new Move(fromIndex, toIndex));
 
         // can't move any further in this direction after capturing opponent's piece
-        if (toSquarePiece && toSquarePiece.color !== this.colorToMove) break;
+        if (toPiece && toPiece.color !== this.colorToMove) break;
       }
     }
+
+    return moves;
   };
 }
 
