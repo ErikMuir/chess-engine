@@ -175,6 +175,7 @@ class Game {
     toSquare.piece = this.dragPiece || this.activeSquare.piece;
     this.activeSquare.piece = null;
     this.clearActiveSquares();
+    this.clearPossibleSquares();
     this.colorToMove = this.colorToMove === PieceColor.White ? PieceColor.Black : PieceColor.White;
     this.generateMoves();
   }
@@ -238,12 +239,73 @@ class Game {
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
       const piece = this.board.squares[fromIndex].piece;
       if (!piece || piece.color !== this.colorToMove) continue;
-      if (piece.isSlidingPiece()) {
-        this.generateSlidingMoves(fromIndex, piece);
+      switch (piece.type) {
+        case PieceType.Pawn:
+          this.generatePawnMoves(fromIndex, piece);
+          break;
+        case PieceType.Knight:
+          this.generateKnightMoves(fromIndex, piece);
+          break;
+        case PieceType.King:
+          this.generateKingMoves(fromIndex, piece);
+          break;
+        case PieceType.Bishop:
+        case PieceType.Rook:
+        case PieceType.Queen:
+          this.generateSlidingMoves(fromIndex, piece);
+          break;
       }
-      // todo : else if () ...
     }
   };
+
+  generatePawnMoves = (fromIndex, piece) => {
+    const moveForward = piece.color === PieceColor.White ? DirectionIndex.North : DirectionIndex.South;
+    const attackLeft = piece.color === PieceColor.White ? DirectionIndex.NorthWest : DirectionIndex.SouthEast;
+    const attackRight = piece.color === PieceColor.White ? DirectionIndex.NorthEast : DirectionIndex.SouthWest;
+
+    // check one square forward
+    const forwardSquareIndex = fromIndex + this.directionOffsets[moveForward];
+    const forwardSquarePiece = this.board.squares[forwardSquareIndex].piece;
+    if (!forwardSquarePiece) {
+      this.possibleMoves.push(new Move(fromIndex, forwardSquareIndex));
+    }
+
+    // check attack left
+    const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
+    const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
+    if (attackLeftSquarePiece && attackLeftSquarePiece.color !== this.colorToMove) {
+      this.possibleMoves.push(new Move(fromIndex, attackLeftSquareIndex));
+    }
+
+    // check attack right
+    const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
+    const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
+    if (attackRightSquarePiece && attackRightSquarePiece.color !== this.colorToMove) {
+      this.possibleMoves.push(new Move(fromIndex, attackRightSquareIndex));
+    }
+
+    // check two squares forward
+    const rank = Math.floor(fromIndex / 8) + 1;
+    const isFirstMove = (
+      (piece.color === PieceColor.White && rank === 2)
+      ||
+      (piece.color === PieceColor.Black && rank === 7)
+    );
+    if (!isFirstMove) return;
+    const doubleSquareIndex = forwardSquareIndex + this.directionOffsets[moveForward];
+    const doubleSquarePiece = this.board.squares[doubleSquareIndex].piece;
+    if (!forwardSquarePiece && !doubleSquarePiece) {
+      this.possibleMoves.push(new Move(fromIndex, doubleSquareIndex));
+    }
+  };
+
+  generateKnightMoves = (fromIndex, piece) => {
+    // todo
+  }
+
+  generateKingMoves = (fromIndex, piece) => {
+    // todo
+  }
 
   generateSlidingMoves = (fromIndex, piece) => {
     const startDirIndex = piece.type === PieceType.Bishop ? 4 : 0;
@@ -251,8 +313,8 @@ class Game {
 
     for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
       for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
-        var toIndex = fromIndex + this.directionOffsets[dirIndex] * (n + 1);
-        var toSquarePiece = this.board.squares[toIndex].piece;
+        const toIndex = fromIndex + this.directionOffsets[dirIndex] * (n + 1);
+        const toSquarePiece = this.board.squares[toIndex].piece;
 
         // blocked by friendly piece, so can't move any further in this direction
         if (toSquarePiece && toSquarePiece.color === this.colorToMove) break;
@@ -260,22 +322,29 @@ class Game {
         this.possibleMoves.push(new Move(fromIndex, toIndex));
 
         // can't move any further in this direction after capturing opponent's piece
-        if (toSquarePiece && toSquarePiece.color !== colorToMove) break;
+        if (toSquarePiece && toSquarePiece.color !== this.colorToMove) break;
       }
     }
   };
 }
 
 class Board {
-  constructor(game) {
+  constructor(game, board) {
     this.game = game;
     this.squares = new Array(64);
     for (let rank = 0; rank < 8; rank++) {
       for (let file = 0; file < 8; file++) {
-        this.squares[rank * 8 + file] = new Square(file, rank, game);
+        const index = rank * 8 + file;
+        this.squares[index] = new Square(file, rank, game);
+        if (!board) continue;
+        const piece = board.squares[index].piece;
+        if (!piece) continue;
+        this.squares[index].piece = new Piece(piece.color, piece.type);
       }
     }
-    this.loadFen(game.startPosition);
+    if (!board) {
+      this.loadFen(game.startPosition);
+    }
   }
 
   draw = () => { this.squares.forEach(sq => sq.draw()); };
@@ -419,4 +488,15 @@ class Move {
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
   }
+}
+
+class DirectionIndex {
+  static North = 0;
+  static South = 1;
+  static West = 2;
+  static East = 3;
+  static NorthWest = 4;
+  static SouthEast = 5;
+  static NorthEast = 6;
+  static SouthWest = 7;
 }
