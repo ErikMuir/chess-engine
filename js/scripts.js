@@ -1,6 +1,8 @@
+let _game;
+
 window.onload = () => {
-  const game = new Game();
-  game.init();
+  _game = new Game();
+  _game.init();
 }
 
 class Utils {
@@ -25,16 +27,19 @@ class Game {
     this.darkColor = '#a97a65';
     this.activeOverlay = '#00cc00';
     this.previousOverlay = '#cccc00';
+    this.possibleOverlay = '#cc0000';
     this.overlayOpacity = 0.4;
     this.numSquaresToEdge = new Array(64);
     this.directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
     this.prevMoveSquares = [];
+    this.possibleSquares = [];
     this.activeSquare = null;
     this.hoverSquare = null;
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
     this.colorToMove = PieceColor.White;
+    this.possibleMoves = [];
   }
 
   init = () => {
@@ -101,12 +106,14 @@ class Game {
         ];
       }
     }
+    this.generateMoves();
   };
 
   onMouseDown = (e) => {
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
-      this.clearActiveSquares()
+      this.clearActiveSquares();
+      this.clearPossibleSquares();
     } else if (square.piece && square.piece.color === this.colorToMove) {
       this.initDrag(square);
       this.initMove(square);
@@ -134,6 +141,7 @@ class Game {
     if (this.dragPiece) {
       this.cancelDrag();
       this.activeSquare = null;
+      this.clearPossibleSquares();
     }
   };
 
@@ -157,6 +165,9 @@ class Game {
   initMove = (fromSquare) => {
     fromSquare.piece = null;
     this.activeSquare = fromSquare;
+    this.possibleSquares = this.possibleMoves
+      .filter(move => move.fromIndex === fromSquare.index)
+      .map(move => move.toIndex);
   }
 
   doMove = (toSquare) => {
@@ -165,12 +176,17 @@ class Game {
     this.activeSquare.piece = null;
     this.clearActiveSquares();
     this.colorToMove = this.colorToMove === PieceColor.White ? PieceColor.Black : PieceColor.White;
+    this.generateMoves();
   }
 
   clearActiveSquares = () => {
     this.activeSquare = null;
     this.hoverSquare = null;
   }
+
+  clearPossibleSquares = () => {
+    this.possibleSquares = [];
+  };
 
   getEventSquare = (e) => {
     const rank = 7 - Math.floor(e.offsetY / this.squareSize);
@@ -217,23 +233,36 @@ class Game {
     }
   }
 
-  getMoves = () => {
-    let moves = [];
-
-    for (let from = 0; from < 64; from++) {
-      const piece = this.board.squares[from].piece;
-      if (piece.color !== this.colorToMove) continue;
+  generateMoves = () => {
+    this.possibleMoves = [];
+    for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
+      const piece = this.board.squares[fromIndex].piece;
+      if (!piece || piece.color !== this.colorToMove) continue;
       if (piece.isSlidingPiece()) {
-        this.generateSlidingMoves(from, piece);
+        this.generateSlidingMoves(fromIndex, piece);
       }
       // todo : else if () ...
     }
-
-    return moves;
   };
 
-  generateSlidingMoves = (from, piece) => {
-    // todo
+  generateSlidingMoves = (fromIndex, piece) => {
+    const startDirIndex = piece.type === PieceType.Bishop ? 4 : 0;
+    const endDirIndex = piece.type === PieceType.Rook ? 4 : 8;
+
+    for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
+      for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
+        var toIndex = fromIndex + this.directionOffsets[dirIndex] * (n + 1);
+        var toSquarePiece = this.board.squares[toIndex].piece;
+
+        // blocked by friendly piece, so can't move any further in this direction
+        if (toSquarePiece && toSquarePiece.color === this.colorToMove) break;
+
+        this.possibleMoves.push(new Move(fromIndex, toIndex));
+
+        // can't move any further in this direction after capturing opponent's piece
+        if (toSquarePiece && toSquarePiece.color !== colorToMove) break;
+      }
+    }
   };
 }
 
@@ -284,6 +313,7 @@ class Square {
     this.rank = rank;
     this.game = game;
     this.piece = null;
+    this.index = rank * 8 + file;
     this.isLightSquare = (file + rank) % 2 === 0;
   }
 
@@ -310,6 +340,10 @@ class Square {
 
     if (this.game.prevMoveSquares.includes(this)) {
       this.drawOverlay(this.game.previousOverlay);
+    }
+
+    if (this.game.possibleSquares.includes(this.index)) {
+      this.drawOverlay(this.game.possibleOverlay);
     }
 
     if (this.piece) {
@@ -381,8 +415,8 @@ class Piece {
 }
 
 class Move {
-  constructor(from, to) {
-    this.from = from;
-    this.to = to;
+  constructor(fromIndex, toIndex) {
+    this.fromIndex = fromIndex;
+    this.toIndex = toIndex;
   }
 }
