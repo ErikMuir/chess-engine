@@ -7,7 +7,7 @@ window.onload = () => {
 
 /*
 TODO :
-  * allow pawn promotion to pieces other than Queen
+  * pawn promotion non-Queen options
   * en passant
   * castling
   * legal moves
@@ -23,6 +23,59 @@ class Utils {
   };
 }
 
+class PieceColor {
+  static White = 8;
+  static Black = 16;
+}
+
+class PieceType {
+  static None = 0;
+  static King = 1;
+  static Pawn = 2;
+  static Knight = 3;
+  static Bishop = 4;
+  static Rook = 5;
+  static Queen = 6;
+
+  static parse = (val) => {
+    switch (val.toLowerCase()) {
+      case 'k': return PieceType.King;
+      case 'p': return PieceType.Pawn;
+      case 'n': return PieceType.Knight;
+      case 'b': return PieceType.Bishop;
+      case 'r': return PieceType.Rook;
+      case 'q': return PieceType.Queen;
+      default: return PieceType.None;
+    }
+  };
+}
+
+class Piece {
+  constructor(color, type) {
+    this.color = color;
+    this.type = type;
+    this.value = color | type;
+  }
+}
+
+class Move {
+  constructor(fromIndex, toIndex) {
+    this.fromIndex = fromIndex;
+    this.toIndex = toIndex;
+  }
+}
+
+class DirectionIndex {
+  static North = 0;
+  static South = 1;
+  static West = 2;
+  static East = 3;
+  static NorthWest = 4;
+  static SouthEast = 5;
+  static NorthEast = 6;
+  static SouthWest = 7;
+}
+
 class Game {
   constructor() {
     this.board = null;
@@ -35,14 +88,13 @@ class Game {
     this.darkColor = '#a97a65';
     this.activeOverlay = '#00cc00';
     this.previousOverlay = '#cccc00';
-    this.possibleOverlay = '#cc0000';
+    this.possibleOverlay = '#333333';
     this.overlayOpacity = 0.4;
     this.numSquaresToEdge = new Array(64);
     this.directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
     this.prevMoveSquares = [];
     this.possibleSquares = [];
     this.activeSquare = null;
-    this.hoverSquare = null;
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
@@ -121,7 +173,7 @@ class Game {
   onMouseDown = (e) => {
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
-      this.clearActiveSquares();
+      this.clearActiveSquare();
       this.clearPossibleSquares();
     } else if (square.piece && square.piece.color === this.colorToMove) {
       this.initDrag(square);
@@ -139,7 +191,7 @@ class Game {
     if (this.isLegalMove(square)) {
       this.doMove(square);
       this.togglePlayerTurn();
-      this.clearActiveSquares();
+      this.clearActiveSquare();
       this.clearPossibleSquares();
       this.generateMoves();
     }
@@ -150,7 +202,6 @@ class Game {
   };
 
   onMouseOut = () => {
-    this.hoverSquare = null;
     if (this.dragPiece) {
       this.cancelDrag();
       this.activeSquare = null;
@@ -161,7 +212,6 @@ class Game {
   setHover = (e) => {
     this.hoverX = e.offsetX;
     this.hoverY = e.offsetY;
-    this.hoverSquare = this.activeSquare ? this.getEventSquare(e) : null;
   }
 
   initDrag = (fromSquare) => {
@@ -213,9 +263,8 @@ class Game {
       : PieceColor.White;
   };
 
-  clearActiveSquares = () => {
+  clearActiveSquare = () => {
     this.activeSquare = null;
-    this.hoverSquare = null;
   }
 
   clearPossibleSquares = () => {
@@ -484,7 +533,7 @@ class Board {
         file += parseInt(symbol);
       } else {
         const pieceColor = symbol === symbol.toUpperCase() ? PieceColor.White : PieceColor.Black;
-        const pieceType = pieceTypeFromSymbol[symbol.toLowerCase()];
+        const pieceType = PieceType.parse(symbol);
         this.squares[rank * 8 + file].piece = new Piece(pieceColor, pieceType);
         file++;
       }
@@ -519,7 +568,7 @@ class Square {
       this.drawFileLabel();
     }
 
-    if ([this.game.activeSquare, this.game.hoverSquare].includes(this)) {
+    if ([this.game.activeSquare].includes(this)) {
       this.drawOverlay(this.game.activeOverlay);
     }
 
@@ -527,12 +576,12 @@ class Square {
       this.drawOverlay(this.game.previousOverlay);
     }
 
-    if (this.game.possibleSquares.includes(this.index)) {
-      this.drawOverlay(this.game.possibleOverlay);
-    }
-
     if (this.piece) {
       this.drawPiece();
+    }
+
+    if (this.game.possibleSquares.includes(this.index)) {
+      this.drawPossibleOverlay();
     }
   };
 
@@ -561,6 +610,37 @@ class Square {
     this.game.ctx.globalAlpha = 1.0;
   }
 
+  drawPossibleOverlay = () => {
+    if (this.piece) {
+      this.drawPossibleOverlayOccupied();
+    } else {
+      this.drawPossibleOverlayEmpty();
+    }
+  };
+
+  drawPossibleOverlayEmpty = () => {
+    const offset = this.game.proportion(0.5);
+    const radius = this.game.proportion(0.17);
+    this.game.ctx.globalAlpha = 0.2;
+    this.game.ctx.beginPath();
+    this.game.ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
+    this.game.ctx.fillStyle = this.game.possibleOverlay;
+    this.game.ctx.fill();
+    this.game.ctx.globalAlpha = 1.0;
+  };
+
+  drawPossibleOverlayOccupied = () => {
+    const offset = this.game.proportion(0.5);
+    const radius = this.game.proportion(0.46);
+    this.game.ctx.globalAlpha = 0.2;
+    this.game.ctx.beginPath();
+    this.game.ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
+    this.game.ctx.lineWidth = 7;
+    this.game.ctx.strokeStyle = this.game.possibleOverlay;
+    this.game.ctx.stroke();
+    this.game.ctx.globalAlpha = 1.0;
+  };
+
   drawPiece = () => {
     const img = this.game.getPieceImage(this.piece);
     const offset = this.game.proportion(0.1);
@@ -569,50 +649,4 @@ class Square {
     const y = this.yPos + offset;
     this.game.ctx.drawImage(img, x, y, size, size);
   };
-}
-
-class PieceColor {
-  static White = 8;
-  static Black = 16;
-}
-
-class PieceType {
-  static None = 0;
-  static King = 1;
-  static Pawn = 2;
-  static Knight = 3;
-  static Bishop = 4;
-  static Rook = 5;
-  static Queen = 6;
-}
-
-class Piece {
-  constructor(color, type) {
-    this.color = color;
-    this.type = type;
-    this.value = color | type;
-  }
-
-  isSlidingPiece = () => {
-    const slidingPieces = [PieceType.Bishop, PieceType.Rook, PieceType.Queen]
-    return slidingPieces.includes(this.type);
-  }
-}
-
-class Move {
-  constructor(fromIndex, toIndex) {
-    this.fromIndex = fromIndex;
-    this.toIndex = toIndex;
-  }
-}
-
-class DirectionIndex {
-  static North = 0;
-  static South = 1;
-  static West = 2;
-  static East = 3;
-  static NorthWest = 4;
-  static SouthEast = 5;
-  static NorthEast = 6;
-  static SouthWest = 7;
 }
