@@ -125,11 +125,15 @@ class Game {
   onMouseUp = (e) => {
     if (!this.activeSquare) return;
     const square = this.getEventSquare(e);
-    if (this.activeSquare !== square) {
-      this.doMove(square);
-    }
     if (this.dragPiece) {
       this.cancelDrag();
+    }
+    if (this.isLegalMove(square)) {
+      this.doMove(square);
+      this.togglePlayerTurn();
+      this.clearActiveSquares();
+      this.clearPossibleSquares();
+      this.generateMoves();
     }
   };
 
@@ -172,14 +176,24 @@ class Game {
   }
 
   doMove = (toSquare) => {
-    this.prevMoveSquares = [this.activeSquare, toSquare];
+    // todo : implement pawn promotion
     toSquare.piece = this.dragPiece || this.activeSquare.piece;
+    this.prevMoveSquares = [this.activeSquare, toSquare];
     this.activeSquare.piece = null;
-    this.clearActiveSquares();
-    this.clearPossibleSquares();
-    this.colorToMove = this.colorToMove === PieceColor.White ? PieceColor.Black : PieceColor.White;
-    this.generateMoves();
   }
+
+  isLegalMove = (toSquare) => {
+    const legalMove = this.legalMoves.find(move =>
+      move.fromIndex === this.activeSquare.index
+      && move.toIndex === toSquare.index);
+    return !!legalMove;
+  };
+
+  togglePlayerTurn = () => {
+    this.colorToMove = this.colorToMove === PieceColor.White
+      ? PieceColor.Black
+      : PieceColor.White;
+  };
 
   clearActiveSquares = () => {
     this.activeSquare = null;
@@ -241,25 +255,27 @@ class Game {
   };
 
   generatePseudoLegalMoves = () => {
-    let moves = [];
+    const moves = [];
 
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
       const piece = this.board.squares[fromIndex].piece;
-      if (!piece || piece.color !== this.colorToMove) continue;
+      if (!piece || piece.color !== this.colorToMove)
+        continue;
+
       switch (piece.type) {
         case PieceType.Pawn:
-          moves = [...moves, ...this.generatePawnMoves(fromIndex, piece)];
+          moves.push(...this.generatePawnMoves(fromIndex, piece));
           break;
         case PieceType.Knight:
-          moves = [...moves, ...this.generateKnightMoves(fromIndex, piece)];
+          moves.push(...this.generateKnightMoves(fromIndex, piece));
           break;
         case PieceType.King:
-          moves = [...moves, ...this.generateKingMoves(fromIndex, piece)];
+          moves.push(...this.generateKingMoves(fromIndex, piece));
           break;
         case PieceType.Bishop:
         case PieceType.Rook:
         case PieceType.Queen:
-          moves = [...moves, ...this.generateSlidingMoves(fromIndex, piece)];
+          moves.push(...this.generateSlidingMoves(fromIndex, piece));
           break;
       }
     }
@@ -273,6 +289,7 @@ class Game {
   };
 
   generatePawnMoves = (fromIndex, piece) => {
+    // todo : en passant
     const moves = [];
 
     const moveForward = piece.color === PieceColor.White ? DirectionIndex.North : DirectionIndex.South;
@@ -320,11 +337,51 @@ class Game {
 
   generateKnightMoves = (fromIndex, piece) => {
     const moves = [];
-    // todo
+
+    const checkMove = (passingIndex, dirIndex) => {
+      const toIndex = passingIndex + this.directionOffsets[dirIndex];
+      const toPiece = this.board.squares[toIndex].piece;
+
+      // blocked by friendly piece
+      if (toPiece && toPiece.color === this.colorToMove) return;
+
+      moves.push(new Move(fromIndex, toIndex));
+    };
+
+    const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.North];
+    const southEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.South];
+    const westEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.West];
+    const eastEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.East];
+
+    if (northEdge > 1) {
+      const northIndex = fromIndex + this.directionOffsets[DirectionIndex.North];
+      if (westEdge > 0) checkMove(northIndex, DirectionIndex.NorthWest);
+      if (eastEdge > 0) checkMove(northIndex, DirectionIndex.NorthEast);
+    }
+
+    if (southEdge > 1) {
+      const southIndex = fromIndex + this.directionOffsets[DirectionIndex.South];
+      if (westEdge > 0) checkMove(southIndex, DirectionIndex.SouthWest);
+      if (eastEdge > 0) checkMove(southIndex, DirectionIndex.SouthEast);
+    }
+
+    if (westEdge > 1) {
+      const westIndex = fromIndex + this.directionOffsets[DirectionIndex.West];
+      if (northEdge > 0) checkMove(westIndex, DirectionIndex.NorthWest);
+      if (southEdge > 0) checkMove(westIndex, DirectionIndex.SouthWest);
+    }
+
+    if (eastEdge > 1) {
+      const eastIndex = fromIndex + this.directionOffsets[DirectionIndex.East];
+      if (northEdge > 0) checkMove(eastIndex, DirectionIndex.NorthEast);
+      if (southEdge > 0) checkMove(eastIndex, DirectionIndex.SouthEast);
+    }
+
     return moves;
   }
 
   generateKingMoves = (fromIndex, piece) => {
+    // todo : castling
     const moves = [];
 
     for (let dirIndex = 0; dirIndex < 8; dirIndex++) {
