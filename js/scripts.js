@@ -5,13 +5,19 @@ window.onload = () => {
   _game.init();
 }
 
-/*
-TODO :
-  * pawn promotion non-Queen options
-  * en passant
-  * castling
-  * legal moves
-*/
+/**
+ * FEATURES
+ * ------------------------------------
+ *  pawn promotion non_queen options
+ *  en passant
+ *  castling
+ *  legal moves (test for check)
+ *  signal checkmate
+ *  determine best move
+ * 
+ * BUGS
+ * ------------------------------------
+ */
 
 class Utils {
   static isDigit = (str) => /^\d+$/.test(str);
@@ -86,7 +92,7 @@ class Game {
     this.squareSize = 80;
     this.lightColor = '#f1d9c0';
     this.darkColor = '#a97a65';
-    this.activeOverlay = '#00cc00';
+    this.activeOverlay = '#cccc00';
     this.previousOverlay = '#cccc00';
     this.possibleOverlay = '#333333';
     this.overlayOpacity = 0.4;
@@ -173,9 +179,9 @@ class Game {
   onMouseDown = (e) => {
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
-    } else if (square.piece && square.piece.color === this.colorToMove) {
+      this.deselect = true;
+    }
+    if (square.piece && square.piece.color === this.colorToMove) {
       this.initDrag(square);
       this.initMove(square);
       this.setHover(e);
@@ -188,7 +194,11 @@ class Game {
     if (this.dragPiece) {
       this.cancelDrag();
     }
-    if (this.isLegalMove(square)) {
+    if (square === this.activeSquare && this.deselect) {
+      this.clearActiveSquare();
+      this.clearPossibleSquares();
+      this.deselect = false;
+    } else if (this.isLegalMove(square)) {
       this.doMove(square);
       this.togglePlayerTurn();
       this.clearActiveSquare();
