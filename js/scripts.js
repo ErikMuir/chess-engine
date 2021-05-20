@@ -5,6 +5,14 @@ window.onload = () => {
   _game.init();
 }
 
+/*
+TODO :
+  * allow pawn promotion to pieces other than Queen
+  * en passant
+  * castling
+  * legal moves
+*/
+
 class Utils {
   static isDigit = (str) => /^\d+$/.test(str);
 
@@ -176,11 +184,21 @@ class Game {
   }
 
   doMove = (toSquare) => {
-    // todo : implement pawn promotion
-    toSquare.piece = this.dragPiece || this.activeSquare.piece;
+    toSquare.piece = this.getToSquarePiece(toSquare);
     this.prevMoveSquares = [this.activeSquare, toSquare];
     this.activeSquare.piece = null;
   }
+
+  getToSquarePiece = (toSquare) => {
+    const toSquarePiece = this.dragPiece || this.activeSquare.piece;
+    if (toSquarePiece.type === PieceType.Pawn) {
+      const promotionRank = toSquarePiece.color === PieceColor.White ? 7 : 0;
+      if (toSquare.rank === promotionRank) {
+        toSquarePiece.type = PieceType.Queen;
+      }
+    }
+    return toSquarePiece;
+  };
 
   isLegalMove = (toSquare) => {
     const legalMove = this.legalMoves.find(move =>
@@ -318,11 +336,11 @@ class Game {
     }
 
     // check two squares forward
-    const rank = Math.floor(fromIndex / 8) + 1;
+    const rank = Math.floor(fromIndex / 8);
     const isFirstMove = (
-      (piece.color === PieceColor.White && rank === 2)
+      (piece.color === PieceColor.White && rank === 1)
       ||
-      (piece.color === PieceColor.Black && rank === 7)
+      (piece.color === PieceColor.Black && rank === 6)
     );
     if (isFirstMove) {
       const doubleSquareIndex = forwardSquareIndex + this.directionOffsets[moveForward];
