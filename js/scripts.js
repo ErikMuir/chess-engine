@@ -8,6 +8,8 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
+ *  fully load FEN
+ *  export FEN
  *  pawn promotion non_queen options
  *  en passant
  *  castling
@@ -30,8 +32,17 @@ class Utils {
 }
 
 class PieceColor {
+  static None = 0;
   static White = 8;
   static Black = 16;
+
+  static parse = (val) => {
+    switch (val.toLowerCase()) {
+      case 'w': return PieceColor.White;
+      case 'b': return PieceColor.Black;
+      default: return PieceColor.None;
+    }
+  };
 }
 
 class PieceType {
@@ -104,7 +115,11 @@ class Game {
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
-    this.colorToMove = PieceColor.White;
+    this.activeColor = PieceColor.White;
+    this.enPassantTargetSquare = null;
+    this.castlingAvailability = null;
+    this.halfMoveClock = 0;
+    this.fullMoveNumber = 0;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
   }
@@ -181,7 +196,7 @@ class Game {
     if (square === this.activeSquare) {
       this.deselect = true;
     }
-    if (square.piece && square.piece.color === this.colorToMove) {
+    if (square.piece && square.piece.color === this.activeColor) {
       this.initDrag(square);
       this.initMove(square);
       this.setHover(e);
@@ -268,7 +283,7 @@ class Game {
   };
 
   togglePlayerTurn = () => {
-    this.colorToMove = this.colorToMove === PieceColor.White
+    this.activeColor = this.activeColor === PieceColor.White
       ? PieceColor.Black
       : PieceColor.White;
   };
@@ -336,7 +351,7 @@ class Game {
 
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
       const piece = this.board.squares[fromIndex].piece;
-      if (!piece || piece.color !== this.colorToMove)
+      if (!piece || piece.color !== this.activeColor)
         continue;
 
       switch (piece.type) {
@@ -383,14 +398,14 @@ class Game {
     // check attack left
     const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
     const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
-    if (attackLeftSquarePiece && attackLeftSquarePiece.color !== this.colorToMove) {
+    if (attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor) {
       moves.push(new Move(fromIndex, attackLeftSquareIndex));
     }
 
     // check attack right
     const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
     const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
-    if (attackRightSquarePiece && attackRightSquarePiece.color !== this.colorToMove) {
+    if (attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor) {
       moves.push(new Move(fromIndex, attackRightSquareIndex));
     }
 
@@ -420,7 +435,7 @@ class Game {
       const toPiece = this.board.squares[toIndex].piece;
 
       // blocked by friendly piece
-      if (toPiece && toPiece.color === this.colorToMove) return;
+      if (toPiece && toPiece.color === this.activeColor) return;
 
       moves.push(new Move(fromIndex, toIndex));
     };
@@ -470,7 +485,7 @@ class Game {
       const toPiece = this.board.squares[toIndex].piece;
 
       // blocked by friendly piece
-      if (toPiece && toPiece.color === this.colorToMove) continue;
+      if (toPiece && toPiece.color === this.activeColor) continue;
 
       moves.push(new Move(fromIndex, toIndex));
     }
@@ -490,12 +505,12 @@ class Game {
         const toPiece = this.board.squares[toIndex].piece;
 
         // blocked by friendly piece, so can't move any further in this direction
-        if (toPiece && toPiece.color === this.colorToMove) break;
+        if (toPiece && toPiece.color === this.activeColor) break;
 
         moves.push(new Move(fromIndex, toIndex));
 
         // can't move any further in this direction after capturing opponent's piece
-        if (toPiece && toPiece.color !== this.colorToMove) break;
+        if (toPiece && toPiece.color !== this.activeColor) break;
       }
     }
 
@@ -525,17 +540,19 @@ class Board {
   draw = () => { this.squares.forEach(sq => sq.draw()); };
 
   loadFen = (fen) => {
-    const pieceTypeFromSymbol = {
-      k: PieceType.King,
-      p: PieceType.Pawn,
-      n: PieceType.Knight,
-      b: PieceType.Bishop,
-      r: PieceType.Rook,
-      q: PieceType.Queen,
-    };
-    const fenBoard = fen.split(' ')[0];
+    const fenParts = fen.split(' ');
+
+    this.piecePlacement(fenParts[0]);
+    this.activeColor(fenParts[1]);
+    this.castlingAvailability(fenParts[2]);
+    this.enPassantTargetSquare(fenParts[3]);
+    this.halfMoveClock(fenParts[4]);
+    this.fullMoveNumber(fenParts[5]);
+  };
+
+  piecePlacement = (pieces) => {
     let file = 0, rank = 7;
-    fenBoard.split('').forEach(symbol => {
+    pieces.split('').forEach(symbol => {
       if (symbol === '/') {
         file = 0;
         rank--;
@@ -548,6 +565,26 @@ class Board {
         file++;
       }
     });
+  };
+
+  activeColor = (color) => {
+    this.activeColor = PieceColor.parse(color);
+  };
+
+  castlingAvailability = (availability) => {
+    // todo
+  };
+
+  enPassantTargetSquare = (target) => {
+    // todo
+  };
+
+  halfMoveClock = (count) => {
+    // todo
+  };
+
+  fullMoveNumber = (count) => {
+    // todo
   };
 }
 
