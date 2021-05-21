@@ -119,7 +119,7 @@ class Game {
     this.enPassantTargetSquare = null;
     this.castlingAvailability = null;
     this.halfMoveClock = 0;
-    this.fullMoveNumber = 0;
+    this.fullMoveNumber = 1;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
   }
@@ -205,20 +205,17 @@ class Game {
 
   onMouseUp = (e) => {
     if (!this.activeSquare) return;
-    const square = this.getEventSquare(e);
     if (this.dragPiece) {
       this.cancelDrag();
     }
+    const square = this.getEventSquare(e);
     if (square === this.activeSquare && this.deselect) {
       this.clearActiveSquare();
       this.clearPossibleSquares();
       this.deselect = false;
     } else if (this.isLegalMove(square)) {
       this.doMove(square);
-      this.togglePlayerTurn();
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
-      this.generateMoves();
+      this.postMoveActions(square);
     }
   };
 
@@ -260,9 +257,40 @@ class Game {
 
   doMove = (toSquare) => {
     toSquare.piece = this.getToSquarePiece(toSquare);
-    this.prevMoveSquares = [this.activeSquare, toSquare];
     this.activeSquare.piece = null;
   }
+  
+  postMoveActions = (toSquare) => {
+    this.setPrevMoveSquares(toSquare);
+    this.setEnPassantTargetSquare();
+    this.setCastlingAvailability();
+    this.setHalfMoveClock();
+    this.setFullMoveNumber();
+    this.clearActiveSquare();
+    this.clearPossibleSquares();
+    this.togglePlayerTurn();
+    this.generateMoves();
+  };
+
+  setPrevMoveSquares = (toSquare) => {
+    this.prevMoveSquares = [this.activeSquare, toSquare];
+  };
+
+  setEnPassantTargetSquare = () => {
+    // todo
+  };
+
+  setCastlingAvailability = () => {
+    // todo
+  };
+
+  setHalfMoveClock = () => {
+    // todo
+  };
+
+  setFullMoveNumber = () => {
+    // todo
+  };
 
   getToSquarePiece = (toSquare) => {
     const toSquarePiece = this.dragPiece || this.activeSquare.piece;
@@ -602,6 +630,7 @@ class Square {
   get textColor() { return this.isLightSquare ? this.game.darkColor : this.game.lightColor; }
   get xPos() { return this.file * this.game.squareSize; }
   get yPos() { return (this.game.squareSize * 7) - (this.rank * this.game.squareSize); }
+  get algebraicNotation() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
 
   draw = () => {
     this.game.ctx.fillStyle = this.squareColor;
