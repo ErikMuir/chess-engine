@@ -8,9 +8,8 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
- *  fully load FEN
  *  export FEN
- *  pawn promotion non_queen options
+ *  pawn promotion non-queen options
  *  en passant
  *  castling
  *  legal moves (test for check)
@@ -37,11 +36,9 @@ class PieceColor {
   static Black = 16;
 
   static parse = (val) => {
-    switch (val.toLowerCase()) {
-      case 'w': return PieceColor.White;
-      case 'b': return PieceColor.Black;
-      default: return PieceColor.None;
-    }
+    return val === val.toUpperCase()
+      ? PieceColor.White
+      : PieceColor.Black;
   };
 }
 
@@ -73,6 +70,12 @@ class Piece {
     this.type = type;
     this.value = color | type;
   }
+
+  static parse = (val) => {
+    const color = PieceColor.parse(val);
+    const type = PieceType.parse(val);
+    return new Piece(color, type);
+  };
 }
 
 class Move {
@@ -99,6 +102,8 @@ class Game {
     this.ctx = null;
     this.whitePieces = {};
     this.blackPieces = {};
+    this.whitePieceImages = {};
+    this.blackPieceImages = {};
     this.startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     this.squareSize = 80;
     this.lightColor = '#f1d9c0';
@@ -115,11 +120,11 @@ class Game {
     this.hoverX = null;
     this.hoverY = null;
     this.dragPiece = null;
-    this.activeColor = PieceColor.White;
+    this.activeColor = null;
     this.enPassantTargetSquare = null;
     this.castlingAvailability = null;
-    this.halfMoveClock = 0;
-    this.fullMoveNumber = 1;
+    this.halfMoveClock = null;
+    this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
   }
@@ -145,6 +150,22 @@ class Game {
 
   initPieces = () => {
     this.whitePieces = {
+      King: new Piece(PieceColor.White, PieceType.King),
+      Pawn: new Piece(PieceColor.White, PieceType.Pawn),
+      Knight: new Piece(PieceColor.White, PieceType.Knight),
+      Bishop: new Piece(PieceColor.White, PieceType.Bishop),
+      Rook: new Piece(PieceColor.White, PieceType.Rook),
+      Queen: new Piece(PieceColor.White, PieceType.Queen),
+    };
+    this.blackPieces = {
+      King: new Piece(PieceColor.Black, PieceType.King),
+      Pawn: new Piece(PieceColor.Black, PieceType.Pawn),
+      Knight: new Piece(PieceColor.Black, PieceType.Knight),
+      Bishop: new Piece(PieceColor.Black, PieceType.Bishop),
+      Rook: new Piece(PieceColor.Black, PieceType.Rook),
+      Queen: new Piece(PieceColor.Black, PieceType.Queen),
+    };
+    this.whitePieceImages = {
       King: Utils.getImage('white-king.svg'),
       Pawn: Utils.getImage('white-pawn.svg'),
       Knight: Utils.getImage('white-knight.svg'),
@@ -152,7 +173,7 @@ class Game {
       Rook: Utils.getImage('white-rook.svg'),
       Queen: Utils.getImage('white-queen.svg'),
     };
-    this.blackPieces = {
+    this.blackPieceImages = {
       King: Utils.getImage('black-king.svg'),
       Pawn: Utils.getImage('black-pawn.svg'),
       Knight: Utils.getImage('black-knight.svg'),
@@ -164,6 +185,7 @@ class Game {
 
   initBoard = () => {
     this.board = new Board(this);
+    this.loadFen(this.startPosition);
   };
 
   initEngine = () => {
@@ -189,6 +211,69 @@ class Game {
       }
     }
     this.generateMoves();
+  };
+
+  loadFen = (fen) => {
+    try {
+      const fenParts = fen.split(' ');
+      this.parsePiecePlacement(fenParts[0]);
+      this.parseActiveColor(fenParts[1]);
+      this.parseCastlingAvailability(fenParts[2]);
+      this.parseEnPassantTargetSquare(fenParts[3]);
+      this.parseHalfMoveClock(fenParts[4]);
+      this.parseFullMoveNumber(fenParts[5]);
+    } catch {
+      throw new Error('Invalid FEN');
+    }
+  };
+
+  parsePiecePlacement = (val) => {
+    let file = 0, rank = 7;
+    val.split('').forEach(symbol => {
+      if (symbol === '/') {
+        file = 0;
+        rank--;
+      } else if (Utils.isDigit(symbol)) {
+        file += parseInt(symbol);
+      } else {
+        this.board.squares[rank * 8 + file].piece = Piece.parse(symbol);
+        file++;
+      }
+    });
+  };
+
+  parseActiveColor = (val) => {
+    switch (val.toLowerCase()) {
+      case 'w':
+        this.activeColor = PieceColor.White;
+        break;
+      case 'b':
+        this.activeColor = PieceColor.Black;
+        break;
+      default:
+        this.activeColor = PieceColor.None;
+        break;
+    }
+  };
+
+  parseCastlingAvailability = (val) => {
+    this.castlingAvailability = [];
+    if (val.indexOf('K') > -1) this.castlingAvailability.push(this.whitePieces.King);
+    if (val.indexOf('Q') > -1) this.castlingAvailability.push(this.whitePieces.Queen);
+    if (val.indexOf('k') > -1) this.castlingAvailability.push(this.blackPieces.King);
+    if (val.indexOf('q') > -1) this.castlingAvailability.push(this.blackPieces.Queen);
+  };
+
+  parseEnPassantTargetSquare = (val) => {
+    this.enPassantTargetSquare = this.parseSquareIndexFromAlgebraicNotation(val);
+  };
+
+  parseHalfMoveClock = (val) => {
+    this.halfMoveClock = parseInt(val) || 0;
+  };
+
+  parseFullMoveNumber = (val) => {
+    this.fullMoveNumber = parseInt(val) || 1;
   };
 
   onMouseDown = (e) => {
@@ -259,7 +344,7 @@ class Game {
     toSquare.piece = this.getToSquarePiece(toSquare);
     this.activeSquare.piece = null;
   }
-  
+
   postMoveActions = (toSquare) => {
     this.setPrevMoveSquares(toSquare);
     this.setEnPassantTargetSquare();
@@ -330,6 +415,16 @@ class Game {
     return this.board.squares[rank * 8 + file];
   }
 
+  parseSquareIndexFromAlgebraicNotation = (val) => {
+    try {
+      const file = 'abcdefgh'.indexOf(val[0]);
+      const rank = parseInt(val[1]) || -1;
+      return (file === -1 || rank === -1) ? -1 : rank * 8 + file;
+    } catch {
+      return -1;
+    }
+  };
+
   proportion = (ratio) => Math.floor(this.squareSize * ratio);
 
   draw = () => {
@@ -352,10 +447,12 @@ class Game {
     let set;
     switch (piece.color) {
       case PieceColor.White:
-        set = this.whitePieces;
+        set = this.whitePieceImages
+          ;
         break;
       case PieceColor.Black:
-        set = this.blackPieces;
+        set = this.blackPieceImages
+          ;
         break;
     }
     switch (piece.type) {
@@ -402,7 +499,7 @@ class Game {
 
     return moves;
   };
-  
+
   generateLegalMoves = () => {
     // todo
     return this.pseudoLegalMoves;
@@ -560,60 +657,9 @@ class Board {
         this.squares[index].piece = new Piece(piece.color, piece.type);
       }
     }
-    if (!board) {
-      this.loadFen(game.startPosition);
-    }
   }
 
   draw = () => { this.squares.forEach(sq => sq.draw()); };
-
-  loadFen = (fen) => {
-    const fenParts = fen.split(' ');
-
-    this.piecePlacement(fenParts[0]);
-    this.activeColor(fenParts[1]);
-    this.castlingAvailability(fenParts[2]);
-    this.enPassantTargetSquare(fenParts[3]);
-    this.halfMoveClock(fenParts[4]);
-    this.fullMoveNumber(fenParts[5]);
-  };
-
-  piecePlacement = (pieces) => {
-    let file = 0, rank = 7;
-    pieces.split('').forEach(symbol => {
-      if (symbol === '/') {
-        file = 0;
-        rank--;
-      } else if (Utils.isDigit(symbol)) {
-        file += parseInt(symbol);
-      } else {
-        const pieceColor = symbol === symbol.toUpperCase() ? PieceColor.White : PieceColor.Black;
-        const pieceType = PieceType.parse(symbol);
-        this.squares[rank * 8 + file].piece = new Piece(pieceColor, pieceType);
-        file++;
-      }
-    });
-  };
-
-  activeColor = (color) => {
-    this.activeColor = PieceColor.parse(color);
-  };
-
-  castlingAvailability = (availability) => {
-    // todo
-  };
-
-  enPassantTargetSquare = (target) => {
-    // todo
-  };
-
-  halfMoveClock = (count) => {
-    // todo
-  };
-
-  fullMoveNumber = (count) => {
-    // todo
-  };
 }
 
 class Square {
