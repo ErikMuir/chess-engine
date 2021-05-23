@@ -347,7 +347,7 @@ class Game {
 
   postMoveActions = (toSquare) => {
     this.setPrevMoveSquares(toSquare);
-    this.setEnPassantTargetSquare();
+    this.setEnPassantTargetSquare(toSquare);
     this.setCastlingAvailability();
     this.setHalfMoveClock();
     this.setFullMoveNumber();
@@ -361,8 +361,14 @@ class Game {
     this.prevMoveSquares = [this.activeSquare, toSquare];
   };
 
-  setEnPassantTargetSquare = () => {
-    // todo
+  setEnPassantTargetSquare = (toSquare) => {
+    const isPawn = toSquare.piece.type === PieceType.Pawn;
+    const distance = Math.abs(toSquare.index - this.activeSquare.index);
+    const color = toSquare.piece.color;
+    const targetOffset = color === PieceColor.White ? -8 : 8;
+    this.enPassantTargetSquare = isPawn && distance === 16
+      ? toSquare.index + targetOffset
+      : -1;
   };
 
   setCastlingAvailability = () => {
