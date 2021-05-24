@@ -8,8 +8,6 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
- *  export FEN
- *    piece placement
  *  pseudo-legal moves
  *    en passant
  *    castling
@@ -275,21 +273,40 @@ class Game {
   };
 
   getPiecePlacement = () => {
-    // todo
-    return '-';
+    let output = '';
+    for (let rank = 7; rank >= 0; rank--) {
+      output += this.getFenByRank(rank);
+      if (rank > 0) output += '/';
+    }
+    return output;
+  };
+
+  getFenByRank = (rank) => {
+    let output = '';
+    let consecutiveEmptySquares = 0;
+    for (let file = 0; file < 8; file++) {
+      const piece = this.board.squares[rank * 8 + file].piece;
+      if (!piece) {
+        consecutiveEmptySquares++;
+        continue;
+      }
+      if (consecutiveEmptySquares > 0) {
+        output += `${consecutiveEmptySquares}`;
+      }
+      consecutiveEmptySquares = 0;
+      output += Piece.toString(piece);
+    }
+    if (consecutiveEmptySquares > 0) {
+      output += `${consecutiveEmptySquares}`;
+    }
+    return output;
   };
 
   parseActiveColor = (val) => {
     switch (val.toLowerCase()) {
-      case 'w':
-        this.activeColor = PieceColor.White;
-        break;
-      case 'b':
-        this.activeColor = PieceColor.Black;
-        break;
-      default:
-        this.activeColor = PieceColor.None;
-        break;
+      case 'w': this.activeColor = PieceColor.White; break;
+      case 'b': this.activeColor = PieceColor.Black; break;
+      default: this.activeColor = PieceColor.None; break;
     }
   };
 
@@ -379,18 +396,18 @@ class Game {
   setHover = (e) => {
     this.hoverX = e.offsetX;
     this.hoverY = e.offsetY;
-  }
+  };
 
   initDrag = (fromSquare) => {
     this.dragPiece = fromSquare.piece;
-  }
+  };
 
   cancelDrag = () => {
     if (this.activeSquare) {
       this.activeSquare.piece = this.dragPiece;
     }
     this.dragPiece = null;
-  }
+  };
 
   initMove = (fromSquare) => {
     fromSquare.piece = null;
@@ -398,13 +415,13 @@ class Game {
     this.possibleSquares = this.pseudoLegalMoves
       .filter(move => move.fromIndex === fromSquare.index)
       .map(move => move.toIndex);
-  }
+  };
 
   doMove = (toSquare) => {
     this.isCapture = !!toSquare.piece;
     toSquare.piece = this.getToSquarePiece(toSquare);
     this.activeSquare.piece = null;
-  }
+  };
 
   postMoveActions = (toSquare) => {
     this.setPrevMoveSquares(toSquare);
@@ -483,7 +500,7 @@ class Game {
 
   clearActiveSquare = () => {
     this.activeSquare = null;
-  }
+  };
 
   clearPossibleSquares = () => {
     this.possibleSquares = [];
@@ -493,7 +510,7 @@ class Game {
     const rank = 7 - Math.floor(e.offsetY / this.squareSize);
     const file = Math.floor(e.offsetX / this.squareSize);
     return this.board.squares[rank * 8 + file];
-  }
+  };
 
   parseSquareIndexFromAlgebraicNotation = (val) => {
     try {
@@ -512,7 +529,7 @@ class Game {
     if (this.dragPiece) {
       this.drawDragPiece();
     }
-  }
+  };
 
   drawDragPiece = () => {
     const img = this.getPieceImage(this.dragPiece);
@@ -520,18 +537,14 @@ class Game {
     const x = this.hoverX - (size / 2);
     const y = this.hoverY - (size / 2);
     this.ctx.drawImage(img, x, y, size, size);
-  }
+  };
 
   getPieceImage = (piece) => {
     if (!piece) return null;
     let set;
     switch (piece.color) {
-      case PieceColor.White:
-        set = this.whitePieceImages;
-        break;
-      case PieceColor.Black:
-        set = this.blackPieceImages;
-        break;
+      case PieceColor.White: set = this.whitePieceImages; break;
+      case PieceColor.Black: set = this.blackPieceImages; break;
     }
     switch (piece.type) {
       case PieceType.King: return set.King;
@@ -542,7 +555,7 @@ class Game {
       case PieceType.Queen: return set.Queen;
       default: return null;
     }
-  }
+  };
 
   generateMoves = () => {
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
@@ -673,7 +686,7 @@ class Game {
     }
 
     return moves;
-  }
+  };
 
   generateKingMoves = (fromIndex, piece) => {
     // todo : castling
@@ -694,7 +707,7 @@ class Game {
     }
 
     return moves;
-  }
+  };
 
   generateSlidingMoves = (fromIndex, piece) => {
     const moves = [];
@@ -808,7 +821,7 @@ class Square {
     this.game.ctx.globalAlpha = this.game.overlayOpacity;
     this.game.ctx.fillRect(this.xPos, this.yPos, this.game.squareSize, this.game.squareSize);
     this.game.ctx.globalAlpha = 1.0;
-  }
+  };
 
   drawPossibleOverlay = () => {
     if (this.piece) {
