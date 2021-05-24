@@ -9,11 +9,13 @@ window.onload = () => {
  * FEATURES
  * ------------------------------------
  *  export FEN
- *  pawn promotion non-queen options
- *  en passant
- *  castling
+ *    piece placement
+ *  pseudo-legal moves
+ *    en passant
+ *    castling
  *  legal moves (test for check)
  *  signal checkmate
+ *  pawn promotion non-queen options
  *  determine best move
  * 
  * BUGS
@@ -62,6 +64,18 @@ class PieceType {
       default: return PieceType.None;
     }
   };
+
+  static toString = (val) => {
+    switch (val) {
+      case PieceType.King: return 'k';
+      case PieceType.Pawn: return 'p';
+      case PieceType.Knight: return 'n';
+      case PieceType.Bishop: return 'b';
+      case PieceType.Rook: return 'r';
+      case PieceType.Queen: return 'q';
+      default: return '';
+    }
+  };
 }
 
 class Piece {
@@ -75,6 +89,11 @@ class Piece {
     const color = PieceColor.parse(val);
     const type = PieceType.parse(val);
     return new Piece(color, type);
+  };
+
+  static toString = (val) => {
+    const typeString = PieceType.toString(val.type);
+    return val.color === PieceColor.White ? typeString.toUpperCase() : typeString;
   };
 }
 
@@ -121,6 +140,7 @@ class Game {
     this.hoverY = null;
     this.dragPiece = null;
     this.activeColor = null;
+    this.isCapture = false;
     this.enPassantTargetSquare = null;
     this.castlingAvailability = null;
     this.halfMoveClock = null;
@@ -227,6 +247,18 @@ class Game {
     }
   };
 
+  getFen = () => {
+    const fenParts = [
+      this.getPiecePlacement(),
+      this.getActiveColor(),
+      this.getCastlingAvailability(),
+      this.getEnPassantTargetSquare(),
+      this.getHalfMoveClock(),
+      this.getFullMoveNumber(),
+    ];
+    return fenParts.join(' ');
+  };
+
   parsePiecePlacement = (val) => {
     let file = 0, rank = 7;
     val.split('').forEach(symbol => {
@@ -240,6 +272,11 @@ class Game {
         file++;
       }
     });
+  };
+
+  getPiecePlacement = () => {
+    // todo
+    return '-';
   };
 
   parseActiveColor = (val) => {
@@ -256,6 +293,14 @@ class Game {
     }
   };
 
+  getActiveColor = () => {
+    switch (this.activeColor) {
+      case PieceColor.White: return 'w';
+      case PieceColor.Black: return 'b';
+      default: return '-';
+    }
+  };
+
   parseCastlingAvailability = (val) => {
     this.castlingAvailability = [];
     if (val.indexOf('K') > -1) this.castlingAvailability.push(this.whitePieces.King);
@@ -264,17 +309,32 @@ class Game {
     if (val.indexOf('q') > -1) this.castlingAvailability.push(this.blackPieces.Queen);
   };
 
+  getCastlingAvailability = () => {
+    if (this.castlingAvailability.length === 0) return '-';
+    return this.castlingAvailability.map(x => Piece.toString(x)).join('');
+  };
+
   parseEnPassantTargetSquare = (val) => {
     this.enPassantTargetSquare = this.parseSquareIndexFromAlgebraicNotation(val);
+  };
+
+  getEnPassantTargetSquare = () => {
+    return this.enPassantTargetSquare === -1
+      ? '-'
+      : this.board.squares[this.enPassantTargetSquare].algebraicNotation;
   };
 
   parseHalfMoveClock = (val) => {
     this.halfMoveClock = parseInt(val) || 0;
   };
 
+  getHalfMoveClock = () => `${this.halfMoveClock}`;
+
   parseFullMoveNumber = (val) => {
     this.fullMoveNumber = parseInt(val) || 1;
   };
+
+  getFullMoveNumber = () => `${this.fullMoveNumber}`;
 
   onMouseDown = (e) => {
     const square = this.getEventSquare(e);
@@ -341,6 +401,7 @@ class Game {
   }
 
   doMove = (toSquare) => {
+    this.isCapture = !!toSquare.piece;
     toSquare.piece = this.getToSquarePiece(toSquare);
     this.activeSquare.piece = null;
   }
@@ -348,9 +409,9 @@ class Game {
   postMoveActions = (toSquare) => {
     this.setPrevMoveSquares(toSquare);
     this.setEnPassantTargetSquare(toSquare);
-    this.setCastlingAvailability();
-    this.setHalfMoveClock();
-    this.setFullMoveNumber();
+    this.updateCastlingAvailability(toSquare);
+    this.setHalfMoveClock(toSquare);
+    this.updateFullMoveNumber(toSquare);
     this.clearActiveSquare();
     this.clearPossibleSquares();
     this.togglePlayerTurn();
@@ -371,16 +432,29 @@ class Game {
       : -1;
   };
 
-  setCastlingAvailability = () => {
-    // todo
+  updateCastlingAvailability = (toSquare) => {
+    if (this.castlingAvailability.length === 0) return;
+    const { color, type } = toSquare.piece || {};
+    const fromFile = this.activeSquare.file;
+    if (type === PieceType.King) {
+      this.castlingAvailability = this.castlingAvailability
+        .filter(x => x.color !== color);
+    } else if (type === PieceType.Rook && [0, 7].includes(fromFile)) {
+      const side = fromFile === 0 ? PieceType.Queen : PieceType.King;
+      this.castlingAvailability = this.castlingAvailability
+        .filter(x => x.color !== color || x.type !== side);
+    }
   };
 
-  setHalfMoveClock = () => {
-    // todo
+  setHalfMoveClock = (toSquare) => {
+    const isPawn = toSquare.piece.type === PieceType.Pawn;
+    this.halfMoveClock = this.isCapture || isPawn ? 0 : this.halfMoveClock + 1;
   };
 
-  setFullMoveNumber = () => {
-    // todo
+  updateFullMoveNumber = (toSquare) => {
+    if (toSquare.piece.color === PieceColor.Black) {
+      this.fullMoveNumber++;
+    }
   };
 
   getToSquarePiece = (toSquare) => {
@@ -453,12 +527,10 @@ class Game {
     let set;
     switch (piece.color) {
       case PieceColor.White:
-        set = this.whitePieceImages
-          ;
+        set = this.whitePieceImages;
         break;
       case PieceColor.Black:
-        set = this.blackPieceImages
-          ;
+        set = this.blackPieceImages;
         break;
     }
     switch (piece.type) {
