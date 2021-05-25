@@ -94,6 +94,13 @@ class Piece {
   };
 }
 
+class MoveType {
+  static Advance = 0;
+  static Capture = 1;
+  static Castle = 2;
+  static EnPassant = 3;
+}
+
 class Move {
   constructor(fromIndex, toIndex) {
     this.fromIndex = fromIndex;
@@ -376,7 +383,6 @@ class Game {
       this.deselect = false;
     } else if (this.isLegalMove(square)) {
       this.doMove(square);
-      this.postMoveActions(square);
     }
   };
 
@@ -418,15 +424,66 @@ class Game {
 
   doMove = (toSquare) => {
     const movePiece = this.getMovePiece(toSquare);
-    const isEnPassant = movePiece.type === PieceType.Pawn && toSquare.index === this.enPassantTargetSquare;
-    this.isCapture = isEnPassant || !!toSquare.piece;
+    const moveType = this.getMoveType(movePiece, toSquare);
+    switch (moveType) {
+      case MoveType.Advance:
+        this.handleAdvance(movePiece, toSquare);
+        break;
+      case MoveType.Capture:
+        this.handleCapture(movePiece, toSquare);
+        break;
+      case MoveType.EnPassant:
+        this.handleEnPassant(movePiece, toSquare);
+        break;
+      case MoveType.Castle:
+        this.handleCastle(movePiece, toSquare);
+        break;
+    }
+    this.postMoveActions(toSquare);
+  };
+
+  getMoveType = (movePiece, toSquare) => {
+    if (this.isEnPassant(movePiece, toSquare)) return MoveType.EnPassant;
+    if (this.isCastle(movePiece, toSquare)) return MoveType.Castle;
+    return toSquare.piece ? MoveType.Capture : MoveType.Advance;
+  };
+
+  isEnPassant = (movePiece, toSquare) => {
+    if (movePiece.type !== PieceType.Pawn) return false;
+    return toSquare.index === this.enPassantTargetSquare;
+  }
+
+  isCastle = (movePiece, toSquare) => {
+    if (movePiece.type !== PieceType.King) return false;
+    return Math.abs(this.activeSquare.index - toSquare.index) === 2;
+  };
+
+  handleAdvance = (movePiece, toSquare) => {
+    this.isCapture = false;
     toSquare.piece = movePiece;
     this.activeSquare.piece = null;
-    if (isEnPassant) {
-      const offset = movePiece.color === PieceColor.White ? -8 : 8;
-      const captureSquareIndex = toSquare.index + offset;
-      this.board.squares[captureSquareIndex].piece = null;
-    }
+  };
+
+  handleCapture = (movePiece, toSquare) => {
+    this.isCapture = true;
+    toSquare.piece = movePiece;
+    this.activeSquare.piece = null;
+  };
+
+  handleEnPassant = (movePiece, toSquare) => {
+    this.isCapture = true;
+    toSquare.piece = movePiece;
+    this.activeSquare.piece = null;
+    const offset = movePiece.color === PieceColor.White ? -8 : 8;
+    const captureSquareIndex = toSquare.index + offset;
+    this.board.squares[captureSquareIndex].piece = null;
+  };
+
+  handleCastle = (movePiece, toSquare) => {
+    this.isCapture = false;
+    toSquare.piece = movePiece;
+    this.activeSquare.piece = null;
+    // todo : move rook
   };
 
   postMoveActions = (toSquare) => {
