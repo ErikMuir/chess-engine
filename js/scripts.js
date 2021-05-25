@@ -9,7 +9,6 @@ window.onload = () => {
  * FEATURES
  * ------------------------------------
  *  pseudo-legal moves
- *    en passant
  *    castling
  *  legal moves (test for check)
  *  signal checkmate
@@ -418,9 +417,16 @@ class Game {
   };
 
   doMove = (toSquare) => {
-    this.isCapture = !!toSquare.piece;
-    toSquare.piece = this.getToSquarePiece(toSquare);
+    const movePiece = this.getMovePiece(toSquare);
+    const isEnPassant = movePiece.type === PieceType.Pawn && toSquare.index === this.enPassantTargetSquare;
+    this.isCapture = isEnPassant || !!toSquare.piece;
+    toSquare.piece = movePiece;
     this.activeSquare.piece = null;
+    if (isEnPassant) {
+      const offset = movePiece.color === PieceColor.White ? -8 : 8;
+      const captureSquareIndex = toSquare.index + offset;
+      this.board.squares[captureSquareIndex].piece = null;
+    }
   };
 
   postMoveActions = (toSquare) => {
@@ -474,7 +480,7 @@ class Game {
     }
   };
 
-  getToSquarePiece = (toSquare) => {
+  getMovePiece = (toSquare) => {
     const toSquarePiece = this.dragPiece || this.activeSquare.piece;
     if (toSquarePiece.type === PieceType.Pawn) {
       const promotionRank = toSquarePiece.color === PieceColor.White ? 7 : 0;
@@ -597,7 +603,6 @@ class Game {
   };
 
   generatePawnMoves = (fromIndex, piece) => {
-    // todo : en passant
     const moves = [];
 
     const moveForward = piece.color === PieceColor.White ? DirectionIndex.North : DirectionIndex.South;
@@ -614,14 +619,18 @@ class Game {
     // check attack left
     const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
     const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
-    if (attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor) {
+    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor;
+    const isAttackLeftEnPassant = attackLeftSquareIndex === this.enPassantTargetSquare;
+    if (isAttackLeftOpponent || isAttackLeftEnPassant) {
       moves.push(new Move(fromIndex, attackLeftSquareIndex));
     }
 
     // check attack right
     const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
     const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
-    if (attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor) {
+    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor;
+    const isAttackRightEnPassant = attackRightSquareIndex === this.enPassantTargetSquare;
+    if (isAttackRightOpponent || isAttackRightEnPassant) {
       moves.push(new Move(fromIndex, attackRightSquareIndex));
     }
 
