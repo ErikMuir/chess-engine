@@ -100,9 +100,13 @@ class MoveType {
 }
 
 class Move {
-  constructor(fromIndex, toIndex) {
+  constructor(fromIndex, toIndex, moveType, squares) {
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
+    this.moveType = moveType;
+    this.pieceType = squares[fromIndex].piece.type;
+    const capturePiece = squares[toIndex].piece;
+    this.capturePieceType = capturePiece && this.capturePiece.type;
   }
 }
 
@@ -345,15 +349,11 @@ class Game {
       : this.board.squares[this.enPassantTargetSquare].algebraicNotation;
   };
 
-  parseHalfMoveClock = (val) => {
-    this.halfMoveClock = parseInt(val) || 0;
-  };
+  parseHalfMoveClock = (val) => { this.halfMoveClock = parseInt(val) || 0; };
 
   getHalfMoveClock = () => `${this.halfMoveClock}`;
 
-  parseFullMoveNumber = (val) => {
-    this.fullMoveNumber = parseInt(val) || 1;
-  };
+  parseFullMoveNumber = (val) => { this.fullMoveNumber = parseInt(val) || 1; };
 
   getFullMoveNumber = () => `${this.fullMoveNumber}`;
 
@@ -505,6 +505,7 @@ class Game {
     this.clearPossibleSquares();
     this.togglePlayerTurn();
     this.generateMoves();
+    this.checkForCheck();
   };
 
   setPrevMoveSquares = (toSquare) => {
@@ -673,25 +674,7 @@ class Game {
     const forwardSquareIndex = fromIndex + this.directionOffsets[moveForward];
     const forwardSquarePiece = this.board.squares[forwardSquareIndex].piece;
     if (!forwardSquarePiece) {
-      moves.push(new Move(fromIndex, forwardSquareIndex));
-    }
-
-    // check attack left
-    const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
-    const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
-    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor;
-    const isAttackLeftEnPassant = attackLeftSquareIndex === this.enPassantTargetSquare;
-    if (isAttackLeftOpponent || isAttackLeftEnPassant) {
-      moves.push(new Move(fromIndex, attackLeftSquareIndex));
-    }
-
-    // check attack right
-    const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
-    const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
-    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor;
-    const isAttackRightEnPassant = attackRightSquareIndex === this.enPassantTargetSquare;
-    if (isAttackRightOpponent || isAttackRightEnPassant) {
-      moves.push(new Move(fromIndex, attackRightSquareIndex));
+      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.Advance, this.board.squares));
     }
 
     // check two squares forward
@@ -705,8 +688,29 @@ class Game {
       const doubleSquareIndex = forwardSquareIndex + this.directionOffsets[moveForward];
       const doubleSquarePiece = this.board.squares[doubleSquareIndex].piece;
       if (!forwardSquarePiece && !doubleSquarePiece) {
-        moves.push(new Move(fromIndex, doubleSquareIndex));
+        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.Advance, this.board.squares));
       }
+    }
+
+    // check attack left
+    const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
+    const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
+    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor;
+    if (isAttackLeftOpponent) {
+      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.Capture, this.board.squares));
+    }
+    
+    // check attack right
+    const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
+    const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
+    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor;
+    if (isAttackRightOpponent) {
+      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.Capture, this.board.squares));
+    }
+
+    // check en passant
+    if ([attackLeftSquareIndex, attackRightSquareIndex].includes(this.enPassantTargetSquare)) {
+      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.EnPassant, this.board.squares));
     }
 
     return moves;
@@ -722,7 +726,9 @@ class Game {
       // blocked by friendly piece
       if (toPiece && toPiece.color === this.activeColor) return;
 
-      moves.push(new Move(fromIndex, toIndex));
+      const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
+
+      moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
     };
 
     const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.North];
@@ -771,7 +777,9 @@ class Game {
       // blocked by friendly piece
       if (toPiece && toPiece.color === this.activeColor) continue;
 
-      moves.push(new Move(fromIndex, toIndex));
+      const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
+
+      moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
     }
 
     // add castling moves
@@ -779,7 +787,7 @@ class Game {
       .filter(x => x.color === this.activeColor)
       .forEach(x => {
         const offset = x.type === PieceType.King ? 2 : -2;
-        moves.push(new Move(fromIndex, fromIndex + offset));
+        moves.push(new Move(fromIndex, fromIndex + offset, MoveType.Castle, this.board.squares));
       });
 
     return moves;
@@ -799,7 +807,9 @@ class Game {
         // blocked by friendly piece, so can't move any further in this direction
         if (toPiece && toPiece.color === this.activeColor) break;
 
-        moves.push(new Move(fromIndex, toIndex));
+        const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
+
+        moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
 
         // can't move any further in this direction after capturing opponent's piece
         if (toPiece && toPiece.color !== this.activeColor) break;
@@ -807,6 +817,10 @@ class Game {
     }
 
     return moves;
+  };
+
+  checkForCheck = () => {
+    // todo
   };
 }
 
