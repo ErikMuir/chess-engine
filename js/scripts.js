@@ -15,6 +15,10 @@ window.onload = () => {
  * 
  * BUGS
  * ------------------------------------
+ * Jumping castles!
+ *    Steps: try to castle when target squares and/or passing squares are not empty
+ *    Expected: should not be allowed
+ *    Actual: it is allowed, king and rook landing squares will "capture" pieces
  */
 
 class Utils {
@@ -100,13 +104,12 @@ class MoveType {
 }
 
 class Move {
-  constructor(fromIndex, toIndex, moveType, squares) {
-    this.fromIndex = fromIndex;
-    this.toIndex = toIndex;
-    this.moveType = moveType;
-    this.pieceType = squares[fromIndex].piece.type;
-    const capturePiece = squares[toIndex].piece;
-    this.capturePieceType = capturePiece && this.capturePiece.type;
+  constructor(from, to, type, squares) {
+    this.from = from;
+    this.to = to;
+    this.type = type;
+    this.movePiece = squares[from].piece;
+    this.capturePiece = squares[to].piece;
   }
 }
 
@@ -421,9 +424,9 @@ class Game {
   initMove = (fromSquare) => {
     fromSquare.piece = null;
     this.activeSquare = fromSquare;
-    this.possibleSquares = this.pseudoLegalMoves
-      .filter(move => move.fromIndex === fromSquare.index)
-      .map(move => move.toIndex);
+    this.possibleSquares = this.legalMoves
+      .filter(move => move.from === fromSquare.index)
+      .map(move => move.to);
   };
 
   doMove = (toSquare) => {
@@ -505,7 +508,7 @@ class Game {
     this.clearPossibleSquares();
     this.togglePlayerTurn();
     this.generateMoves();
-    this.checkForCheck();
+    this.testForCheck();
   };
 
   setPrevMoveSquares = (toSquare) => {
@@ -560,8 +563,8 @@ class Game {
 
   isLegalMove = (toSquare) => {
     const legalMove = this.legalMoves.find(move =>
-      move.fromIndex === this.activeSquare.index
-      && move.toIndex === toSquare.index);
+      move.from === this.activeSquare.index
+      && move.to === toSquare.index);
     return !!legalMove;
   };
 
@@ -634,8 +637,7 @@ class Game {
 
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
       const piece = this.board.squares[fromIndex].piece;
-      if (!piece || piece.color !== this.activeColor)
-        continue;
+      if (!piece) continue;
 
       switch (piece.type) {
         case PieceType.Pawn:
@@ -659,8 +661,8 @@ class Game {
   };
 
   generateLegalMoves = () => {
-    // todo
-    return this.pseudoLegalMoves;
+    // todo : test for putting yourself in check
+    return this.pseudoLegalMoves.filter(move => move.movePiece.color === this.activeColor);
   };
 
   generatePawnMoves = (fromIndex, piece) => {
@@ -819,7 +821,7 @@ class Game {
     return moves;
   };
 
-  checkForCheck = () => {
+  testForCheck = () => {
     // todo
   };
 }
