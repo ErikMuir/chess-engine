@@ -15,10 +15,6 @@ window.onload = () => {
  * 
  * BUGS
  * ------------------------------------
- * Jumping castles!
- *    Steps: try to castle when target squares and/or passing squares are not empty
- *    Expected: should not be allowed
- *    Actual: it is allowed, king and rook landing squares will "capture" pieces
  */
 
 class Utils {
@@ -788,8 +784,12 @@ class Game {
     this.castlingAvailability
       .filter(x => x.color === this.activeColor)
       .forEach(x => {
-        const offset = x.type === PieceType.King ? 2 : -2;
-        moves.push(new Move(fromIndex, fromIndex + offset, MoveType.Castle, this.board.squares));
+        const dirIndex = x.type === PieceType.King ? DirectionIndex.East : DirectionIndex.West;
+        const offset = this.directionOffsets[dirIndex];
+        const passingSquare = this.board.squares[fromIndex + offset];
+        const landingSquare = this.board.squares[fromIndex + (offset * 2)];
+        if (passingSquare.piece || landingSquare.piece) return;
+        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.Castle, this.board.squares));
       });
 
     return moves;
