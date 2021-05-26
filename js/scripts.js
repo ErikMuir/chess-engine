@@ -8,8 +8,6 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
- *  pseudo-legal moves
- *    castling
  *  legal moves (test for check)
  *  signal checkmate
  *  pawn promotion non-queen options
@@ -403,6 +401,12 @@ class Game {
     this.hoverY = e.offsetY;
   };
 
+  getEventSquare = (e) => {
+    const rank = 7 - Math.floor(e.offsetY / this.squareSize);
+    const file = Math.floor(e.offsetX / this.squareSize);
+    return this.board.squares[rank * 8 + file];
+  };
+
   initDrag = (fromSquare) => {
     this.dragPiece = fromSquare.piece;
   };
@@ -424,7 +428,7 @@ class Game {
 
   doMove = (toSquare) => {
     const movePiece = this.getMovePiece(toSquare);
-    const moveType = this.getMoveType(movePiece, toSquare);
+    const moveType = this.getMoveType(movePiece.type, toSquare);
     switch (moveType) {
       case MoveType.Advance:
         this.handleAdvance(movePiece, toSquare);
@@ -442,21 +446,19 @@ class Game {
     this.postMoveActions(toSquare);
   };
 
-  getMoveType = (movePiece, toSquare) => {
-    if (this.isEnPassant(movePiece, toSquare)) return MoveType.EnPassant;
-    if (this.isCastle(movePiece, toSquare)) return MoveType.Castle;
+  getMoveType = (pieceType, toSquare) => {
+    if (this.isEnPassant(pieceType, toSquare)) return MoveType.EnPassant;
+    if (this.isCastle(pieceType, toSquare)) return MoveType.Castle;
     return toSquare.piece ? MoveType.Capture : MoveType.Advance;
   };
 
-  isEnPassant = (movePiece, toSquare) => {
-    if (movePiece.type !== PieceType.Pawn) return false;
-    return toSquare.index === this.enPassantTargetSquare;
-  }
+  isEnPassant = (pieceType, toSquare) => (
+    pieceType === PieceType.Pawn && toSquare.index === this.enPassantTargetSquare
+  );
 
-  isCastle = (movePiece, toSquare) => {
-    if (movePiece.type !== PieceType.King) return false;
-    return Math.abs(this.activeSquare.index - toSquare.index) === 2;
-  };
+  isCastle = (pieceType, toSquare) => (
+    pieceType === PieceType.King && Math.abs(this.activeSquare.index - toSquare.index) === 2
+  );
 
   handleAdvance = (movePiece, toSquare) => {
     this.isCapture = false;
@@ -483,7 +485,14 @@ class Game {
     this.isCapture = false;
     toSquare.piece = movePiece;
     this.activeSquare.piece = null;
-    // todo : move rook
+    const isKingSide = toSquare.file === 6;
+    const rookRank = movePiece.color === PieceColor.White ? 0 : 7;
+    const rookFile = isKingSide ? 7 : 0;
+    const targetFile = isKingSide ? 5 : 3;
+    const rookSquare = this.board.squares[rookRank * 8 + rookFile];
+    const targetSquare = this.board.squares[rookRank * 8 + targetFile];
+    targetSquare.piece = rookSquare.piece;
+    rookSquare.piece = null;
   };
 
   postMoveActions = (toSquare) => {
@@ -567,12 +576,6 @@ class Game {
 
   clearPossibleSquares = () => {
     this.possibleSquares = [];
-  };
-
-  getEventSquare = (e) => {
-    const rank = 7 - Math.floor(e.offsetY / this.squareSize);
-    const file = Math.floor(e.offsetX / this.squareSize);
-    return this.board.squares[rank * 8 + file];
   };
 
   parseSquareIndexFromAlgebraicNotation = (val) => {
@@ -755,7 +758,6 @@ class Game {
   };
 
   generateKingMoves = (fromIndex, piece) => {
-    // todo : castling
     const moves = [];
 
     for (let dirIndex = 0; dirIndex < 8; dirIndex++) {
@@ -771,6 +773,14 @@ class Game {
 
       moves.push(new Move(fromIndex, toIndex));
     }
+
+    // add castling moves
+    this.castlingAvailability
+      .filter(x => x.color === this.activeColor)
+      .forEach(x => {
+        const offset = x.type === PieceType.King ? 2 : -2;
+        moves.push(new Move(fromIndex, fromIndex + offset));
+      });
 
     return moves;
   };
