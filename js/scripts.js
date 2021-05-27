@@ -825,7 +825,7 @@ class Game {
     const opponentMoves = this.pseudoLegalMoves.filter(move => move.movePiece.color !== color);
     const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.Capture);
     const opponentKingCaptures = opponentCaptures.filter(move => move.capturePiece.type === PieceType.King);
-    const isCheck = opponentKingCaptures.length > 1;
+    const isCheck = opponentKingCaptures.length > 0;
     return isCheck;
   };
 }
