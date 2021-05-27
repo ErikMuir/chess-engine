@@ -657,8 +657,15 @@ class Game {
   };
 
   generateLegalMoves = () => {
-    // todo : test for putting yourself in check
-    return this.pseudoLegalMoves.filter(move => move.movePiece.color === this.activeColor);
+    const activeColorMoves = this.pseudoLegalMoves.filter(move => move.movePiece.color === this.activeColor);
+    const moves = [];
+    activeColorMoves.forEach(move => {
+      const futureBoard = new Board(null, this.baord);
+
+      // todo : test for putting yourself in check
+      moves.push(move);
+    });
+    return moves;
   };
 
   generatePawnMoves = (fromIndex, piece) => {
