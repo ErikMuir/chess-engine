@@ -504,7 +504,7 @@ class Game {
     this.clearPossibleSquares();
     this.togglePlayerTurn();
     this.generateMoves();
-    this.testForCheck();
+    this.testForCheck(this.activeColor);
   };
 
   setPrevMoveSquares = (toSquare) => {
@@ -693,7 +693,7 @@ class Game {
     // check attack left
     const attackLeftSquareIndex = fromIndex + this.directionOffsets[attackLeft];
     const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
-    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== this.activeColor;
+    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
     if (isAttackLeftOpponent) {
       moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.Capture, this.board.squares));
     }
@@ -701,7 +701,7 @@ class Game {
     // check attack right
     const attackRightSquareIndex = fromIndex + this.directionOffsets[attackRight];
     const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
-    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== this.activeColor;
+    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
     if (isAttackRightOpponent) {
       moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.Capture, this.board.squares));
     }
@@ -722,7 +722,7 @@ class Game {
       const toPiece = this.board.squares[toIndex].piece;
 
       // blocked by friendly piece
-      if (toPiece && toPiece.color === this.activeColor) return;
+      if (toPiece && toPiece.color === piece.color) return;
 
       const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
 
@@ -773,7 +773,7 @@ class Game {
       const toPiece = this.board.squares[toIndex].piece;
 
       // blocked by friendly piece
-      if (toPiece && toPiece.color === this.activeColor) continue;
+      if (toPiece && toPiece.color === piece.color) continue;
 
       const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
 
@@ -782,7 +782,7 @@ class Game {
 
     // add castling moves
     this.castlingAvailability
-      .filter(x => x.color === this.activeColor)
+      .filter(x => x.color === piece.color)
       .forEach(x => {
         const dirIndex = x.type === PieceType.King ? DirectionIndex.East : DirectionIndex.West;
         const offset = this.directionOffsets[dirIndex];
@@ -807,22 +807,26 @@ class Game {
         const toPiece = this.board.squares[toIndex].piece;
 
         // blocked by friendly piece, so can't move any further in this direction
-        if (toPiece && toPiece.color === this.activeColor) break;
+        if (toPiece && toPiece.color === piece.color) break;
 
         const moveType = toPiece ? MoveType.Capture : MoveType.Advance;
 
         moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
 
         // can't move any further in this direction after capturing opponent's piece
-        if (toPiece && toPiece.color !== this.activeColor) break;
+        if (toPiece && toPiece.color !== piece.color) break;
       }
     }
 
     return moves;
   };
 
-  testForCheck = () => {
-    // todo
+  testForCheck = (color) => {
+    const opponentMoves = this.pseudoLegalMoves.filter(move => move.movePiece.color !== color);
+    const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.Capture);
+    const opponentKingCaptures = opponentCaptures.filter(move => move.capturePiece.type === PieceType.King);
+    const isCheck = opponentKingCaptures.length > 1;
+    return isCheck;
   };
 }
 
