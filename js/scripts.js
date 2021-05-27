@@ -856,7 +856,7 @@ class Square {
     this.game = game;
     this.piece = null;
     this.index = rank * 8 + file;
-    this.isLightSquare = (file + rank) % 2 === 0;
+    this.isLightSquare = (file + rank) % 2 === 1;
   }
 
   get squareColor() { return this.isLightSquare ? this.game.lightColor : this.game.darkColor; }
