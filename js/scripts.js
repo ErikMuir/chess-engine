@@ -32,11 +32,17 @@ class Constants {
 class Utils {
   static isDigit = (str) => /^\d+$/.test(str);
 
+  static proportion = (ratio) => Math.floor(Constants.squareSize * ratio);
+
   static getImage = (filename) => {
     var img = new Image();
     img.src = `./images/${filename}`;
     return img;
   };
+
+  static getFile = (index) => index % 8;
+
+  static getRank = (index) => Math.floor(index / 8);
 }
 
 class PieceColor {
@@ -44,7 +50,13 @@ class PieceColor {
   static white = 8;
   static black = 16;
 
-  static parse = (val) => {
+  static fromPieceValue = (val) => {
+    if (val >= PieceColor.black) return PieceColor.black;
+    if (val >= PieceColor.white) return PieceColor.white;
+    return PieceColor.none;
+  }
+
+  static fromFEN = (val) => {
     return val === val.toUpperCase()
       ? PieceColor.white
       : PieceColor.black;
@@ -60,7 +72,19 @@ class PieceType {
   static rook = 5;
   static queen = 6;
 
-  static parse = (val) => {
+  static fromPieceValue = (val) => {
+    switch (val % 8) {
+      case 1: return PieceType.king;
+      case 2: return PieceType.pawn;
+      case 3: return PieceType.knight;
+      case 4: return PieceType.bishop;
+      case 5: return PieceType.rook;
+      case 6: return PieceType.queen;
+      default: return PieceType.none;
+    }
+  };
+
+  static fromFEN = (val) => {
     switch (val.toLowerCase()) {
       case 'k': return PieceType.king;
       case 'p': return PieceType.pawn;
@@ -92,9 +116,16 @@ class Piece {
     this.value = color | type;
   }
 
-  static parse = (val) => {
-    const color = PieceColor.parse(val);
-    const type = PieceType.parse(val);
+  static fromPieceValue = (val) => {
+    if (!val) return null;
+    const color = PieceColor.fromPieceValue(val);
+    const type = PieceType.fromPieceValue(val);
+    return new Piece(color, type);
+  };
+
+  static fromFEN = (val) => {
+    const color = PieceColor.fromFEN(val);
+    const type = PieceType.fromFEN(val);
     return new Piece(color, type);
   };
 
@@ -112,12 +143,12 @@ class MoveType {
 }
 
 class Move {
-  constructor(from, to, type, squares) {
-    this.from = from;
-    this.to = to;
+  constructor(fromIndex, toIndex, type, squares) {
+    this.fromIndex = fromIndex;
+    this.toIndex = toIndex;
     this.type = type;
-    this.movePiece = squares[from].piece;
-    this.capturePiece = squares[to].piece;
+    this.movePiece = squares[fromIndex];
+    this.capturePiece = squares[toIndex];
   }
 }
 
@@ -135,19 +166,9 @@ class DirectionIndex {
 class Game {
   constructor() {
     this.board = null;
-    this.ctx = null;
-    this.whitePieces = {};
-    this.blackPieces = {};
-    this.whitePieceImages = {};
-    this.blackPieceImages = {};
+    this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
-    this.prevMoveSquares = [];
-    this.possibleSquares = [];
-    this.activeSquare = null;
-    this.hoverX = null;
-    this.hoverY = null;
-    this.dragPiece = null;
-    this.activeColor = null;
+    this.activePlayer = null;
     this.isCapture = false;
     this.enPassantTargetSquare = null;
     this.castlingAvailability = null;
@@ -158,62 +179,11 @@ class Game {
   }
 
   init = () => {
-    this.initCanvas();
-    this.initPieces();
-    this.initBoard();
     this.initEngine();
-    return setInterval(this.draw, 10);
-  };
-
-  initCanvas = () => {
-    const canvas = document.getElementById('canvas');
-    canvas.width = Constants.squareSize * 8;
-    canvas.height = Constants.squareSize * 8;
-    canvas.onmousedown = this.onMouseDown;
-    canvas.onmouseup = this.onMouseUp;
-    canvas.onmousemove = this.onMouseMove;
-    canvas.onmouseout = this.onMouseOut;
-    this.ctx = canvas.getContext('2d');
-  };
-
-  initPieces = () => {
-    this.whitePieces = {
-      King: new Piece(PieceColor.white, PieceType.king),
-      Pawn: new Piece(PieceColor.white, PieceType.pawn),
-      Knight: new Piece(PieceColor.white, PieceType.knight),
-      Bishop: new Piece(PieceColor.white, PieceType.bishop),
-      Rook: new Piece(PieceColor.white, PieceType.rook),
-      Queen: new Piece(PieceColor.white, PieceType.queen),
-    };
-    this.blackPieces = {
-      King: new Piece(PieceColor.black, PieceType.king),
-      Pawn: new Piece(PieceColor.black, PieceType.pawn),
-      Knight: new Piece(PieceColor.black, PieceType.knight),
-      Bishop: new Piece(PieceColor.black, PieceType.bishop),
-      Rook: new Piece(PieceColor.black, PieceType.rook),
-      Queen: new Piece(PieceColor.black, PieceType.queen),
-    };
-    this.whitePieceImages = {
-      King: Utils.getImage('white-king.svg'),
-      Pawn: Utils.getImage('white-pawn.svg'),
-      Knight: Utils.getImage('white-knight.svg'),
-      Bishop: Utils.getImage('white-bishop.svg'),
-      Rook: Utils.getImage('white-rook.svg'),
-      Queen: Utils.getImage('white-queen.svg'),
-    };
-    this.blackPieceImages = {
-      King: Utils.getImage('black-king.svg'),
-      Pawn: Utils.getImage('black-pawn.svg'),
-      Knight: Utils.getImage('black-knight.svg'),
-      Bishop: Utils.getImage('black-bishop.svg'),
-      Rook: Utils.getImage('black-rook.svg'),
-      Queen: Utils.getImage('black-queen.svg'),
-    };
-  };
-
-  initBoard = () => {
-    this.board = new Board(this);
     this.loadFen(Constants.startPosition);
+    this.generateMoves();
+    this.board = new Board(this);
+    return setInterval(this.board.draw, 10);
   };
 
   initEngine = () => {
@@ -238,14 +208,13 @@ class Game {
         ];
       }
     }
-    this.generateMoves();
   };
 
   loadFen = (fen) => {
     try {
       const fenParts = fen.split(' ');
       this.parsePiecePlacement(fenParts[0]);
-      this.parseActiveColor(fenParts[1]);
+      this.parseActivePlayer(fenParts[1]);
       this.parseCastlingAvailability(fenParts[2]);
       this.parseEnPassantTargetSquare(fenParts[3]);
       this.parseHalfMoveClock(fenParts[4]);
@@ -258,7 +227,7 @@ class Game {
   getFen = () => {
     const fenParts = [
       this.getPiecePlacement(),
-      this.getActiveColor(),
+      this.getActivePlayer(),
       this.getCastlingAvailability(),
       this.getEnPassantTargetSquare(),
       this.getHalfMoveClock(),
@@ -276,7 +245,7 @@ class Game {
       } else if (Utils.isDigit(symbol)) {
         file += parseInt(symbol);
       } else {
-        this.board.squares[rank * 8 + file].piece = Piece.parse(symbol);
+        this.squares[rank * 8 + file] = Piece.fromFEN(symbol).value;
         file++;
       }
     });
@@ -295,8 +264,8 @@ class Game {
     let output = '';
     let consecutiveEmptySquares = 0;
     for (let file = 0; file < 8; file++) {
-      const piece = this.board.squares[rank * 8 + file].piece;
-      if (!piece) {
+      const pieceValue = this.squares[rank * 8 + file];
+      if (!pieceValue) {
         consecutiveEmptySquares++;
         continue;
       }
@@ -304,6 +273,7 @@ class Game {
         output += `${consecutiveEmptySquares}`;
       }
       consecutiveEmptySquares = 0;
+      const piece = Piece.fromPieceValue(pieceValue);
       output += Piece.toString(piece);
     }
     if (consecutiveEmptySquares > 0) {
@@ -312,16 +282,16 @@ class Game {
     return output;
   };
 
-  parseActiveColor = (val) => {
+  parseActivePlayer = (val) => {
     switch (val.toLowerCase()) {
-      case 'w': this.activeColor = PieceColor.white; break;
-      case 'b': this.activeColor = PieceColor.black; break;
-      default: this.activeColor = PieceColor.none; break;
+      case 'w': this.activePlayer = PieceColor.white; break;
+      case 'b': this.activePlayer = PieceColor.black; break;
+      default: this.activePlayer = PieceColor.none; break;
     }
   };
 
-  getActiveColor = () => {
-    switch (this.activeColor) {
+  getActivePlayer = () => {
+    switch (this.activePlayer) {
       case PieceColor.white: return 'w';
       case PieceColor.black: return 'b';
       default: return '-';
@@ -330,10 +300,10 @@ class Game {
 
   parseCastlingAvailability = (val) => {
     this.castlingAvailability = [];
-    if (val.indexOf('K') > -1) this.castlingAvailability.push(this.whitePieces.King);
-    if (val.indexOf('Q') > -1) this.castlingAvailability.push(this.whitePieces.Queen);
-    if (val.indexOf('k') > -1) this.castlingAvailability.push(this.blackPieces.King);
-    if (val.indexOf('q') > -1) this.castlingAvailability.push(this.blackPieces.Queen);
+    if (val.indexOf('K') > -1) this.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
+    if (val.indexOf('Q') > -1) this.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
+    if (val.indexOf('k') > -1) this.castlingAvailability.push(new Piece(PieceColor.black, PieceType.king));
+    if (val.indexOf('q') > -1) this.castlingAvailability.push(new Piece(PieceColor.black, PieceType.queen));
   };
 
   getCastlingAvailability = () => {
@@ -359,228 +329,6 @@ class Game {
 
   getFullMoveNumber = () => `${this.fullMoveNumber}`;
 
-  onMouseDown = (e) => {
-    const square = this.getEventSquare(e);
-    if (square === this.activeSquare) {
-      this.deselect = true;
-    }
-    if (square.piece && square.piece.color === this.activeColor) {
-      this.initDrag(square);
-      this.initMove(square);
-      this.setHover(e);
-    }
-  };
-
-  onMouseUp = (e) => {
-    if (!this.activeSquare) return;
-    if (this.dragPiece) {
-      this.cancelDrag();
-    }
-    const square = this.getEventSquare(e);
-    if (square === this.activeSquare && this.deselect) {
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
-      this.deselect = false;
-    } else if (this.isLegalMove(square)) {
-      this.doMove(square);
-    }
-  };
-
-  onMouseMove = (e) => {
-    this.setHover(e);
-  };
-
-  onMouseOut = () => {
-    if (this.dragPiece) {
-      this.cancelDrag();
-      this.activeSquare = null;
-      this.clearPossibleSquares();
-    }
-  };
-
-  setHover = (e) => {
-    this.hoverX = e.offsetX;
-    this.hoverY = e.offsetY;
-  };
-
-  getEventSquare = (e) => {
-    const rank = 7 - Math.floor(e.offsetY / Constants.squareSize);
-    const file = Math.floor(e.offsetX / Constants.squareSize);
-    return this.board.squares[rank * 8 + file];
-  };
-
-  initDrag = (fromSquare) => {
-    this.dragPiece = fromSquare.piece;
-  };
-
-  cancelDrag = () => {
-    if (this.activeSquare) {
-      this.activeSquare.piece = this.dragPiece;
-    }
-    this.dragPiece = null;
-  };
-
-  initMove = (fromSquare) => {
-    fromSquare.piece = null;
-    this.activeSquare = fromSquare;
-    this.possibleSquares = this.legalMoves
-      .filter(move => move.from === fromSquare.index)
-      .map(move => move.to);
-  };
-
-  doMove = (toSquare) => {
-    const movePiece = this.getMovePiece(toSquare);
-    const moveType = this.getMoveType(movePiece.type, toSquare);
-    switch (moveType) {
-      case MoveType.advance:
-        this.handleAdvance(movePiece, toSquare);
-        break;
-      case MoveType.capture:
-        this.handleCapture(movePiece, toSquare);
-        break;
-      case MoveType.enPassant:
-        this.handleEnPassant(movePiece, toSquare);
-        break;
-      case MoveType.castle:
-        this.handleCastle(movePiece, toSquare);
-        break;
-    }
-    this.postMoveActions(toSquare);
-  };
-
-  getMoveType = (pieceType, toSquare) => {
-    if (this.isEnPassant(pieceType, toSquare)) return MoveType.enPassant;
-    if (this.isCastle(pieceType, toSquare)) return MoveType.castle;
-    return toSquare.piece ? MoveType.capture : MoveType.advance;
-  };
-
-  isEnPassant = (pieceType, toSquare) => (
-    pieceType === PieceType.pawn && toSquare.index === this.enPassantTargetSquare
-  );
-
-  isCastle = (pieceType, toSquare) => (
-    pieceType === PieceType.king && Math.abs(this.activeSquare.index - toSquare.index) === 2
-  );
-
-  handleAdvance = (movePiece, toSquare) => {
-    this.isCapture = false;
-    toSquare.piece = movePiece;
-    this.activeSquare.piece = null;
-  };
-
-  handleCapture = (movePiece, toSquare) => {
-    this.isCapture = true;
-    toSquare.piece = movePiece;
-    this.activeSquare.piece = null;
-  };
-
-  handleEnPassant = (movePiece, toSquare) => {
-    this.isCapture = true;
-    toSquare.piece = movePiece;
-    this.activeSquare.piece = null;
-    const offset = movePiece.color === PieceColor.white ? -8 : 8;
-    const captureSquareIndex = toSquare.index + offset;
-    this.board.squares[captureSquareIndex].piece = null;
-  };
-
-  handleCastle = (movePiece, toSquare) => {
-    this.isCapture = false;
-    toSquare.piece = movePiece;
-    this.activeSquare.piece = null;
-    const isKingSide = toSquare.file === 6;
-    const rookRank = movePiece.color === PieceColor.white ? 0 : 7;
-    const rookFile = isKingSide ? 7 : 0;
-    const targetFile = isKingSide ? 5 : 3;
-    const rookSquare = this.board.squares[rookRank * 8 + rookFile];
-    const targetSquare = this.board.squares[rookRank * 8 + targetFile];
-    targetSquare.piece = rookSquare.piece;
-    rookSquare.piece = null;
-  };
-
-  postMoveActions = (toSquare) => {
-    this.setPrevMoveSquares(toSquare);
-    this.setEnPassantTargetSquare(toSquare);
-    this.updateCastlingAvailability(toSquare);
-    this.setHalfMoveClock(toSquare);
-    this.updateFullMoveNumber(toSquare);
-    this.clearActiveSquare();
-    this.clearPossibleSquares();
-    this.togglePlayerTurn();
-    this.generateMoves();
-    this.testForCheck(this.activeColor);
-  };
-
-  setPrevMoveSquares = (toSquare) => {
-    this.prevMoveSquares = [this.activeSquare, toSquare];
-  };
-
-  setEnPassantTargetSquare = (toSquare) => {
-    const isPawn = toSquare.piece.type === PieceType.pawn;
-    const distance = Math.abs(toSquare.index - this.activeSquare.index);
-    const color = toSquare.piece.color;
-    const targetOffset = color === PieceColor.white ? -8 : 8;
-    this.enPassantTargetSquare = isPawn && distance === 16
-      ? toSquare.index + targetOffset
-      : -1;
-  };
-
-  updateCastlingAvailability = (toSquare) => {
-    if (this.castlingAvailability.length === 0) return;
-    const { color, type } = toSquare.piece || {};
-    const fromFile = this.activeSquare.file;
-    if (type === PieceType.king) {
-      this.castlingAvailability = this.castlingAvailability
-        .filter(x => x.color !== color);
-    } else if (type === PieceType.rook && [0, 7].includes(fromFile)) {
-      const side = fromFile === 0 ? PieceType.queen : PieceType.king;
-      this.castlingAvailability = this.castlingAvailability
-        .filter(x => x.color !== color || x.type !== side);
-    }
-  };
-
-  setHalfMoveClock = (toSquare) => {
-    const isPawn = toSquare.piece.type === PieceType.pawn;
-    this.halfMoveClock = this.isCapture || isPawn ? 0 : this.halfMoveClock + 1;
-  };
-
-  updateFullMoveNumber = (toSquare) => {
-    if (toSquare.piece.color === PieceColor.black) {
-      this.fullMoveNumber++;
-    }
-  };
-
-  getMovePiece = (toSquare) => {
-    const toSquarePiece = this.dragPiece || this.activeSquare.piece;
-    if (toSquarePiece.type === PieceType.pawn) {
-      const promotionRank = toSquarePiece.color === PieceColor.white ? 7 : 0;
-      if (toSquare.rank === promotionRank) {
-        toSquarePiece.type = PieceType.queen;
-      }
-    }
-    return toSquarePiece;
-  };
-
-  isLegalMove = (toSquare) => {
-    const legalMove = this.legalMoves.find(move =>
-      move.from === this.activeSquare.index
-      && move.to === toSquare.index);
-    return !!legalMove;
-  };
-
-  togglePlayerTurn = () => {
-    this.activeColor = this.activeColor === PieceColor.white
-      ? PieceColor.black
-      : PieceColor.white;
-  };
-
-  clearActiveSquare = () => {
-    this.activeSquare = null;
-  };
-
-  clearPossibleSquares = () => {
-    this.possibleSquares = [];
-  };
-
   parseSquareIndexFromAlgebraicNotation = (val) => {
     try {
       const file = 'abcdefgh'.indexOf(val[0]);
@@ -591,39 +339,87 @@ class Game {
     }
   };
 
-  proportion = (ratio) => Math.floor(Constants.squareSize * ratio);
+  doMove = (move) => {
+    this.squares[move.toIndex] = move.movePiece;
+    this.squares[move.fromIndex] = null;
+    switch (move.type) {
+      case MoveType.enPassant:
+        this.handleEnPassant(move);
+        break;
+      case MoveType.castle:
+        this.handleCastle(move);
+        break;
+    }
+    this.postMoveActions(move);
+  };
 
-  draw = () => {
-    this.board.draw();
-    if (this.dragPiece) {
-      this.drawDragPiece();
+  handleEnPassant = (move) => {
+    const offset = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? -8 : 8;
+    const captureSquareIndex = move.toIndex + offset;
+    this.squares[captureSquareIndex] = null;
+  };
+
+  handleCastle = (move) => {
+    const isKingSide = Utils.getFile(move.toIndex) === 6;
+    const rookRank = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? 0 : 7;
+    const rookFile = isKingSide ? 7 : 0;
+    const targetFile = isKingSide ? 5 : 3;
+    const fromIndex = rookRank * 8 + rookFile;
+    const toIndex = rookRank * 8 + targetFile;
+    this.squares[toIndex] = this.squares[fromIndex];
+    this.squares[fromIndex] = null;
+  };
+
+  postMoveActions = (move) => {
+    this.board.refresh();
+    this.setEnPassantTargetSquare(move);
+    this.updateCastlingAvailability(move);
+    this.setHalfMoveClock(move);
+    this.updateFullMoveNumber(move);
+    this.togglePlayerTurn();
+    this.generateMoves();
+    this.testForCheck(this.activePlayer);
+  };
+
+  setEnPassantTargetSquare = (move) => {
+    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    const distance = Math.abs(move.toIndex - move.fromIndex);
+    const color = PieceColor.fromPieceValue(move.movePiece);
+    const targetOffset = color === PieceColor.white ? -8 : 8;
+    this.enPassantTargetSquare = isPawn && distance === 16
+      ? move.toIndex + targetOffset
+      : -1;
+  };
+
+  updateCastlingAvailability = (move) => {
+    if (this.castlingAvailability.length === 0) return;
+    const { color, type } = Piece.fromPieceValue(move.movePiece);
+    const fromFile = Utils.getFile(move.fromIndex);
+    if (type === PieceType.king) {
+      this.castlingAvailability = this.castlingAvailability.filter(x => x.color !== color);
+    } else if (type === PieceType.rook && [0, 7].includes(fromFile)) {
+      const side = fromFile === 0 ? PieceType.queen : PieceType.king;
+      this.castlingAvailability = this.castlingAvailability
+        .filter(x => x.color !== color || x.type !== side);
     }
   };
 
-  drawDragPiece = () => {
-    const img = this.getPieceImage(this.dragPiece);
-    const size = this.proportion(0.8);
-    const x = this.hoverX - (size / 2);
-    const y = this.hoverY - (size / 2);
-    this.ctx.drawImage(img, x, y, size, size);
+  setHalfMoveClock = (move) => {
+    const isCapture = !!move.capturePiece;
+    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
   };
 
-  getPieceImage = (piece) => {
-    if (!piece) return null;
-    let set;
-    switch (piece.color) {
-      case PieceColor.white: set = this.whitePieceImages; break;
-      case PieceColor.black: set = this.blackPieceImages; break;
+  updateFullMoveNumber = (move) => {
+    if (PieceColor.fromPieceValue(move.movePiece) === PieceColor.black) {
+      this.fullMoveNumber++;
     }
-    switch (piece.type) {
-      case PieceType.king: return set.King;
-      case PieceType.pawn: return set.Pawn;
-      case PieceType.knight: return set.Knight;
-      case PieceType.bishop: return set.Bishop;
-      case PieceType.rook: return set.Rook;
-      case PieceType.queen: return set.Queen;
-      default: return null;
-    }
+  };
+
+  togglePlayerTurn = () => {
+    this.activePlayer = this.activePlayer === PieceColor.white
+      ? PieceColor.black
+      : PieceColor.white;
   };
 
   generateMoves = () => {
@@ -635,7 +431,8 @@ class Game {
     const moves = [];
 
     for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
-      const piece = this.board.squares[fromIndex].piece;
+      const pieceValue = this.squares[fromIndex];
+      const piece = Piece.fromPieceValue(pieceValue);
       if (!piece) continue;
 
       switch (piece.type) {
@@ -660,10 +457,10 @@ class Game {
   };
 
   generateLegalMoves = () => {
-    const activeColorMoves = this.pseudoLegalMoves.filter(move => move.movePiece.color === this.activeColor);
+    const activePlayerMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
     const moves = [];
-    activeColorMoves.forEach(move => {
-      const futureBoard = new Board(null, this.baord);
+    activePlayerMoves.forEach(move => {
+      // const futureBoard = new BoardGui(null, this.baord);
 
       // todo : test for putting yourself in check
       moves.push(move);
@@ -680,9 +477,9 @@ class Game {
 
     // check one square forward
     const forwardSquareIndex = fromIndex + Constants.directionOffsets[moveForward];
-    const forwardSquarePiece = this.board.squares[forwardSquareIndex].piece;
+    const forwardSquarePiece = this.squares[forwardSquareIndex];
     if (!forwardSquarePiece) {
-      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.advance, this.board.squares));
+      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.advance, this.squares));
     }
 
     // check two squares forward
@@ -694,31 +491,31 @@ class Game {
     );
     if (isFirstMove) {
       const doubleSquareIndex = forwardSquareIndex + Constants.directionOffsets[moveForward];
-      const doubleSquarePiece = this.board.squares[doubleSquareIndex].piece;
+      const doubleSquarePiece = this.squares[doubleSquareIndex];
       if (!forwardSquarePiece && !doubleSquarePiece) {
-        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.advance, this.board.squares));
+        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.advance, this.squares));
       }
     }
 
     // check attack left
     const attackLeftSquareIndex = fromIndex + Constants.directionOffsets[attackLeft];
-    const attackLeftSquarePiece = this.board.squares[attackLeftSquareIndex].piece;
+    const attackLeftSquarePiece = this.squares[attackLeftSquareIndex];
     const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
     if (isAttackLeftOpponent) {
-      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.capture, this.board.squares));
+      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.capture, this.squares));
     }
-    
+
     // check attack right
     const attackRightSquareIndex = fromIndex + Constants.directionOffsets[attackRight];
-    const attackRightSquarePiece = this.board.squares[attackRightSquareIndex].piece;
+    const attackRightSquarePiece = this.squares[attackRightSquareIndex];
     const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
     if (isAttackRightOpponent) {
-      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.capture, this.board.squares));
+      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.capture, this.squares));
     }
 
     // check en passant
     if ([attackLeftSquareIndex, attackRightSquareIndex].includes(this.enPassantTargetSquare)) {
-      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.enPassant, this.board.squares));
+      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.enPassant, this.squares));
     }
 
     return moves;
@@ -729,14 +526,14 @@ class Game {
 
     const checkMove = (passingIndex, dirIndex) => {
       const toIndex = passingIndex + Constants.directionOffsets[dirIndex];
-      const toPiece = this.board.squares[toIndex].piece;
+      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
 
       // blocked by friendly piece
       if (toPiece && toPiece.color === piece.color) return;
 
       const moveType = toPiece ? MoveType.capture : MoveType.advance;
 
-      moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
+      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
     };
 
     const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.north];
@@ -780,14 +577,14 @@ class Game {
       // blocked by edge of board
       if (this.numSquaresToEdge[fromIndex][dirIndex] === 0) continue;
 
-      const toPiece = this.board.squares[toIndex].piece;
+      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
 
       // blocked by friendly piece
       if (toPiece && toPiece.color === piece.color) continue;
 
       const moveType = toPiece ? MoveType.capture : MoveType.advance;
 
-      moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
+      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
     }
 
     // add castling moves
@@ -796,10 +593,10 @@ class Game {
       .forEach(x => {
         const dirIndex = x.type === PieceType.king ? DirectionIndex.east : DirectionIndex.west;
         const offset = Constants.directionOffsets[dirIndex];
-        const passingSquare = this.board.squares[fromIndex + offset];
-        const landingSquare = this.board.squares[fromIndex + (offset * 2)];
-        if (passingSquare.piece || landingSquare.piece) return;
-        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.castle, this.board.squares));
+        const passingSquare = this.squares[fromIndex + offset];
+        const landingSquare = this.squares[fromIndex + (offset * 2)];
+        if (passingSquare || landingSquare) return;
+        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.castle, this.squares));
       });
 
     return moves;
@@ -814,14 +611,14 @@ class Game {
     for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
       for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
         const toIndex = fromIndex + Constants.directionOffsets[dirIndex] * (n + 1);
-        const toPiece = this.board.squares[toIndex].piece;
+        const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
 
         // blocked by friendly piece, so can't move any further in this direction
         if (toPiece && toPiece.color === piece.color) break;
 
         const moveType = toPiece ? MoveType.capture : MoveType.advance;
 
-        moves.push(new Move(fromIndex, toIndex, moveType, this.board.squares));
+        moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
 
         // can't move any further in this direction after capturing opponent's piece
         if (toPiece && toPiece.color !== piece.color) break;
@@ -832,38 +629,213 @@ class Game {
   };
 
   testForCheck = (color) => {
-    const opponentMoves = this.pseudoLegalMoves.filter(move => move.movePiece.color !== color);
+    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) !== color);
     const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
-    const opponentKingCaptures = opponentCaptures.filter(move => move.capturePiece.type === PieceType.king);
+    const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
     const isCheck = opponentKingCaptures.length > 0;
     return isCheck;
   };
 }
 
 class Board {
-  constructor(game, board) {
+  constructor(game) {
     this.game = game;
     this.squares = new Array(64);
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const index = rank * 8 + file;
-        this.squares[index] = new Square(file, rank, game);
-        if (!board) continue;
-        const piece = board.squares[index].piece;
-        if (!piece) continue;
-        this.squares[index].piece = new Piece(piece.color, piece.type);
-      }
-    }
+
+    this.ctx = null;
+    this.whitePieceImages = {};
+    this.blackPieceImages = {};
+    this.activeSquare = null;
+    this.possibleSquares = [];
+    this.previousMove = {};
+    this.dragPiece = null;
+    this.deselect = false;
+
+    this.init();
   }
 
-  draw = () => { this.squares.forEach(sq => sq.draw()); };
+  init = () => {
+    this.initCanvas();
+    this.initPieces();
+    this.initSquares();
+    this.refresh();
+  };
+
+  initCanvas = () => {
+    const canvas = document.getElementById('canvas');
+    canvas.width = Constants.squareSize * 8;
+    canvas.height = Constants.squareSize * 8;
+    canvas.onmousedown = this.onMouseDown;
+    canvas.onmouseup = this.onMouseUp;
+    canvas.onmousemove = this.onMouseMove;
+    canvas.onmouseout = this.onMouseOut;
+    this.ctx = canvas.getContext('2d');
+  };
+
+  initPieces = () => {
+    this.whitePieceImages = {
+      king: Utils.getImage('white-king.svg'),
+      pawn: Utils.getImage('white-pawn.svg'),
+      knight: Utils.getImage('white-knight.svg'),
+      bishop: Utils.getImage('white-bishop.svg'),
+      rook: Utils.getImage('white-rook.svg'),
+      queen: Utils.getImage('white-queen.svg'),
+    };
+    this.blackPieceImages = {
+      king: Utils.getImage('black-king.svg'),
+      pawn: Utils.getImage('black-pawn.svg'),
+      knight: Utils.getImage('black-knight.svg'),
+      bishop: Utils.getImage('black-bishop.svg'),
+      rook: Utils.getImage('black-rook.svg'),
+      queen: Utils.getImage('black-queen.svg'),
+    };
+  };
+
+  initSquares = () => {
+    for (let rank = 0; rank < 8; rank++) {
+      for (let file = 0; file < 8; file++) {
+        this.squares[rank * 8 + file] = new Square(file, rank, this);
+      }
+    }
+  };
+
+  refresh = () => {
+    this.clearPossibleSquares();
+    for (let i = 0; i < 64; i++) {
+      const pieceValue = this.game.squares[i];
+      this.squares[i].piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
+    }
+  };
+
+  draw = () => {
+    this.squares.forEach(sq => sq.draw(this.ctx));
+    this.drawDragPiece(this.ctx);
+  };
+
+  drawDragPiece = (ctx) => {
+    if (!this.dragPiece) return;
+    const img = this.getPieceImage(this.dragPiece);
+    const size = Utils.proportion(0.8);
+    const x = this.hoverX - (size / 2);
+    const y = this.hoverY - (size / 2);
+    ctx.drawImage(img, x, y, size, size);
+  };
+
+  onMouseDown = (e) => {
+    const square = this.getEventSquare(e);
+    if (square === this.activeSquare) {
+      this.deselect = true;
+    }
+    if (square.piece && square.piece.color === this.game.activePlayer) {
+      this.initDrag(square);
+      this.initMove(square);
+      this.setHover(e);
+    }
+  };
+
+  onMouseUp = (e) => {
+    if (!this.activeSquare) return;
+    if (this.dragPiece) this.cancelDrag();
+
+    const square = this.getEventSquare(e);
+    if (square === this.activeSquare && this.deselect) {
+      this.clearActiveSquare();
+      this.clearPossibleSquares();
+      this.deselect = false;
+      return;
+    }
+
+    const move = this.getLegalMove(square);
+    if (move) {
+      this.game.doMove(move);
+      this.clearPossibleSquares();
+      this.setPreviousMove(move);
+    }
+  };
+
+  onMouseMove = (e) => {
+    this.setHover(e);
+  };
+
+  onMouseOut = () => {
+    if (this.dragPiece) {
+      this.cancelDrag();
+      this.clearActiveSquare();
+      this.clearPossibleSquares();
+    }
+  };
+
+  setHover = (e) => {
+    this.hoverX = e.offsetX;
+    this.hoverY = e.offsetY;
+  };
+
+  getEventSquare = (e) => {
+    const rank = 7 - Math.floor(e.offsetY / Constants.squareSize);
+    const file = Math.floor(e.offsetX / Constants.squareSize);
+    return this.squares[rank * 8 + file];
+  };
+
+  getPieceImage = (piece) => {
+    if (!piece) return null;
+    let set;
+    switch (piece.color) {
+      case PieceColor.white: set = this.whitePieceImages; break;
+      case PieceColor.black: set = this.blackPieceImages; break;
+    }
+    switch (piece.type) {
+      case PieceType.king: return set.king;
+      case PieceType.pawn: return set.pawn;
+      case PieceType.knight: return set.knight;
+      case PieceType.bishop: return set.bishop;
+      case PieceType.rook: return set.rook;
+      case PieceType.queen: return set.queen;
+      default: return null;
+    }
+  };
+
+  initDrag = (fromSquare) => {
+    this.dragPiece = fromSquare.piece;
+  };
+
+  cancelDrag = () => {
+    if (this.activeSquare) {
+      this.activeSquare.piece = this.dragPiece;
+    }
+    this.dragPiece = null;
+  };
+
+  initMove = (fromSquare) => {
+    fromSquare.piece = null;
+    this.activeSquare = fromSquare;
+    this.possibleSquares = this.game.legalMoves
+      .filter(move => move.fromIndex === fromSquare.index)
+      .map(move => move.toIndex);
+  };
+
+  clearActiveSquare = () => {
+    this.activeSquare = null;
+  };
+
+  clearPossibleSquares = () => {
+    this.possibleSquares = [];
+  };
+
+  setPreviousMove = (move) => {
+    this.previousMove = move;
+  };
+
+  getLegalMove = (toSquare) => this.game.legalMoves
+    .find(move =>
+      move.fromIndex === this.activeSquare.index
+      && move.toIndex === toSquare.index);
 }
 
 class Square {
-  constructor(file, rank, game) {
+  constructor(file, rank, board) {
     this.file = file;
     this.rank = rank;
-    this.game = game;
+    this.board = board;
     this.piece = null;
     this.index = rank * 8 + file;
     this.isLightSquare = (file + rank) % 2 === 1;
@@ -875,97 +847,112 @@ class Square {
   get yPos() { return (Constants.squareSize * 7) - (this.rank * Constants.squareSize); }
   get algebraicNotation() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
 
-  draw = () => {
-    this.game.ctx.fillStyle = this.squareColor;
-    this.game.ctx.fillRect(this.xPos, this.yPos, Constants.squareSize, Constants.squareSize);
+  getPieceImage = () => this.board.getPieceImage(this.piece);
+
+  draw = (ctx) => {
+    const { activeSquare, possibleSquares, previousMove } = this.board;
+
+    this.drawBackground(ctx);
 
     if (this.file === 0) {
-      this.drawRankLabel();
+      this.drawRankLabel(ctx);
     }
 
     if (this.rank === 0) {
-      this.drawFileLabel();
+      this.drawFileLabel(ctx);
     }
 
-    if ([this.game.activeSquare].includes(this)) {
-      this.drawOverlay(Constants.activeOverlay);
+    if ([activeSquare].includes(this)) {
+      this.drawActiveOverlay(ctx);
     }
 
-    if (this.game.prevMoveSquares.includes(this)) {
-      this.drawOverlay(Constants.previousOverlay);
+    if (previousMove && [previousMove.fromIndex, previousMove.toIndex].includes(this.index)) {
+      this.drawPreviousOverlay(ctx);
     }
 
     if (this.piece) {
-      this.drawPiece();
+      this.drawPiece(ctx);
     }
 
-    if (this.game.possibleSquares.includes(this.index)) {
-      this.drawPossibleOverlay();
+    if (possibleSquares.includes(this.index)) {
+      this.drawPossibleOverlay(ctx);
     }
   };
 
-  drawRankLabel = () => {
+  drawBackground = (ctx) => {
+    ctx.fillStyle = this.squareColor;
+    ctx.fillRect(this.xPos, this.yPos, Constants.squareSize, Constants.squareSize);
+  };
+
+  drawRankLabel = (ctx) => {
     const rankText = `${this.rank + 1}`;
-    const x = this.xPos + this.game.proportion(0.05);
-    const y = this.yPos + this.game.proportion(0.2);
-    this.game.ctx.fillStyle = this.textColor;
-    this.game.ctx.font = `400 ${this.game.proportion(0.175)}px sans-serif`;
-    this.game.ctx.fillText(rankText, x, y);
+    const x = this.xPos + Utils.proportion(0.05);
+    const y = this.yPos + Utils.proportion(0.2);
+    ctx.fillStyle = this.textColor;
+    ctx.font = `400 ${Utils.proportion(0.175)}px sans-serif`;
+    ctx.fillText(rankText, x, y);
   };
 
-  drawFileLabel = () => {
+  drawFileLabel = (ctx) => {
     const fileText = 'abcdefgh'[this.file];
-    const x = this.xPos + Constants.squareSize - this.game.proportion(0.15);
-    const y = this.yPos + Constants.squareSize - this.game.proportion(0.075);
-    this.game.ctx.fillStyle = this.textColor;
-    this.game.ctx.font = `400 ${this.game.proportion(0.175)}px sans-serif`;
-    this.game.ctx.fillText(fileText, x, y);
+    const x = this.xPos + Constants.squareSize - Utils.proportion(0.15);
+    const y = this.yPos + Constants.squareSize - Utils.proportion(0.075);
+    ctx.fillStyle = this.textColor;
+    ctx.font = `400 ${Utils.proportion(0.175)}px sans-serif`;
+    ctx.fillText(fileText, x, y);
   };
 
-  drawOverlay = (color) => {
-    this.game.ctx.fillStyle = color;
-    this.game.ctx.globalAlpha = Constants.overlayOpacity;
-    this.game.ctx.fillRect(this.xPos, this.yPos, Constants.squareSize, Constants.squareSize);
-    this.game.ctx.globalAlpha = 1.0;
+  drawActiveOverlay = (ctx) => {
+    ctx.fillStyle = Constants.activeOverlay;
+    ctx.globalAlpha = Constants.overlayOpacity;
+    ctx.fillRect(this.xPos, this.yPos, Constants.squareSize, Constants.squareSize);
+    ctx.globalAlpha = 1.0;
   };
 
-  drawPossibleOverlay = () => {
+  drawPreviousOverlay = (ctx) => {
+    ctx.fillStyle = Constants.previousOverlay;
+    ctx.globalAlpha = Constants.overlayOpacity;
+    ctx.fillRect(this.xPos, this.yPos, Constants.squareSize, Constants.squareSize);
+    ctx.globalAlpha = 1.0;
+  };
+
+  drawPossibleOverlay = (ctx) => {
     if (this.piece) {
-      this.drawPossibleOverlayOccupied();
+      this.drawPossibleOverlayOccupied(ctx);
     } else {
-      this.drawPossibleOverlayEmpty();
+      this.drawPossibleOverlayEmpty(ctx);
     }
   };
 
-  drawPossibleOverlayEmpty = () => {
-    const offset = this.game.proportion(0.5);
-    const radius = this.game.proportion(0.17);
-    this.game.ctx.globalAlpha = 0.2;
-    this.game.ctx.beginPath();
-    this.game.ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
-    this.game.ctx.fillStyle = Constants.possibleOverlay;
-    this.game.ctx.fill();
-    this.game.ctx.globalAlpha = 1.0;
+  drawPossibleOverlayEmpty = (ctx) => {
+    const offset = Utils.proportion(0.5);
+    const radius = Utils.proportion(0.17);
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath();
+    ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = Constants.possibleOverlay;
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
   };
 
-  drawPossibleOverlayOccupied = () => {
-    const offset = this.game.proportion(0.5);
-    const radius = this.game.proportion(0.46);
-    this.game.ctx.globalAlpha = 0.2;
-    this.game.ctx.beginPath();
-    this.game.ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
-    this.game.ctx.lineWidth = 7;
-    this.game.ctx.strokeStyle = Constants.possibleOverlay;
-    this.game.ctx.stroke();
-    this.game.ctx.globalAlpha = 1.0;
+  drawPossibleOverlayOccupied = (ctx) => {
+    const offset = Utils.proportion(0.5);
+    const radius = Utils.proportion(0.46);
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath();
+    ctx.arc(this.xPos + offset, this.yPos + offset, radius, 0, 2 * Math.PI, false);
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = Constants.possibleOverlay;
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
   };
 
-  drawPiece = () => {
-    const img = this.game.getPieceImage(this.piece);
-    const offset = this.game.proportion(0.1);
-    const size = this.game.proportion(0.8);
+  drawPiece = (ctx) => {
+    const img = this.getPieceImage();
+    const offset = Utils.proportion(0.1);
+    const size = Utils.proportion(0.8);
     const x = this.xPos + offset;
     const y = this.yPos + offset;
-    this.game.ctx.drawImage(img, x, y, size, size);
+    ctx.drawImage(img, x, y, size, size);
   };
 }
