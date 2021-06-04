@@ -2,13 +2,12 @@ let _game;
 
 window.onload = () => {
   _game = new Game();
-  _game.init();
+  _game.initBoard();
 }
 
 /**
  * FEATURES
  * ------------------------------------
- *  legal moves (test for check)
  *  pawn promotion non-queen options
  *  determine best move
  * 
@@ -172,7 +171,8 @@ class Fen {
       Fen.parseEnPassantTargetSquare(fenParts[3], game);
       Fen.parseHalfMoveClock(fenParts[4], game);
       Fen.parseFullMoveNumber(fenParts[5], game);
-    } catch {
+    } catch (e) {
+      console.log(e);
       throw new Error('Invalid FEN');
     }
   };
@@ -210,6 +210,7 @@ class Fen {
       output += Fen.getFenByRank(rank, game);
       if (rank > 0) output += '/';
     }
+    return output;
   };
 
   static getFenByRank = (rank, game) => {
@@ -228,13 +229,7 @@ class Fen {
       const piece = Piece.fromPieceValue(pieceValue);
       output += Piece.toString(piece);
     }
-
-    const move = this.getLegalMove(square);
-    if (move) {
-      this.game.doMove(move);
-      this.clearPossibleSquares();
-      this.setPreviousMove(move);
-    }
+    return output;
   };
 
   static parseActivePlayer = (val, game) => {
@@ -267,13 +262,13 @@ class Fen {
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
-    game.enPassantTargetSquare = Fen.parseSquareIndexFromAlgebraicNotation(val);
+    game.enPassantTargetSquare = Fen.getSquareIndexFromAlgebraicNotation(val);
   };
 
   static getEnPassantTargetSquare = (game) => {
     return game.enPassantTargetSquare === -1
       ? '-'
-      : game.board.squares[game.enPassantTargetSquare].algebraicNotation;
+      : Fen.getAlgebraicNotationFromSquareIndex(game.enPassantTargetSquare);
   };
 
   static parseHalfMoveClock = (val, game) => { game.halfMoveClock = parseInt(val) || 0; };
@@ -284,7 +279,7 @@ class Fen {
 
   static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
 
-  static parseSquareIndexFromAlgebraicNotation = (val) => {
+  static getSquareIndexFromAlgebraicNotation = (val) => {
     try {
       const file = 'abcdefgh'.indexOf(val[0]);
       const rank = parseInt(val[1]) || -1;
@@ -292,6 +287,12 @@ class Fen {
     } catch {
       return -1;
     }
+  };
+
+  static getAlgebraicNotationFromSquareIndex = (index) => {
+    const rank = Utils.getRank(index);
+    const file = Utils.getFile(index);
+    return `${'abcdefgh'[file]}${rank + 1}`;
   };
 }
 
@@ -616,24 +617,27 @@ class Square {
 }
 
 class Game {
-  constructor() {
+  constructor(fen) {
     this.board = null;
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
     this.isCapture = false;
     this.enPassantTargetSquare = null;
-    this.castlingAvailability = null;
+    this.castlingAvailability = [];
     this.halfMoveClock = null;
     this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
+
+    Fen.load(fen || Constants.startPosition, this);
+    this.initEngine();
+    this.generateMoves();
   }
 
-  init = () => {
-    this.initEngine();
-    Fen.load(Constants.startPosition, this);
-    this.generateMoves();
+  forAnalysisOnly = () => !this.board;
+
+  initBoard = () => {
     this.board = new Board(this);
     return setInterval(this.board.draw, 10);
   };
@@ -694,7 +698,7 @@ class Game {
   };
 
   postMoveActions = (move) => {
-    this.board.refresh();
+    if (this.board) this.board.refresh();
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
     this.setHalfMoveClock(move);
@@ -780,13 +784,16 @@ class Game {
   };
 
   generateLegalMoves = () => {
-    const activePlayerMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
+    const activePlayerMoves = this.pseudoLegalMoves
+      .filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
+    if (this.forAnalysisOnly()) return activePlayerMoves;
+    const fen = Fen.get(this);
     const moves = [];
     activePlayerMoves.forEach(move => {
-      // const futureBoard = new BoardGui(null, this.baord);
-
-      // todo : test for putting yourself in check
-      moves.push(move);
+      const futureGame = new Game(fen);
+      futureGame.doMove(move);
+      const isCheck = futureGame.testForCheck(this.activePlayer);
+      if (!isCheck) moves.push(move);
     });
     return moves;
   };
@@ -960,8 +967,9 @@ class Game {
   };
 
   testForCheckmate = () => {
+    if (this.forAnalysisOnly()) return;
     if (this.legalMoves.length === 0) {
-      alert('Checkmate!');
+      console.log('Checkmate!');
     }
   };
 }
