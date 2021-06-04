@@ -9,7 +9,6 @@ window.onload = () => {
  * FEATURES
  * ------------------------------------
  *  legal moves (test for check)
- *  signal checkmate
  *  pawn promotion non-queen options
  *  determine best move
  * 
@@ -163,80 +162,34 @@ class DirectionIndex {
   static southWest = 7;
 }
 
-class Game {
-  constructor() {
-    this.board = null;
-    this.squares = new Array(64);
-    this.numSquaresToEdge = new Array(64);
-    this.activePlayer = null;
-    this.isCapture = false;
-    this.enPassantTargetSquare = null;
-    this.castlingAvailability = null;
-    this.halfMoveClock = null;
-    this.fullMoveNumber = null;
-    this.pseudoLegalMoves = [];
-    this.legalMoves = [];
-  }
-
-  init = () => {
-    this.initEngine();
-    this.loadFen(Constants.startPosition);
-    this.generateMoves();
-    this.board = new Board(this);
-    return setInterval(this.board.draw, 10);
-  };
-
-  initEngine = () => {
-    for (let file = 0; file < 8; file++) {
-      for (let rank = 0; rank < 8; rank++) {
-        const numNorth = 7 - rank;
-        const numSouth = rank;
-        const numWest = file;
-        const numEast = 7 - file;
-
-        const squareIndex = rank * 8 + file;
-
-        this.numSquaresToEdge[squareIndex] = [
-          numNorth,
-          numSouth,
-          numWest,
-          numEast,
-          Math.min(numNorth, numWest),
-          Math.min(numSouth, numEast),
-          Math.min(numNorth, numEast),
-          Math.min(numSouth, numWest),
-        ];
-      }
-    }
-  };
-
-  loadFen = (fen) => {
+class Fen {
+  static load = (fen, game) => {
     try {
       const fenParts = fen.split(' ');
-      this.parsePiecePlacement(fenParts[0]);
-      this.parseActivePlayer(fenParts[1]);
-      this.parseCastlingAvailability(fenParts[2]);
-      this.parseEnPassantTargetSquare(fenParts[3]);
-      this.parseHalfMoveClock(fenParts[4]);
-      this.parseFullMoveNumber(fenParts[5]);
+      Fen.parsePiecePlacement(fenParts[0], game);
+      Fen.parseActivePlayer(fenParts[1], game);
+      Fen.parseCastlingAvailability(fenParts[2], game);
+      Fen.parseEnPassantTargetSquare(fenParts[3], game);
+      Fen.parseHalfMoveClock(fenParts[4], game);
+      Fen.parseFullMoveNumber(fenParts[5], game);
     } catch {
       throw new Error('Invalid FEN');
     }
   };
 
-  getFen = () => {
+  static get = (game) => {
     const fenParts = [
-      this.getPiecePlacement(),
-      this.getActivePlayer(),
-      this.getCastlingAvailability(),
-      this.getEnPassantTargetSquare(),
-      this.getHalfMoveClock(),
-      this.getFullMoveNumber(),
+      Fen.getPiecePlacement(game),
+      Fen.getActivePlayer(game),
+      Fen.getCastlingAvailability(game),
+      Fen.getEnPassantTargetSquare(game),
+      Fen.getHalfMoveClock(game),
+      Fen.getFullMoveNumber(game),
     ];
     return fenParts.join(' ');
   };
 
-  parsePiecePlacement = (val) => {
+  static parsePiecePlacement = (val, game) => {
     let file = 0, rank = 7;
     val.split('').forEach(symbol => {
       if (symbol === '/') {
@@ -245,26 +198,25 @@ class Game {
       } else if (Utils.isDigit(symbol)) {
         file += parseInt(symbol);
       } else {
-        this.squares[rank * 8 + file] = Piece.fromFEN(symbol).value;
+        game.squares[rank * 8 + file] = Piece.fromFEN(symbol).value;
         file++;
       }
     });
   };
 
-  getPiecePlacement = () => {
+  static getPiecePlacement = (game) => {
     let output = '';
     for (let rank = 7; rank >= 0; rank--) {
-      output += this.getFenByRank(rank);
+      output += Fen.getFenByRank(rank, game);
       if (rank > 0) output += '/';
     }
-    return output;
   };
 
-  getFenByRank = (rank) => {
+  static getFenByRank = (rank, game) => {
     let output = '';
     let consecutiveEmptySquares = 0;
     for (let file = 0; file < 8; file++) {
-      const pieceValue = this.squares[rank * 8 + file];
+      const pieceValue = game.squares[rank * 8 + file];
       if (!pieceValue) {
         consecutiveEmptySquares++;
         continue;
@@ -276,60 +228,63 @@ class Game {
       const piece = Piece.fromPieceValue(pieceValue);
       output += Piece.toString(piece);
     }
-    if (consecutiveEmptySquares > 0) {
-      output += `${consecutiveEmptySquares}`;
+
+    const move = this.getLegalMove(square);
+    if (move) {
+      this.game.doMove(move);
+      this.clearPossibleSquares();
+      this.setPreviousMove(move);
     }
-    return output;
   };
 
-  parseActivePlayer = (val) => {
+  static parseActivePlayer = (val, game) => {
     switch (val.toLowerCase()) {
-      case 'w': this.activePlayer = PieceColor.white; break;
-      case 'b': this.activePlayer = PieceColor.black; break;
-      default: this.activePlayer = PieceColor.none; break;
+      case 'w': game.activePlayer = PieceColor.white; break;
+      case 'b': game.activePlayer = PieceColor.black; break;
+      default: game.activePlayer = PieceColor.none; break;
     }
   };
 
-  getActivePlayer = () => {
-    switch (this.activePlayer) {
+  static getActivePlayer = (game) => {
+    switch (game.activePlayer) {
       case PieceColor.white: return 'w';
       case PieceColor.black: return 'b';
       default: return '-';
     }
   };
 
-  parseCastlingAvailability = (val) => {
-    this.castlingAvailability = [];
-    if (val.indexOf('K') > -1) this.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
-    if (val.indexOf('Q') > -1) this.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
-    if (val.indexOf('k') > -1) this.castlingAvailability.push(new Piece(PieceColor.black, PieceType.king));
-    if (val.indexOf('q') > -1) this.castlingAvailability.push(new Piece(PieceColor.black, PieceType.queen));
+  static parseCastlingAvailability = (val, game) => {
+    game.castlingAvailability = [];
+    if (val.indexOf('K') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
+    if (val.indexOf('Q') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
+    if (val.indexOf('k') > -1) game.castlingAvailability.push(new Piece(PieceColor.black, PieceType.king));
+    if (val.indexOf('q') > -1) game.castlingAvailability.push(new Piece(PieceColor.black, PieceType.queen));
   };
 
-  getCastlingAvailability = () => {
-    if (this.castlingAvailability.length === 0) return '-';
-    return this.castlingAvailability.map(x => Piece.toString(x)).join('');
+  static getCastlingAvailability = (game) => {
+    if (game.castlingAvailability.length === 0) return '-';
+    return game.castlingAvailability.map(x => Piece.toString(x)).join('');
   };
 
-  parseEnPassantTargetSquare = (val) => {
-    this.enPassantTargetSquare = this.parseSquareIndexFromAlgebraicNotation(val);
+  static parseEnPassantTargetSquare = (val, game) => {
+    game.enPassantTargetSquare = Fen.parseSquareIndexFromAlgebraicNotation(val);
   };
 
-  getEnPassantTargetSquare = () => {
-    return this.enPassantTargetSquare === -1
+  static getEnPassantTargetSquare = (game) => {
+    return game.enPassantTargetSquare === -1
       ? '-'
-      : this.board.squares[this.enPassantTargetSquare].algebraicNotation;
+      : game.board.squares[game.enPassantTargetSquare].algebraicNotation;
   };
 
-  parseHalfMoveClock = (val) => { this.halfMoveClock = parseInt(val) || 0; };
+  static parseHalfMoveClock = (val, game) => { game.halfMoveClock = parseInt(val) || 0; };
 
-  getHalfMoveClock = () => `${this.halfMoveClock}`;
+  static getHalfMoveClock = (game) => `${game.halfMoveClock}`;
 
-  parseFullMoveNumber = (val) => { this.fullMoveNumber = parseInt(val) || 1; };
+  static parseFullMoveNumber = (val, game) => { game.fullMoveNumber = parseInt(val) || 1; };
 
-  getFullMoveNumber = () => `${this.fullMoveNumber}`;
+  static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
 
-  parseSquareIndexFromAlgebraicNotation = (val) => {
+  static parseSquareIndexFromAlgebraicNotation = (val) => {
     try {
       const file = 'abcdefgh'.indexOf(val[0]);
       const rank = parseInt(val[1]) || -1;
@@ -337,303 +292,6 @@ class Game {
     } catch {
       return -1;
     }
-  };
-
-  doMove = (move) => {
-    this.squares[move.toIndex] = move.movePiece;
-    this.squares[move.fromIndex] = null;
-    switch (move.type) {
-      case MoveType.enPassant:
-        this.handleEnPassant(move);
-        break;
-      case MoveType.castle:
-        this.handleCastle(move);
-        break;
-    }
-    this.postMoveActions(move);
-  };
-
-  handleEnPassant = (move) => {
-    const offset = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? -8 : 8;
-    const captureSquareIndex = move.toIndex + offset;
-    this.squares[captureSquareIndex] = null;
-  };
-
-  handleCastle = (move) => {
-    const isKingSide = Utils.getFile(move.toIndex) === 6;
-    const rookRank = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? 0 : 7;
-    const rookFile = isKingSide ? 7 : 0;
-    const targetFile = isKingSide ? 5 : 3;
-    const fromIndex = rookRank * 8 + rookFile;
-    const toIndex = rookRank * 8 + targetFile;
-    this.squares[toIndex] = this.squares[fromIndex];
-    this.squares[fromIndex] = null;
-  };
-
-  postMoveActions = (move) => {
-    this.board.refresh();
-    this.setEnPassantTargetSquare(move);
-    this.updateCastlingAvailability(move);
-    this.setHalfMoveClock(move);
-    this.updateFullMoveNumber(move);
-    this.togglePlayerTurn();
-    this.generateMoves();
-    this.testForCheck(this.activePlayer);
-  };
-
-  setEnPassantTargetSquare = (move) => {
-    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
-    const distance = Math.abs(move.toIndex - move.fromIndex);
-    const color = PieceColor.fromPieceValue(move.movePiece);
-    const targetOffset = color === PieceColor.white ? -8 : 8;
-    this.enPassantTargetSquare = isPawn && distance === 16
-      ? move.toIndex + targetOffset
-      : -1;
-  };
-
-  updateCastlingAvailability = (move) => {
-    if (this.castlingAvailability.length === 0) return;
-    const { color, type } = Piece.fromPieceValue(move.movePiece);
-    const fromFile = Utils.getFile(move.fromIndex);
-    if (type === PieceType.king) {
-      this.castlingAvailability = this.castlingAvailability.filter(x => x.color !== color);
-    } else if (type === PieceType.rook && [0, 7].includes(fromFile)) {
-      const side = fromFile === 0 ? PieceType.queen : PieceType.king;
-      this.castlingAvailability = this.castlingAvailability
-        .filter(x => x.color !== color || x.type !== side);
-    }
-  };
-
-  setHalfMoveClock = (move) => {
-    const isCapture = !!move.capturePiece;
-    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
-    this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
-  };
-
-  updateFullMoveNumber = (move) => {
-    if (PieceColor.fromPieceValue(move.movePiece) === PieceColor.black) {
-      this.fullMoveNumber++;
-    }
-  };
-
-  togglePlayerTurn = () => {
-    this.activePlayer = this.activePlayer === PieceColor.white
-      ? PieceColor.black
-      : PieceColor.white;
-  };
-
-  generateMoves = () => {
-    this.pseudoLegalMoves = this.generatePseudoLegalMoves();
-    this.legalMoves = this.generateLegalMoves();
-  };
-
-  generatePseudoLegalMoves = () => {
-    const moves = [];
-
-    for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
-      const pieceValue = this.squares[fromIndex];
-      const piece = Piece.fromPieceValue(pieceValue);
-      if (!piece) continue;
-
-      switch (piece.type) {
-        case PieceType.pawn:
-          moves.push(...this.generatePawnMoves(fromIndex, piece));
-          break;
-        case PieceType.knight:
-          moves.push(...this.generateKnightMoves(fromIndex, piece));
-          break;
-        case PieceType.king:
-          moves.push(...this.generateKingMoves(fromIndex, piece));
-          break;
-        case PieceType.bishop:
-        case PieceType.rook:
-        case PieceType.queen:
-          moves.push(...this.generateSlidingMoves(fromIndex, piece));
-          break;
-      }
-    }
-
-    return moves;
-  };
-
-  generateLegalMoves = () => {
-    const activePlayerMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
-    const moves = [];
-    activePlayerMoves.forEach(move => {
-      // const futureBoard = new BoardGui(null, this.baord);
-
-      // todo : test for putting yourself in check
-      moves.push(move);
-    });
-    return moves;
-  };
-
-  generatePawnMoves = (fromIndex, piece) => {
-    const moves = [];
-
-    const moveForward = piece.color === PieceColor.white ? DirectionIndex.north : DirectionIndex.south;
-    const attackLeft = piece.color === PieceColor.white ? DirectionIndex.northWest : DirectionIndex.southEast;
-    const attackRight = piece.color === PieceColor.white ? DirectionIndex.northEast : DirectionIndex.southWest;
-
-    // check one square forward
-    const forwardSquareIndex = fromIndex + Constants.directionOffsets[moveForward];
-    const forwardSquarePiece = this.squares[forwardSquareIndex];
-    if (!forwardSquarePiece) {
-      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.advance, this.squares));
-    }
-
-    // check two squares forward
-    const rank = Math.floor(fromIndex / 8);
-    const isFirstMove = (
-      (piece.color === PieceColor.white && rank === 1)
-      ||
-      (piece.color === PieceColor.black && rank === 6)
-    );
-    if (isFirstMove) {
-      const doubleSquareIndex = forwardSquareIndex + Constants.directionOffsets[moveForward];
-      const doubleSquarePiece = this.squares[doubleSquareIndex];
-      if (!forwardSquarePiece && !doubleSquarePiece) {
-        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.advance, this.squares));
-      }
-    }
-
-    // check attack left
-    const attackLeftSquareIndex = fromIndex + Constants.directionOffsets[attackLeft];
-    const attackLeftSquarePiece = this.squares[attackLeftSquareIndex];
-    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
-    if (isAttackLeftOpponent) {
-      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.capture, this.squares));
-    }
-
-    // check attack right
-    const attackRightSquareIndex = fromIndex + Constants.directionOffsets[attackRight];
-    const attackRightSquarePiece = this.squares[attackRightSquareIndex];
-    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
-    if (isAttackRightOpponent) {
-      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.capture, this.squares));
-    }
-
-    // check en passant
-    if ([attackLeftSquareIndex, attackRightSquareIndex].includes(this.enPassantTargetSquare)) {
-      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.enPassant, this.squares));
-    }
-
-    return moves;
-  };
-
-  generateKnightMoves = (fromIndex, piece) => {
-    const moves = [];
-
-    const checkMove = (passingIndex, dirIndex) => {
-      const toIndex = passingIndex + Constants.directionOffsets[dirIndex];
-      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
-
-      // blocked by friendly piece
-      if (toPiece && toPiece.color === piece.color) return;
-
-      const moveType = toPiece ? MoveType.capture : MoveType.advance;
-
-      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
-    };
-
-    const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.north];
-    const southEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.south];
-    const westEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.west];
-    const eastEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.east];
-
-    if (northEdge > 1) {
-      const northIndex = fromIndex + Constants.directionOffsets[DirectionIndex.north];
-      if (westEdge > 0) checkMove(northIndex, DirectionIndex.northWest);
-      if (eastEdge > 0) checkMove(northIndex, DirectionIndex.northEast);
-    }
-
-    if (southEdge > 1) {
-      const southIndex = fromIndex + Constants.directionOffsets[DirectionIndex.south];
-      if (westEdge > 0) checkMove(southIndex, DirectionIndex.southWest);
-      if (eastEdge > 0) checkMove(southIndex, DirectionIndex.southEast);
-    }
-
-    if (westEdge > 1) {
-      const westIndex = fromIndex + Constants.directionOffsets[DirectionIndex.west];
-      if (northEdge > 0) checkMove(westIndex, DirectionIndex.northWest);
-      if (southEdge > 0) checkMove(westIndex, DirectionIndex.southWest);
-    }
-
-    if (eastEdge > 1) {
-      const eastIndex = fromIndex + Constants.directionOffsets[DirectionIndex.east];
-      if (northEdge > 0) checkMove(eastIndex, DirectionIndex.northEast);
-      if (southEdge > 0) checkMove(eastIndex, DirectionIndex.southEast);
-    }
-
-    return moves;
-  };
-
-  generateKingMoves = (fromIndex, piece) => {
-    const moves = [];
-
-    for (let dirIndex = 0; dirIndex < 8; dirIndex++) {
-      const toIndex = fromIndex + Constants.directionOffsets[dirIndex];
-
-      // blocked by edge of board
-      if (this.numSquaresToEdge[fromIndex][dirIndex] === 0) continue;
-
-      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
-
-      // blocked by friendly piece
-      if (toPiece && toPiece.color === piece.color) continue;
-
-      const moveType = toPiece ? MoveType.capture : MoveType.advance;
-
-      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
-    }
-
-    // add castling moves
-    this.castlingAvailability
-      .filter(x => x.color === piece.color)
-      .forEach(x => {
-        const dirIndex = x.type === PieceType.king ? DirectionIndex.east : DirectionIndex.west;
-        const offset = Constants.directionOffsets[dirIndex];
-        const passingSquare = this.squares[fromIndex + offset];
-        const landingSquare = this.squares[fromIndex + (offset * 2)];
-        if (passingSquare || landingSquare) return;
-        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.castle, this.squares));
-      });
-
-    return moves;
-  };
-
-  generateSlidingMoves = (fromIndex, piece) => {
-    const moves = [];
-
-    const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
-    const endDirIndex = piece.type === PieceType.rook ? 4 : 8;
-
-    for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
-      for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
-        const toIndex = fromIndex + Constants.directionOffsets[dirIndex] * (n + 1);
-        const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
-
-        // blocked by friendly piece, so can't move any further in this direction
-        if (toPiece && toPiece.color === piece.color) break;
-
-        const moveType = toPiece ? MoveType.capture : MoveType.advance;
-
-        moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
-
-        // can't move any further in this direction after capturing opponent's piece
-        if (toPiece && toPiece.color !== piece.color) break;
-      }
-    }
-
-    return moves;
-  };
-
-  testForCheck = (color) => {
-    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) !== color);
-    const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
-    const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
-    const isCheck = opponentKingCaptures.length > 0;
-    return isCheck;
   };
 }
 
@@ -954,5 +612,356 @@ class Square {
     const x = this.xPos + offset;
     const y = this.yPos + offset;
     ctx.drawImage(img, x, y, size, size);
+  };
+}
+
+class Game {
+  constructor() {
+    this.board = null;
+    this.squares = new Array(64);
+    this.numSquaresToEdge = new Array(64);
+    this.activePlayer = null;
+    this.isCapture = false;
+    this.enPassantTargetSquare = null;
+    this.castlingAvailability = null;
+    this.halfMoveClock = null;
+    this.fullMoveNumber = null;
+    this.pseudoLegalMoves = [];
+    this.legalMoves = [];
+  }
+
+  init = () => {
+    this.initEngine();
+    Fen.load(Constants.startPosition, this);
+    this.generateMoves();
+    this.board = new Board(this);
+    return setInterval(this.board.draw, 10);
+  };
+
+  initEngine = () => {
+    for (let file = 0; file < 8; file++) {
+      for (let rank = 0; rank < 8; rank++) {
+        const numNorth = 7 - rank;
+        const numSouth = rank;
+        const numWest = file;
+        const numEast = 7 - file;
+
+        const squareIndex = rank * 8 + file;
+
+        this.numSquaresToEdge[squareIndex] = [
+          numNorth,
+          numSouth,
+          numWest,
+          numEast,
+          Math.min(numNorth, numWest),
+          Math.min(numSouth, numEast),
+          Math.min(numNorth, numEast),
+          Math.min(numSouth, numWest),
+        ];
+      }
+    }
+  };
+
+  doMove = (move) => {
+    this.squares[move.toIndex] = move.movePiece;
+    this.squares[move.fromIndex] = null;
+    switch (move.type) {
+      case MoveType.enPassant:
+        this.handleEnPassant(move);
+        break;
+      case MoveType.castle:
+        this.handleCastle(move);
+        break;
+    }
+    this.postMoveActions(move);
+  };
+
+  handleEnPassant = (move) => {
+    const offset = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? -8 : 8;
+    const captureSquareIndex = move.toIndex + offset;
+    this.squares[captureSquareIndex] = null;
+  };
+
+  handleCastle = (move) => {
+    const isKingSide = Utils.getFile(move.toIndex) === 6;
+    const rookRank = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? 0 : 7;
+    const rookFile = isKingSide ? 7 : 0;
+    const targetFile = isKingSide ? 5 : 3;
+    const fromIndex = rookRank * 8 + rookFile;
+    const toIndex = rookRank * 8 + targetFile;
+    this.squares[toIndex] = this.squares[fromIndex];
+    this.squares[fromIndex] = null;
+  };
+
+  postMoveActions = (move) => {
+    this.board.refresh();
+    this.setEnPassantTargetSquare(move);
+    this.updateCastlingAvailability(move);
+    this.setHalfMoveClock(move);
+    this.updateFullMoveNumber(move);
+    this.togglePlayerTurn();
+    this.generateMoves();
+    this.testForCheckmate();
+  };
+
+  setEnPassantTargetSquare = (move) => {
+    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    const distance = Math.abs(move.toIndex - move.fromIndex);
+    const color = PieceColor.fromPieceValue(move.movePiece);
+    const targetOffset = color === PieceColor.white ? -8 : 8;
+    this.enPassantTargetSquare = isPawn && distance === 16
+      ? move.toIndex + targetOffset
+      : -1;
+  };
+
+  updateCastlingAvailability = (move) => {
+    if (this.castlingAvailability.length === 0) return;
+    const { color, type } = Piece.fromPieceValue(move.movePiece);
+    const fromFile = Utils.getFile(move.fromIndex);
+    if (type === PieceType.king) {
+      this.castlingAvailability = this.castlingAvailability.filter(x => x.color !== color);
+    } else if (type === PieceType.rook && [0, 7].includes(fromFile)) {
+      const side = fromFile === 0 ? PieceType.queen : PieceType.king;
+      this.castlingAvailability = this.castlingAvailability
+        .filter(x => x.color !== color || x.type !== side);
+    }
+  };
+
+  setHalfMoveClock = (move) => {
+    const isCapture = !!move.capturePiece;
+    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
+  };
+
+  updateFullMoveNumber = (move) => {
+    if (PieceColor.fromPieceValue(move.movePiece) === PieceColor.black) {
+      this.fullMoveNumber++;
+    }
+  };
+
+  togglePlayerTurn = () => {
+    this.activePlayer = this.activePlayer === PieceColor.white
+      ? PieceColor.black
+      : PieceColor.white;
+  };
+
+  generateMoves = () => {
+    this.pseudoLegalMoves = this.generatePseudoLegalMoves();
+    this.legalMoves = this.generateLegalMoves();
+  };
+
+  generatePseudoLegalMoves = () => {
+    const moves = [];
+
+    for (let fromIndex = 0; fromIndex < 64; fromIndex++) {
+      const pieceValue = this.squares[fromIndex];
+      const piece = Piece.fromPieceValue(pieceValue);
+      if (!piece) continue;
+
+      switch (piece.type) {
+        case PieceType.pawn:
+          moves.push(...this.generatePawnMoves(fromIndex, piece));
+          break;
+        case PieceType.knight:
+          moves.push(...this.generateKnightMoves(fromIndex, piece));
+          break;
+        case PieceType.king:
+          moves.push(...this.generateKingMoves(fromIndex, piece));
+          break;
+        case PieceType.bishop:
+        case PieceType.rook:
+        case PieceType.queen:
+          moves.push(...this.generateSlidingMoves(fromIndex, piece));
+          break;
+      }
+    }
+
+    return moves;
+  };
+
+  generateLegalMoves = () => {
+    const activePlayerMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
+    const moves = [];
+    activePlayerMoves.forEach(move => {
+      // const futureBoard = new BoardGui(null, this.baord);
+
+      // todo : test for putting yourself in check
+      moves.push(move);
+    });
+    return moves;
+  };
+
+  generatePawnMoves = (fromIndex, piece) => {
+    const moves = [];
+
+    const moveForward = piece.color === PieceColor.white ? DirectionIndex.north : DirectionIndex.south;
+    const attackLeft = piece.color === PieceColor.white ? DirectionIndex.northWest : DirectionIndex.southEast;
+    const attackRight = piece.color === PieceColor.white ? DirectionIndex.northEast : DirectionIndex.southWest;
+
+    // check one square forward
+    const forwardSquareIndex = fromIndex + Constants.directionOffsets[moveForward];
+    const forwardSquarePiece = this.squares[forwardSquareIndex];
+    if (!forwardSquarePiece) {
+      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.advance, this.squares));
+    }
+
+    // check two squares forward
+    const rank = Math.floor(fromIndex / 8);
+    const isFirstMove = (
+      (piece.color === PieceColor.white && rank === 1)
+      ||
+      (piece.color === PieceColor.black && rank === 6)
+    );
+    if (isFirstMove) {
+      const doubleSquareIndex = forwardSquareIndex + Constants.directionOffsets[moveForward];
+      const doubleSquarePiece = this.squares[doubleSquareIndex];
+      if (!forwardSquarePiece && !doubleSquarePiece) {
+        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.advance, this.squares));
+      }
+    }
+
+    // check attack left
+    const attackLeftSquareIndex = fromIndex + Constants.directionOffsets[attackLeft];
+    const attackLeftSquarePiece = this.squares[attackLeftSquareIndex];
+    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
+    if (isAttackLeftOpponent) {
+      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.capture, this.squares));
+    }
+
+    // check attack right
+    const attackRightSquareIndex = fromIndex + Constants.directionOffsets[attackRight];
+    const attackRightSquarePiece = this.squares[attackRightSquareIndex];
+    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
+    if (isAttackRightOpponent) {
+      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.capture, this.squares));
+    }
+
+    // check en passant
+    if ([attackLeftSquareIndex, attackRightSquareIndex].includes(this.enPassantTargetSquare)) {
+      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.enPassant, this.squares));
+    }
+
+    return moves;
+  };
+
+  generateKnightMoves = (fromIndex, piece) => {
+    const moves = [];
+
+    const checkMove = (passingIndex, dirIndex) => {
+      const toIndex = passingIndex + Constants.directionOffsets[dirIndex];
+      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
+
+      // blocked by friendly piece
+      if (toPiece && toPiece.color === piece.color) return;
+
+      const moveType = toPiece ? MoveType.capture : MoveType.advance;
+
+      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+    };
+
+    const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.north];
+    const southEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.south];
+    const westEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.west];
+    const eastEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.east];
+
+    if (northEdge > 1) {
+      const northIndex = fromIndex + Constants.directionOffsets[DirectionIndex.north];
+      if (westEdge > 0) checkMove(northIndex, DirectionIndex.northWest);
+      if (eastEdge > 0) checkMove(northIndex, DirectionIndex.northEast);
+    }
+
+    if (southEdge > 1) {
+      const southIndex = fromIndex + Constants.directionOffsets[DirectionIndex.south];
+      if (westEdge > 0) checkMove(southIndex, DirectionIndex.southWest);
+      if (eastEdge > 0) checkMove(southIndex, DirectionIndex.southEast);
+    }
+
+    if (westEdge > 1) {
+      const westIndex = fromIndex + Constants.directionOffsets[DirectionIndex.west];
+      if (northEdge > 0) checkMove(westIndex, DirectionIndex.northWest);
+      if (southEdge > 0) checkMove(westIndex, DirectionIndex.southWest);
+    }
+
+    if (eastEdge > 1) {
+      const eastIndex = fromIndex + Constants.directionOffsets[DirectionIndex.east];
+      if (northEdge > 0) checkMove(eastIndex, DirectionIndex.northEast);
+      if (southEdge > 0) checkMove(eastIndex, DirectionIndex.southEast);
+    }
+
+    return moves;
+  };
+
+  generateKingMoves = (fromIndex, piece) => {
+    const moves = [];
+
+    for (let dirIndex = 0; dirIndex < 8; dirIndex++) {
+      const toIndex = fromIndex + Constants.directionOffsets[dirIndex];
+
+      // blocked by edge of board
+      if (this.numSquaresToEdge[fromIndex][dirIndex] === 0) continue;
+
+      const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
+
+      // blocked by friendly piece
+      if (toPiece && toPiece.color === piece.color) continue;
+
+      const moveType = toPiece ? MoveType.capture : MoveType.advance;
+
+      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+    }
+
+    // add castling moves
+    this.castlingAvailability
+      .filter(x => x.color === piece.color)
+      .forEach(x => {
+        const dirIndex = x.type === PieceType.king ? DirectionIndex.east : DirectionIndex.west;
+        const offset = Constants.directionOffsets[dirIndex];
+        const passingSquare = this.squares[fromIndex + offset];
+        const landingSquare = this.squares[fromIndex + (offset * 2)];
+        if (passingSquare || landingSquare) return;
+        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.castle, this.squares));
+      });
+
+    return moves;
+  };
+
+  generateSlidingMoves = (fromIndex, piece) => {
+    const moves = [];
+
+    const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
+    const endDirIndex = piece.type === PieceType.rook ? 4 : 8;
+
+    for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
+      for (let n = 0; n < this.numSquaresToEdge[fromIndex][dirIndex]; n++) {
+        const toIndex = fromIndex + Constants.directionOffsets[dirIndex] * (n + 1);
+        const toPiece = Piece.fromPieceValue(this.squares[toIndex]);
+
+        // blocked by friendly piece, so can't move any further in this direction
+        if (toPiece && toPiece.color === piece.color) break;
+
+        const moveType = toPiece ? MoveType.capture : MoveType.advance;
+
+        moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+
+        // can't move any further in this direction after capturing opponent's piece
+        if (toPiece && toPiece.color !== piece.color) break;
+      }
+    }
+
+    return moves;
+  };
+
+  testForCheck = (color) => {
+    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) !== color);
+    const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
+    const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
+    const isCheck = opponentKingCaptures.length > 0;
+    return isCheck;
+  };
+
+  testForCheckmate = () => {
+    if (this.legalMoves.length === 0) {
+      alert('Checkmate!');
+    }
   };
 }
