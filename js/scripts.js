@@ -310,17 +310,13 @@ class Board {
     this.previousMove = {};
     this.dragPiece = null;
     this.deselect = false;
+    this.gameOver = false;
 
-    this.init();
-  }
-
-  init = () => {
     this.initCanvas();
     this.initPieces();
     this.initSquares();
-    this.refresh();
     setInterval(this.draw, 10);
-  };
+  }
 
   initCanvas = () => {
     const canvas = document.getElementById('canvas');
@@ -355,7 +351,11 @@ class Board {
   initSquares = () => {
     for (let rank = 0; rank < 8; rank++) {
       for (let file = 0; file < 8; file++) {
-        this.squares[rank * 8 + file] = new Square(file, rank, this);
+        const index = rank * 8 + file;
+        const square = new Square(file, rank, this);
+        const pieceValue = this.game.squares[index];
+        square.piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
+        this.squares[index] = square;
       }
     }
   };
@@ -383,6 +383,7 @@ class Board {
   };
 
   onMouseDown = (e) => {
+    if (this.gameOver) return;
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
       this.deselect = true;
@@ -407,14 +408,7 @@ class Board {
     }
 
     const move = this.getLegalMove(square);
-    if (move) {
-      // todo : how important is the order of these methods?
-      this.game.doMove(move);
-      this.refresh();
-      this.game.postMoveActions(move);
-      this.clearPossibleSquares();
-      this.setPreviousMove(move);
-    }
+    if (move) this.doMove(move);
   };
 
   onMouseMove = (e) => {
@@ -477,6 +471,14 @@ class Board {
       .map(move => move.toIndex);
   };
 
+  doMove = (move) => {
+    this.game.doMove(move);
+    this.refresh();
+    this.game.postMoveActions(move);
+    this.setPreviousMove(move);
+    this.testForCheckmate();
+  };
+
   clearActiveSquare = () => {
     this.activeSquare = null;
   };
@@ -493,6 +495,14 @@ class Board {
     .find(move =>
       move.fromIndex === this.activeSquare.index
       && move.toIndex === toSquare.index);
+
+  testForCheckmate = () => {
+    if (this.game.legalMoves.length === 0) {
+      this.gameOver = true;
+      const msg = this.game.activePlayer === PieceColor.white ? 'Black mates white!' : 'White mates black!';
+      console.log(msg);
+    }
+  };
 }
 
 class Square {
@@ -701,7 +711,6 @@ class Game {
     this.updateFullMoveNumber(move);
     this.togglePlayerTurn();
     this.generateMoves();
-    this.testForCheckmate();
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -961,12 +970,5 @@ class Game {
     const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
     const isCheck = opponentKingCaptures.length > 0;
     return isCheck;
-  };
-
-  testForCheckmate = () => {
-    if (this.preventRecursion) return;
-    if (this.legalMoves.length === 0) {
-      console.log('checkmate!');
-    }
   };
 }
