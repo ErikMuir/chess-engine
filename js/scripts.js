@@ -1,8 +1,9 @@
 let _game;
+let _board;
 
 window.onload = () => {
   _game = new Game();
-  _game.initBoard();
+  _board = new Board(_game);
 }
 
 /**
@@ -318,6 +319,7 @@ class Board {
     this.initPieces();
     this.initSquares();
     this.refresh();
+    setInterval(this.draw, 10);
   };
 
   initCanvas = () => {
@@ -406,7 +408,10 @@ class Board {
 
     const move = this.getLegalMove(square);
     if (move) {
+      // todo : how important is the order of these methods?
       this.game.doMove(move);
+      this.refresh();
+      this.game.postMoveActions(move);
       this.clearPossibleSquares();
       this.setPreviousMove(move);
     }
@@ -617,8 +622,7 @@ class Square {
 }
 
 class Game {
-  constructor(fen) {
-    this.board = null;
+  constructor({ fen, preventRecursion } = {}) {
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
@@ -629,20 +633,14 @@ class Game {
     this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
-
+    
+    this.preventRecursion = preventRecursion;
     Fen.load(fen || Constants.startPosition, this);
-    this.initEngine();
+    this.init();
     this.generateMoves();
   }
 
-  forAnalysisOnly = () => !this.board;
-
-  initBoard = () => {
-    this.board = new Board(this);
-    return setInterval(this.board.draw, 10);
-  };
-
-  initEngine = () => {
+  init = () => {
     for (let file = 0; file < 8; file++) {
       for (let rank = 0; rank < 8; rank++) {
         const numNorth = 7 - rank;
@@ -677,7 +675,6 @@ class Game {
         this.handleCastle(move);
         break;
     }
-    this.postMoveActions(move);
   };
 
   handleEnPassant = (move) => {
@@ -698,7 +695,6 @@ class Game {
   };
 
   postMoveActions = (move) => {
-    if (this.board) this.board.refresh();
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
     this.setHalfMoveClock(move);
@@ -751,6 +747,7 @@ class Game {
 
   generateMoves = () => {
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
+    if (this.preventRecursion) return;
     this.legalMoves = this.generateLegalMoves();
   };
 
@@ -786,11 +783,11 @@ class Game {
   generateLegalMoves = () => {
     const activePlayerMoves = this.pseudoLegalMoves
       .filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
-    if (this.forAnalysisOnly()) return activePlayerMoves;
+    if (this.preventRecursion) return activePlayerMoves;
     const fen = Fen.get(this);
     const moves = [];
     activePlayerMoves.forEach(move => {
-      const futureGame = new Game(fen);
+      const futureGame = new Game({ fen, preventRecursion: true });
       futureGame.doMove(move);
       const isCheck = futureGame.testForCheck(this.activePlayer);
       if (!isCheck) moves.push(move);
@@ -967,9 +964,9 @@ class Game {
   };
 
   testForCheckmate = () => {
-    if (this.forAnalysisOnly()) return;
+    if (this.preventRecursion) return;
     if (this.legalMoves.length === 0) {
-      console.log('Checkmate!');
+      console.log('checkmate!');
     }
   };
 }
