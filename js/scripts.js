@@ -2,18 +2,15 @@ let _game;
 let _board;
 
 window.onload = () => {
-  const fen = Constants.startPosition;
-  const check = 'rnbq1rk/pppp2pp/5P2/2b2P/4P1n//PPP3PP/RNBQKBNR w KQ - 0 7';
-  const kingMove1 = 'rnbq1r1k/pppp1Ppp//2b2P/4P1n//PPP3PP/RNBQKBNR b KQ - 0 7';
-  const kingMove2 = 'rnbq1r/pppp1kpp//2b2P/4P1n//PPP3PP/RNBQKBNR b KQ - 0 7';
-  _game = new Game({ fen: fen });
+  const startPosition = Constants.startPosition;
+  const pawnPromotionTest = 'k/7P//////K w - - 0 0';
+  _game = new Game({ fen: startPosition });
   _board = new Board(_game);
 }
 
 /**
  * FEATURES
  * ------------------------------------
- *  pawn promotion (queen-only)
  *  pawn promotion (non-queen options)
  *  checkmate modal
  *  determine best move
@@ -168,7 +165,16 @@ class Move {
     this.type = type;
     this.movePiece = squares[fromIndex];
     this.capturePiece = squares[toIndex];
+    this.isPawnPromotion = this.isPawn() && this.isPromotionRank();
   }
+
+  isPawn = () => PieceType.fromPieceValue(this.movePiece) === PieceType.pawn;
+
+  isPromotionRank = () => {
+    const toRank = Utils.getRank(this.toIndex);
+    const promotionRank = PieceColor.fromPieceValue(this.movePiece) === PieceColor.white ? 7 : 0;
+    return toRank === promotionRank;
+  };
 }
 
 class DirectionIndex {
@@ -700,9 +706,11 @@ class Game {
     }
   };
 
-  doMove = (move) => {
-    this.squares[move.toIndex] = move.movePiece;
+  doMove = (move, promotionPieceType = PieceType.queen) => {
     this.squares[move.fromIndex] = null;
+    this.squares[move.toIndex] = move.isPawnPromotion
+      ? this.activePlayer | promotionPieceType
+      : move.movePiece;
     switch (move.type) {
       case MoveType.enPassant:
         this.handleEnPassant(move);
