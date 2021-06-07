@@ -2,14 +2,20 @@ let _game;
 let _board;
 
 window.onload = () => {
-  _game = new Game();
+  const fen = Constants.startPosition;
+  const check = 'rnbq1rk/pppp2pp/5P2/2b2P/4P1n//PPP3PP/RNBQKBNR w KQ - 0 7';
+  const kingMove1 = 'rnbq1r1k/pppp1Ppp//2b2P/4P1n//PPP3PP/RNBQKBNR b KQ - 0 7';
+  const kingMove2 = 'rnbq1r/pppp1kpp//2b2P/4P1n//PPP3PP/RNBQKBNR b KQ - 0 7';
+  _game = new Game({ fen: fen });
   _board = new Board(_game);
 }
 
 /**
  * FEATURES
  * ------------------------------------
- *  pawn promotion non-queen options
+ *  pawn promotion (queen-only)
+ *  pawn promotion (non-queen options)
+ *  checkmate modal
  *  determine best move
  * 
  * BUGS
@@ -60,6 +66,20 @@ class PieceColor {
       ? PieceColor.white
       : PieceColor.black;
   };
+
+  static updateCasing = (symbol, color) => {
+    return color === PieceColor.white
+      ? symbol.toUpperCase()
+      : symbol.toLowerCase();
+  }
+
+  static toString = (val, opposite = false) => {
+    switch (val) {
+      case PieceColor.white: return opposite ? 'black' : 'white';
+      case PieceColor.black: return opposite ? 'white' : 'black';
+      default: return '';
+    }
+  }
 }
 
 class PieceType {
@@ -129,8 +149,8 @@ class Piece {
   };
 
   static toString = (val) => {
-    const typeString = PieceType.toString(val.type);
-    return val.color === PieceColor.white ? typeString.toUpperCase() : typeString;
+    const symbol = PieceType.toString(val.type);
+    return PieceColor.updateCasing(symbol, val.color);
   };
 }
 
@@ -173,7 +193,6 @@ class Fen {
       Fen.parseHalfMoveClock(fenParts[4], game);
       Fen.parseFullMoveNumber(fenParts[5], game);
     } catch (e) {
-      console.log(e);
       throw new Error('Invalid FEN');
     }
   };
@@ -476,7 +495,7 @@ class Board {
     this.refresh();
     this.game.postMoveActions(move);
     this.setPreviousMove(move);
-    this.testForCheckmate();
+    this.testForCheckOrMate();
   };
 
   clearActiveSquare = () => {
@@ -496,12 +515,19 @@ class Board {
       move.fromIndex === this.activeSquare.index
       && move.toIndex === toSquare.index);
 
-  testForCheckmate = () => {
-    if (this.game.legalMoves.length === 0) {
-      this.gameOver = true;
-      const msg = this.game.activePlayer === PieceColor.white ? 'Black mates white!' : 'White mates black!';
-      console.log(msg);
-    }
+  testForCheckOrMate = () => {
+    const isCheck = this.game.testForCheck();
+    if (!isCheck) return;
+    const isMate = this.game.legalMoves.length === 0;
+    if (isMate) this.gameOver = true;
+    this.logAction(isMate ? 'mate' : 'check');
+  }
+
+  logAction = (action) => {
+    const player = PieceColor.toString(this.game.activePlayer);
+    const opponent = PieceColor.toString(this.game.activePlayer, 'opponent');
+    const msg = `${opponent} ${action}s ${player}!`;
+    console.log(msg);
   };
 }
 
@@ -632,7 +658,7 @@ class Square {
 }
 
 class Game {
-  constructor({ fen, preventRecursion } = {}) {
+  constructor({ fen = Constants.startPosition, preventRecursion = false } = {}) {
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
@@ -645,7 +671,7 @@ class Game {
     this.legalMoves = [];
     
     this.preventRecursion = preventRecursion;
-    Fen.load(fen || Constants.startPosition, this);
+    Fen.load(fen, this);
     this.init();
     this.generateMoves();
   }
@@ -798,6 +824,7 @@ class Game {
     activePlayerMoves.forEach(move => {
       const futureGame = new Game({ fen, preventRecursion: true });
       futureGame.doMove(move);
+      futureGame.generateMoves();
       const isCheck = futureGame.testForCheck(this.activePlayer);
       if (!isCheck) moves.push(move);
     });
@@ -964,7 +991,7 @@ class Game {
     return moves;
   };
 
-  testForCheck = (color) => {
+  testForCheck = (color = this.activePlayer) => {
     const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) !== color);
     const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
     const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
