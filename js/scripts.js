@@ -706,11 +706,9 @@ class Game {
     }
   };
 
-  doMove = (move, promotionPieceType = PieceType.queen) => {
+  doMove = (move) => {
     this.squares[move.fromIndex] = null;
-    this.squares[move.toIndex] = move.isPawnPromotion
-      ? this.activePlayer | promotionPieceType
-      : move.movePiece;
+    this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
       case MoveType.enPassant:
         this.handleEnPassant(move);
@@ -719,6 +717,11 @@ class Game {
         this.handleCastle(move);
         break;
     }
+  };
+
+  getMovePiece = (move) => {
+    if (!move.isPawnPromotion) return move.movePiece;
+    return this.activePlayer | PieceType.queen;
   };
 
   handleEnPassant = (move) => {
