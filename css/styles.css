@@ -1,5 +1,6 @@
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
   color: #eeeeee;
   background-color: #333333;
 }
@@ -10,7 +11,7 @@ body {
   align-items: center;
 }
 
-footer {
+.container footer {
   margin-top: 2rem;
   position: absolute;
   bottom: 5px;
@@ -19,11 +20,4 @@ footer {
 
 #canvas {
   border-radius: 3px;
-}
-
-img.hidden {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
 }

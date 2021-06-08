@@ -6,13 +6,16 @@ window.onload = () => {
   const pawnPromotionTest = 'k/7P//////K w - - 0 0';
   _game = new Game({ fen: startPosition });
   _board = new Board(_game);
+  MicroModal.init({
+    awaitOpenAnimation: true,
+    awaitCloseAnimation: true,
+  });
 }
 
 /**
  * FEATURES
  * ------------------------------------
  *  pawn promotion (non-queen options)
- *  checkmate modal
  *  determine best move
  * 
  * BUGS
@@ -72,8 +75,8 @@ class PieceColor {
 
   static toString = (val, opposite = false) => {
     switch (val) {
-      case PieceColor.white: return opposite ? 'black' : 'white';
-      case PieceColor.black: return opposite ? 'white' : 'black';
+      case PieceColor.white: return opposite ? 'Black' : 'White';
+      case PieceColor.black: return opposite ? 'White' : 'Black';
       default: return '';
     }
   }
@@ -501,7 +504,7 @@ class Board {
     this.refresh();
     this.game.postMoveActions(move);
     this.setPreviousMove(move);
-    this.testForCheckOrMate();
+    this.testForGameOver();
   };
 
   clearActiveSquare = () => {
@@ -520,20 +523,35 @@ class Board {
     .find(move =>
       move.fromIndex === this.activeSquare.index
       && move.toIndex === toSquare.index);
+  
+  testForGameOver = () => {
+    const isGameOver = this.game.legalMoves.length === 0;
+    if (isGameOver) {
+      this.gameOver = true;
+      this.showGameOverModal();
+    }
+  };
 
-  testForCheckOrMate = () => {
-    const isCheck = this.game.testForCheck();
-    if (!isCheck) return;
-    const isMate = this.game.legalMoves.length === 0;
-    if (isMate) this.gameOver = true;
-    this.logAction(isMate ? 'mate' : 'check');
-  }
+  showGameOverModal = () => {
+    const isMate = this.game.testForCheck(this.game.activePlayer);
+    const title = isMate ? 'Checkmate!' : 'Stalemate!';
+    document.getElementById('game-over-modal-title').innerHTML = title;
+    const message = isMate ? this.getCheckmateMessage() : this.getStalemateMessage();
+    document.getElementById('game-over-modal-message').innerHTML = message;
+    MicroModal.show('game-over-modal');
+  };
 
-  logAction = (action) => {
-    const player = PieceColor.toString(this.game.activePlayer);
-    const opponent = PieceColor.toString(this.game.activePlayer, 'opponent');
-    const msg = `${opponent} ${action}s ${player}!`;
-    console.log(msg);
+  getCheckmateMessage = () => {
+    const winner = PieceColor.toString(this.game.activePlayer, 'opponent');
+    const loser = PieceColor.toString(this.game.activePlayer);
+    let moveCount = this.game.fullMoveNumber;
+    if (this.game.activePlayer === PieceColor.white) moveCount -= 1;
+    return `${winner} mated ${loser} in ${moveCount} moves.`;
+  };
+
+  getStalemateMessage = () => {
+    const activePlayer = PieceColor.toString(this.game.activePlayer);
+    return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`
   };
 }
 
