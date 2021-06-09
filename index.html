@@ -35,8 +35,14 @@
           <h2 class="modal__title" id="game-over-modal-title"></h2>
           <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
         </header>
-        <main class="modal__content" id="game-over-modal-content">
-          <p id="game-over-modal-message"></p>
+        <main class="modal__content-container" id="game-over-modal-content">
+          <div class="modal__content">
+            <p id="game-over-modal-message"></p>
+            <p id="game-over-modal-moves"></p>
+          </div>
+          <footer id="modal-footer" class="modal__footer">
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+          </footer>
         </main>
       </div>
     </div>

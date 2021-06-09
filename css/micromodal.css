@@ -12,54 +12,104 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10;
 }
 
 .modal__container {
-  background-color: #fff;
-  padding: 30px;
-  min-width: 350px;
-  max-width: 500px;
-  max-height: 100vh;
-  border-radius: 4px;
-  overflow-y: auto;
+  background-color: transparent;
+  padding: 0px;
+  max-width: 740px;
+  height: 75vh;
+  width: 50%;
+  border-radius: 0px;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
+.modal__container button {
+  outline: none;
+  cursor: pointer !important;
+}
+
 .modal__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  display: block;
+  height: 30px;
+  margin-bottom: 0px;
+  padding: 30px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  background: #D3D3D3;
+}
+
+@supports (display: flex) {
+  .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: initial;
+  }
 }
 
 .modal__title {
+  position: absolute;
+  top: 20px;
+  left: 20px;
   margin-top: 0;
   margin-bottom: 0;
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 24px;
   line-height: 1.25;
-  color: #00449e;
+  color: #595959;
   box-sizing: border-box;
 }
 
 .modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background: transparent;
   border: 0;
-  outline: 0;
+  cursor: pointer;
+  margin: 0px;
+  padding: 0px;
+  font-size: 24px;
+}
+
+@supports (display: flex) {
+  .modal__title {
+    position: static;
+  }
+  .modal__close {
+    position: static;
+  }
 }
 
 .modal__header .modal__close:before {
   content: "\2715";
 }
 
+.modal__content-container {
+  padding: 30px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  background: #fff;
+}
+
 .modal__content {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  line-height: 1.5;
+  margin: 0px 0px 20px 0px;
   color: rgba(0, 0, 0, .8);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0px 20px 0px 0px;
+}
+
+.modal__content p {
+  margin-top: 0px;
 }
 
 .modal__btn {

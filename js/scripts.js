@@ -3,8 +3,9 @@ let _board;
 
 window.onload = () => {
   const startPosition = Constants.startPosition;
-  const pawnPromotionTest = 'k/7P//////K w - - 0 0';
-  _game = new Game({ fen: startPosition });
+  const pawnPromotion = 'k/7P//////K w - - 0 0';
+  const checkmate = 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2';
+  _game = new Game({ fen: checkmate });
   _board = new Board(_game);
   MicroModal.init({
     awaitOpenAnimation: true,
@@ -16,6 +17,7 @@ window.onload = () => {
  * FEATURES
  * ------------------------------------
  *  pawn promotion (non-queen options)
+ *  game over modal includes move list
  *  determine best move
  * 
  * BUGS
@@ -523,7 +525,7 @@ class Board {
     .find(move =>
       move.fromIndex === this.activeSquare.index
       && move.toIndex === toSquare.index);
-  
+
   testForGameOver = () => {
     const isGameOver = this.game.legalMoves.length === 0;
     if (isGameOver) {
@@ -534,10 +536,12 @@ class Board {
 
   showGameOverModal = () => {
     const isMate = this.game.testForCheck(this.game.activePlayer);
-    const title = isMate ? 'Checkmate!' : 'Stalemate!';
-    document.getElementById('game-over-modal-title').innerHTML = title;
+    const title = isMate ? 'Checkmate' : 'Stalemate';
     const message = isMate ? this.getCheckmateMessage() : this.getStalemateMessage();
+    const moves = this.getMoveList();
+    document.getElementById('game-over-modal-title').innerHTML = title;
     document.getElementById('game-over-modal-message').innerHTML = message;
+    document.getElementById('game-over-modal-moves').innerHTML = moves;
     MicroModal.show('game-over-modal');
   };
 
@@ -545,13 +549,17 @@ class Board {
     const winner = PieceColor.toString(this.game.activePlayer, 'opponent');
     const loser = PieceColor.toString(this.game.activePlayer);
     let moveCount = this.game.fullMoveNumber;
-    if (this.game.activePlayer === PieceColor.white) moveCount -= 1;
     return `${winner} mated ${loser} in ${moveCount} moves.`;
   };
 
   getStalemateMessage = () => {
     const activePlayer = PieceColor.toString(this.game.activePlayer);
     return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`
+  };
+
+  getMoveList = () => {
+    // todo : return moves in standard notation (PGN)
+    return '';
   };
 }
 
@@ -693,7 +701,7 @@ class Game {
     this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
-    
+
     this.preventRecursion = preventRecursion;
     Fen.load(fen, this);
     this.init();
@@ -763,9 +771,11 @@ class Game {
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
     this.setHalfMoveClock(move);
-    this.updateFullMoveNumber(move);
     this.togglePlayerTurn();
     this.generateMoves();
+    if (this.legalMoves.length) {
+      this.updateFullMoveNumber(move);
+    }
   };
 
   setEnPassantTargetSquare = (move) => {
