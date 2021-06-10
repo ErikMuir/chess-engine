@@ -61,7 +61,7 @@ class PieceColor {
     if (val >= PieceColor.black) return PieceColor.black;
     if (val >= PieceColor.white) return PieceColor.white;
     return PieceColor.none;
-  }
+  };
 
   static fromFEN = (val) => {
     return val === val.toUpperCase()
@@ -73,15 +73,23 @@ class PieceColor {
     return color === PieceColor.white
       ? symbol.toUpperCase()
       : symbol.toLowerCase();
-  }
+  };
 
-  static toString = (val, opposite = false) => {
+  static opposite = (val) => {
     switch (val) {
-      case PieceColor.white: return opposite ? 'Black' : 'White';
-      case PieceColor.black: return opposite ? 'White' : 'Black';
+      case PieceColor.white: return PieceColor.black;
+      case PieceColor.black: return PieceColor.white;
+      default: return val;
+    }
+  };
+
+  static toString = (val) => {
+    switch (val) {
+      case PieceColor.white: return 'White';
+      case PieceColor.black: return 'Black';
       default: return '';
     }
-  }
+  };
 }
 
 class PieceType {
@@ -157,29 +165,37 @@ class Piece {
 }
 
 class MoveType {
-  static advance = 0;
+  static normal = 0;
   static capture = 1;
-  static castle = 2;
-  static enPassant = 3;
+  static kingSideCastle = 2;
+  static queenSideCastle = 3;
+  static enPassant = 4;
 }
 
 class Move {
-  constructor(fromIndex, toIndex, type, squares) {
+  constructor(type, fromIndex, toIndex, squares) {
+    this.type = type;
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
-    this.type = type;
-    this.movePiece = squares[fromIndex];
-    this.capturePiece = squares[toIndex];
-    this.isPawnPromotion = this.isPawn() && this.isPromotionRank();
+    this.piece = squares[fromIndex];
+    this.capturePiece = type === MoveType.enPassant
+      ? PieceColor.opposite(this.pieceColor) | PieceType.pawn
+      : squares[toIndex];
+    this.isCheck = false;
+    this.isCheckmate = false;
+    this.pawnPromotionType = null;
   }
 
-  isPawn = () => PieceType.fromPieceValue(this.movePiece) === PieceType.pawn;
+  get pieceType() { return PieceType.fromPieceValue(this.piece); }
 
-  isPromotionRank = () => {
-    const toRank = Utils.getRank(this.toIndex);
-    const promotionRank = PieceColor.fromPieceValue(this.movePiece) === PieceColor.white ? 7 : 0;
-    return toRank === promotionRank;
-  };
+  get pieceColor() { return PieceColor.fromPieceValue(this.piece); }
+
+  get isPawnPromotion() {
+    const isPawn = this.pieceType === PieceType.pawn;
+    const promotionRank = this.pieceColor === PieceColor.white ? 7 : 0;
+    const isPromotionRank = Utils.getRank(this.toIndex) === promotionRank;
+    return isPawn && isPromotionRank;
+  }
 }
 
 class DirectionIndex {
@@ -293,13 +309,13 @@ class Fen {
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
-    game.enPassantTargetSquare = Fen.getSquareIndexFromAlgebraicNotation(val);
+    game.enPassantTargetSquare = Fen.getSquareIndexFromCoordinates(val);
   };
 
   static getEnPassantTargetSquare = (game) => {
     return game.enPassantTargetSquare === -1
       ? '-'
-      : Fen.getAlgebraicNotationFromSquareIndex(game.enPassantTargetSquare);
+      : Fen.getCoordinatesFromSquareIndex(game.enPassantTargetSquare);
   };
 
   static parseHalfMoveClock = (val, game) => { game.halfMoveClock = parseInt(val) || 0; };
@@ -310,7 +326,7 @@ class Fen {
 
   static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
 
-  static getSquareIndexFromAlgebraicNotation = (val) => {
+  static getSquareIndexFromCoordinates = (val) => {
     try {
       const file = 'abcdefgh'.indexOf(val[0]);
       const rank = parseInt(val[1]) || -1;
@@ -320,7 +336,7 @@ class Fen {
     }
   };
 
-  static getAlgebraicNotationFromSquareIndex = (index) => {
+  static getCoordinatesFromSquareIndex = (index) => {
     const rank = Utils.getRank(index);
     const file = Utils.getFile(index);
     return `${'abcdefgh'[file]}${rank + 1}`;
@@ -546,7 +562,7 @@ class Board {
   };
 
   getCheckmateMessage = () => {
-    const winner = PieceColor.toString(this.game.activePlayer, 'opponent');
+    const winner = PieceColor.toString(PieceColor.opposite(this.game.activePlayer));
     const loser = PieceColor.toString(this.game.activePlayer);
     let moveCount = this.game.fullMoveNumber;
     return `${winner} mated ${loser} in ${moveCount} moves.`;
@@ -577,7 +593,7 @@ class Square {
   get textColor() { return this.isLightSquare ? Constants.darkColor : Constants.lightColor; }
   get xPos() { return this.file * Constants.squareSize; }
   get yPos() { return (Constants.squareSize * 7) - (this.rank * Constants.squareSize); }
-  get algebraicNotation() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
+  get coordinates() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
 
   getPieceImage = () => this.board.getPieceImage(this.piece);
 
@@ -701,12 +717,15 @@ class Game {
     this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
+    this.pgnParts = [];
 
     this.preventRecursion = preventRecursion;
     Fen.load(fen, this);
     this.init();
     this.generateMoves();
   }
+
+  getPgn = () => this.pgnParts.join(' ');
 
   init = () => {
     for (let file = 0; file < 8; file++) {
@@ -746,19 +765,19 @@ class Game {
   };
 
   getMovePiece = (move) => {
-    if (!move.isPawnPromotion) return move.movePiece;
+    if (!move.isPawnPromotion) return move.piece;
     return this.activePlayer | PieceType.queen;
   };
 
   handleEnPassant = (move) => {
-    const offset = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? -8 : 8;
+    const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     this.squares[captureSquareIndex] = null;
   };
 
   handleCastle = (move) => {
     const isKingSide = Utils.getFile(move.toIndex) === 6;
-    const rookRank = PieceColor.fromPieceValue(move.movePiece) === PieceColor.white ? 0 : 7;
+    const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
     const targetFile = isKingSide ? 5 : 3;
     const fromIndex = rookRank * 8 + rookFile;
@@ -776,12 +795,13 @@ class Game {
     if (this.legalMoves.length) {
       this.updateFullMoveNumber(move);
     }
+    this.appendToPgn(move);
   };
 
   setEnPassantTargetSquare = (move) => {
-    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     const distance = Math.abs(move.toIndex - move.fromIndex);
-    const color = PieceColor.fromPieceValue(move.movePiece);
+    const color = PieceColor.fromPieceValue(move.piece);
     const targetOffset = color === PieceColor.white ? -8 : 8;
     this.enPassantTargetSquare = isPawn && distance === 16
       ? move.toIndex + targetOffset
@@ -790,7 +810,7 @@ class Game {
 
   updateCastlingAvailability = (move) => {
     if (this.castlingAvailability.length === 0) return;
-    const { color, type } = Piece.fromPieceValue(move.movePiece);
+    const { color, type } = Piece.fromPieceValue(move.piece);
     const fromFile = Utils.getFile(move.fromIndex);
     if (type === PieceType.king) {
       this.castlingAvailability = this.castlingAvailability.filter(x => x.color !== color);
@@ -803,20 +823,59 @@ class Game {
 
   setHalfMoveClock = (move) => {
     const isCapture = !!move.capturePiece;
-    const isPawn = PieceType.fromPieceValue(move.movePiece) === PieceType.pawn;
+    const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
-  };
-
-  updateFullMoveNumber = (move) => {
-    if (PieceColor.fromPieceValue(move.movePiece) === PieceColor.black) {
-      this.fullMoveNumber++;
-    }
   };
 
   togglePlayerTurn = () => {
     this.activePlayer = this.activePlayer === PieceColor.white
       ? PieceColor.black
       : PieceColor.white;
+  };
+
+  updateFullMoveNumber = (move) => {
+    if (PieceColor.fromPieceValue(move.piece) === PieceColor.black) {
+      this.fullMoveNumber++;
+    }
+  };
+
+  appendToPgn = (move) => {
+    if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
+      this.pgnParts.push(`${this.fullMoveNumber}`);
+    }
+    const pgnMove = this.getMovePgn(move);
+    this.pgnParts.push(pgnMove);
+  };
+
+  getMovePgn = (move) => {
+    switch (move.type) {
+      case MoveType.kingSideCastle:
+        return 'O-O'
+      case MoveType.queenSideCastle:
+        return 'O-O-O';
+      case MoveType.enPassant:
+        break;
+    }
+  };
+
+  getMovePgnPiece = (move) => {
+    const type = PieceType.fromPieceValue(move.piece);
+    switch (type) {
+      case PieceType.pawn:
+        break;
+      case PieceType.rook:
+        break;
+      case PieceType.knight:
+        break;
+      case PieceType.bishop:
+        break;
+      case PieceType.queen:
+        break;
+      case PieceType.king:
+        break;
+      default:
+        return '-';
+    }
   };
 
   generateMoves = () => {
@@ -856,7 +915,7 @@ class Game {
 
   generateLegalMoves = () => {
     const activePlayerMoves = this.pseudoLegalMoves
-      .filter(move => PieceColor.fromPieceValue(move.movePiece) === this.activePlayer);
+      .filter(move => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
     if (this.preventRecursion) return activePlayerMoves;
     const fen = Fen.get(this);
     const moves = [];
@@ -881,7 +940,7 @@ class Game {
     const forwardSquareIndex = fromIndex + Constants.directionOffsets[moveForward];
     const forwardSquarePiece = this.squares[forwardSquareIndex];
     if (!forwardSquarePiece) {
-      moves.push(new Move(fromIndex, forwardSquareIndex, MoveType.advance, this.squares));
+      moves.push(new Move(MoveType.normal, fromIndex, forwardSquareIndex, this.squares));
     }
 
     // check two squares forward
@@ -895,7 +954,7 @@ class Game {
       const doubleSquareIndex = forwardSquareIndex + Constants.directionOffsets[moveForward];
       const doubleSquarePiece = this.squares[doubleSquareIndex];
       if (!forwardSquarePiece && !doubleSquarePiece) {
-        moves.push(new Move(fromIndex, doubleSquareIndex, MoveType.advance, this.squares));
+        moves.push(new Move(MoveType.normal, fromIndex, doubleSquareIndex, this.squares));
       }
     }
 
@@ -904,7 +963,7 @@ class Game {
     const attackLeftSquarePiece = this.squares[attackLeftSquareIndex];
     const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
     if (isAttackLeftOpponent) {
-      moves.push(new Move(fromIndex, attackLeftSquareIndex, MoveType.capture, this.squares));
+      moves.push(new Move(MoveType.capture, fromIndex, attackLeftSquareIndex, this.squares));
     }
 
     // check attack right
@@ -912,12 +971,12 @@ class Game {
     const attackRightSquarePiece = this.squares[attackRightSquareIndex];
     const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
     if (isAttackRightOpponent) {
-      moves.push(new Move(fromIndex, attackRightSquareIndex, MoveType.capture, this.squares));
+      moves.push(new Move(MoveType.capture, fromIndex, attackRightSquareIndex, this.squares));
     }
 
     // check en passant
     if ([attackLeftSquareIndex, attackRightSquareIndex].includes(this.enPassantTargetSquare)) {
-      moves.push(new Move(fromIndex, this.enPassantTargetSquare, MoveType.enPassant, this.squares));
+      moves.push(new Move(MoveType.enPassant, fromIndex, this.enPassantTargetSquare, this.squares));
     }
 
     return moves;
@@ -933,9 +992,9 @@ class Game {
       // blocked by friendly piece
       if (toPiece && toPiece.color === piece.color) return;
 
-      const moveType = toPiece ? MoveType.capture : MoveType.advance;
+      const moveType = toPiece ? MoveType.capture : MoveType.normal;
 
-      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+      moves.push(new Move(moveType, fromIndex, toIndex, this.squares));
     };
 
     const northEdge = this.numSquaresToEdge[fromIndex][DirectionIndex.north];
@@ -984,9 +1043,9 @@ class Game {
       // blocked by friendly piece
       if (toPiece && toPiece.color === piece.color) continue;
 
-      const moveType = toPiece ? MoveType.capture : MoveType.advance;
+      const moveType = toPiece ? MoveType.capture : MoveType.normal;
 
-      moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+      moves.push(new Move(moveType, fromIndex, toIndex, this.squares));
     }
 
     // add castling moves
@@ -995,10 +1054,12 @@ class Game {
       .forEach(x => {
         const dirIndex = x.type === PieceType.king ? DirectionIndex.east : DirectionIndex.west;
         const offset = Constants.directionOffsets[dirIndex];
-        const passingSquare = this.squares[fromIndex + offset];
-        const landingSquare = this.squares[fromIndex + (offset * 2)];
-        if (passingSquare || landingSquare) return;
-        moves.push(new Move(fromIndex, fromIndex + (offset * 2), MoveType.castle, this.squares));
+        const passingSquarePiece = this.squares[fromIndex + offset];
+        const landingSquareIndex = fromIndex + (offset * 2);
+        const landingSquarePiece = this.squares[landingSquareIndex];
+        if (passingSquarePiece || landingSquarePiece) return;
+        const moveType = x.type === PieceType.king ? MoveType.kingSideCastle : MoveType.queenSideCastle;
+        moves.push(new Move(moveType, fromIndex, landingSquareIndex, this.squares));
       });
 
     return moves;
@@ -1018,9 +1079,9 @@ class Game {
         // blocked by friendly piece, so can't move any further in this direction
         if (toPiece && toPiece.color === piece.color) break;
 
-        const moveType = toPiece ? MoveType.capture : MoveType.advance;
+        const moveType = toPiece ? MoveType.capture : MoveType.normal;
 
-        moves.push(new Move(fromIndex, toIndex, moveType, this.squares));
+        moves.push(new Move(moveType, fromIndex, toIndex, this.squares));
 
         // can't move any further in this direction after capturing opponent's piece
         if (toPiece && toPiece.color !== piece.color) break;
@@ -1031,7 +1092,7 @@ class Game {
   };
 
   testForCheck = (color = this.activePlayer) => {
-    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.movePiece) !== color);
+    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.piece) !== color);
     const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
     const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
     const isCheck = opponentKingCaptures.length > 0;
