@@ -5,7 +5,7 @@ window.onload = () => {
   const startPosition = Constants.startPosition;
   const pawnPromotion = 'k/7P//////K w - - 0 0';
   const checkmate = 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2';
-  _game = new Game({ fen: checkmate });
+  _game = new Game({ fen: startPosition });
   _board = new Board(_game);
   MicroModal.init({
     awaitOpenAnimation: true,
@@ -17,7 +17,7 @@ window.onload = () => {
  * FEATURES
  * ------------------------------------
  *  pawn promotion (non-queen options)
- *  game over modal includes move list
+ *  PGN handles disambiguation
  *  determine best move
  * 
  * BUGS
@@ -50,6 +50,22 @@ class Utils {
   static getFile = (index) => index % 8;
 
   static getRank = (index) => Math.floor(index / 8);
+
+  static getSquareIndexFromCoordinates = (val) => {
+    try {
+      const file = 'abcdefgh'.indexOf(val[0]);
+      const rank = parseInt(val[1]) || -1;
+      return (file === -1 || rank === -1) ? -1 : rank * 8 + file;
+    } catch {
+      return -1;
+    }
+  };
+
+  static getCoordinatesFromSquareIndex = (index) => {
+    const rank = Utils.getRank(index);
+    const file = Utils.getFile(index);
+    return `${'abcdefgh'[file]}${rank + 1}`;
+  };
 }
 
 class PieceColor {
@@ -114,25 +130,25 @@ class PieceType {
   };
 
   static fromFEN = (val) => {
-    switch (val.toLowerCase()) {
-      case 'k': return PieceType.king;
-      case 'p': return PieceType.pawn;
-      case 'n': return PieceType.knight;
-      case 'b': return PieceType.bishop;
-      case 'r': return PieceType.rook;
-      case 'q': return PieceType.queen;
+    switch (val.toUpperCase()) {
+      case 'K': return PieceType.king;
+      case 'P': return PieceType.pawn;
+      case 'N': return PieceType.knight;
+      case 'B': return PieceType.bishop;
+      case 'R': return PieceType.rook;
+      case 'Q': return PieceType.queen;
       default: return PieceType.none;
     }
   };
 
   static toString = (val) => {
     switch (val) {
-      case PieceType.king: return 'k';
-      case PieceType.pawn: return 'p';
-      case PieceType.knight: return 'n';
-      case PieceType.bishop: return 'b';
-      case PieceType.rook: return 'r';
-      case PieceType.queen: return 'q';
+      case PieceType.king: return 'K';
+      case PieceType.pawn: return 'P';
+      case PieceType.knight: return 'N';
+      case PieceType.bishop: return 'B';
+      case PieceType.rook: return 'R';
+      case PieceType.queen: return 'Q';
       default: return '';
     }
   };
@@ -170,6 +186,8 @@ class MoveType {
   static kingSideCastle = 2;
   static queenSideCastle = 3;
   static enPassant = 4;
+
+  static captureMoves = [MoveType.capture, MoveType.enPassant];
 }
 
 class Move {
@@ -309,13 +327,13 @@ class Fen {
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
-    game.enPassantTargetSquare = Fen.getSquareIndexFromCoordinates(val);
+    game.enPassantTargetSquare = Utils.getSquareIndexFromCoordinates(val);
   };
 
   static getEnPassantTargetSquare = (game) => {
     return game.enPassantTargetSquare === -1
       ? '-'
-      : Fen.getCoordinatesFromSquareIndex(game.enPassantTargetSquare);
+      : Utils.getCoordinatesFromSquareIndex(game.enPassantTargetSquare);
   };
 
   static parseHalfMoveClock = (val, game) => { game.halfMoveClock = parseInt(val) || 0; };
@@ -325,22 +343,6 @@ class Fen {
   static parseFullMoveNumber = (val, game) => { game.fullMoveNumber = parseInt(val) || 1; };
 
   static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
-
-  static getSquareIndexFromCoordinates = (val) => {
-    try {
-      const file = 'abcdefgh'.indexOf(val[0]);
-      const rank = parseInt(val[1]) || -1;
-      return (file === -1 || rank === -1) ? -1 : rank * 8 + file;
-    } catch {
-      return -1;
-    }
-  };
-
-  static getCoordinatesFromSquareIndex = (index) => {
-    const rank = Utils.getRank(index);
-    const file = Utils.getFile(index);
-    return `${'abcdefgh'[file]}${rank + 1}`;
-  };
 }
 
 class Board {
@@ -356,7 +358,6 @@ class Board {
     this.previousMove = {};
     this.dragPiece = null;
     this.deselect = false;
-    this.gameOver = false;
 
     this.initCanvas();
     this.initPieces();
@@ -429,7 +430,7 @@ class Board {
   };
 
   onMouseDown = (e) => {
-    if (this.gameOver) return;
+    if (this.game.isGameOver) return;
     const square = this.getEventSquare(e);
     if (square === this.activeSquare) {
       this.deselect = true;
@@ -522,7 +523,9 @@ class Board {
     this.refresh();
     this.game.postMoveActions(move);
     this.setPreviousMove(move);
-    this.testForGameOver();
+    if (this.game.isGameOver) {
+      this.showGameOverModal();
+    }
   };
 
   clearActiveSquare = () => {
@@ -542,22 +545,12 @@ class Board {
       move.fromIndex === this.activeSquare.index
       && move.toIndex === toSquare.index);
 
-  testForGameOver = () => {
-    const isGameOver = this.game.legalMoves.length === 0;
-    if (isGameOver) {
-      this.gameOver = true;
-      this.showGameOverModal();
-    }
-  };
-
   showGameOverModal = () => {
-    const isMate = this.game.testForCheck(this.game.activePlayer);
-    const title = isMate ? 'Checkmate' : 'Stalemate';
-    const message = isMate ? this.getCheckmateMessage() : this.getStalemateMessage();
-    const moves = this.getMoveList();
+    const title = this.game.isCheckmate ? 'Checkmate' : 'Stalemate';
+    const message = this.game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
     document.getElementById('game-over-modal-title').innerHTML = title;
     document.getElementById('game-over-modal-message').innerHTML = message;
-    document.getElementById('game-over-modal-moves').innerHTML = moves;
+    document.getElementById('game-over-modal-moves').innerHTML = this.game.getPgn();;
     MicroModal.show('game-over-modal');
   };
 
@@ -571,11 +564,6 @@ class Board {
   getStalemateMessage = () => {
     const activePlayer = PieceColor.toString(this.game.activePlayer);
     return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`
-  };
-
-  getMoveList = () => {
-    // todo : return moves in standard notation (PGN)
-    return '';
   };
 }
 
@@ -725,6 +713,15 @@ class Game {
     this.generateMoves();
   }
 
+  get isGameOver() { return this.legalMoves.length === 0; }
+
+  get isCheck() {
+    const king = this.activePlayer | PieceType.king;
+    return this.pseudoLegalMoves.some(move => move.capturePiece === king)
+  }
+
+  get isCheckmate() { return this.isGameOver && this.isCheck; }
+
   getPgn = () => this.pgnParts.join(' ');
 
   init = () => {
@@ -792,9 +789,10 @@ class Game {
     this.setHalfMoveClock(move);
     this.togglePlayerTurn();
     this.generateMoves();
-    if (this.legalMoves.length) {
+    if (!this.isGameOver) {
       this.updateFullMoveNumber(move);
     }
+    this.updateMove(move);
     this.appendToPgn(move);
   };
 
@@ -839,44 +837,59 @@ class Game {
     }
   };
 
+  updateMove = (move) => {
+    move.isCheck = this.isCheck;
+    move.isCheckmate = this.isCheckmate;
+  };
+
   appendToPgn = (move) => {
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
-      this.pgnParts.push(`${this.fullMoveNumber}`);
+      this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
     const pgnMove = this.getMovePgn(move);
     this.pgnParts.push(pgnMove);
   };
 
   getMovePgn = (move) => {
+    let movePgn = '';
     switch (move.type) {
       case MoveType.kingSideCastle:
-        return 'O-O'
+        movePgn += 'O-O';
+        break;
       case MoveType.queenSideCastle:
-        return 'O-O-O';
-      case MoveType.enPassant:
+        movePgn += 'O-O-O';
+        break;
+      default:
+        movePgn += this.getMovePgnPiece(move);
+        movePgn += this.getMovePgnAction(move);
+        movePgn += this.getMovePgnDestination(move);
         break;
     }
+    movePgn += this.getMovePgnStatus(move);
+    return movePgn;
   };
 
   getMovePgnPiece = (move) => {
-    const type = PieceType.fromPieceValue(move.piece);
-    switch (type) {
-      case PieceType.pawn:
-        break;
-      case PieceType.rook:
-        break;
-      case PieceType.knight:
-        break;
-      case PieceType.bishop:
-        break;
-      case PieceType.queen:
-        break;
-      case PieceType.king:
-        break;
-      default:
-        return '-';
+    if (move.pieceType === PieceType.pawn) {
+      if (MoveType.captureMoves.includes(move.type)) {
+        const file = Utils.getFile(move.fromIndex);
+        return 'abcdefgh'[file];
+      }
+      return '';
     }
-  };
+    // todo : handle disambiguation
+    return PieceType.toString(move.pieceType);
+  }
+
+  getMovePgnAction = (move) => MoveType.captureMoves.includes(move.type) ? 'x' : '';
+
+  getMovePgnDestination = (move) => Utils.getCoordinatesFromSquareIndex(move.toIndex);
+
+  getMovePgnStatus = (move) => {
+    if (move.isCheckmate) return '#';
+    if (move.isCheck) return '+';
+    return '';
+  }
 
   generateMoves = () => {
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
@@ -1092,10 +1105,12 @@ class Game {
   };
 
   testForCheck = (color = this.activePlayer) => {
-    const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.piece) !== color);
-    const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
-    const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
-    const isCheck = opponentKingCaptures.length > 0;
-    return isCheck;
+    const king = color | PieceType.king;
+    return this.pseudoLegalMoves.some(move => move.capturePiece === king);
+    // const opponentMoves = this.pseudoLegalMoves.filter(move => PieceColor.fromPieceValue(move.piece) !== color);
+    // const opponentCaptures = opponentMoves.filter(move => move.type === MoveType.capture);
+    // const opponentKingCaptures = opponentCaptures.filter(move => PieceType.fromPieceValue(move.capturePiece) === PieceType.king);
+    // const isCheck = opponentKingCaptures.length > 0;
+    // return isCheck;
   };
 }
