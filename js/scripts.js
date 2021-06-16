@@ -2,10 +2,7 @@ let _game;
 let _board;
 
 window.onload = () => {
-  const startPosition = Constants.startPosition;
-  const pawnPromotion = 'k/7P//////K w - - 0 0';
-  const checkmate = 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2';
-  _game = new Game({ fen: startPosition });
+  _game = new Game({ fen: Constants.startPosition });
   _board = new Board(_game);
   MicroModal.init({
     awaitOpenAnimation: true,
@@ -16,7 +13,6 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
- *  PGN handles disambiguation
  *  determine best move
  * 
  * TECH DEBT
@@ -38,6 +34,12 @@ class Constants {
   static overlayOpacity = 0.4;
   static directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
   static startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+}
+
+class TestFEN {
+  static promotion = 'k/7P//////K w - - 0 0';
+  static checkmate = 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2';
+  static disambiguation = 'q5qk//q1q////PPPPPPPP/RNBQKBNR b - - 0 0';
 }
 
 class DirectionIndex {
@@ -131,6 +133,13 @@ class PieceType {
   static bishop = 4;
   static rook = 5;
   static queen = 6;
+
+  static ambiguousTypes = [
+    PieceType.knight,
+    PieceType.bishop,
+    PieceType.rook,
+    PieceType.queen,
+  ];
 
   static fromPieceValue = (val) => {
     switch (val % 8) {
@@ -232,7 +241,7 @@ class Move {
 }
 
 class PGN {
-  static get = (move) => {
+  static get = (move, legalMoves) => {
     let pgn = '';
     switch (move.type) {
       case MoveType.kingSideCastle:
@@ -242,7 +251,7 @@ class PGN {
         pgn += 'O-O-O';
         break;
       default:
-        pgn += PGN._getPiece(move);
+        pgn += PGN._getPiece(move, legalMoves);
         pgn += PGN._getAction(move);
         pgn += PGN._getDestination(move);
         break;
@@ -251,14 +260,33 @@ class PGN {
     return pgn;
   };
   
-  static _getPiece = (move) => {
+  static _getPiece = (move, legalMoves = []) => {
     if (move.pieceType === PieceType.pawn) {
       return MoveType.captureMoves.includes(move.type)
         ? 'abcdefgh'[Utils.getFile(move.fromIndex)]
         : '';
     }
-    // todo : handle disambiguation
-    return PieceType.toString(move.pieceType);
+
+    const symbol = PieceType.toString(move.pieceType);
+
+    const isAmbiguousType = PieceType.ambiguousTypes.includes(move.pieceType);
+    if (!isAmbiguousType) return symbol;
+
+    const ambiguousMoves = legalMoves.filter(x =>
+      x.pieceType === move.pieceType
+      && x.toIndex === move.toIndex
+      && x.fromIndex !== move.fromIndex);
+    if (ambiguousMoves.length === 0) return symbol;
+
+    const file = Utils.getFile(move.fromIndex);
+    const isFileUnique = !ambiguousMoves.some(x => Utils.getFile(x.fromIndex) === file);
+    if (isFileUnique) return `${symbol}${'abcdefgh'[file]}`;
+
+    const rank = Utils.getRank(move.fromIndex);
+    const isRankUnique = !ambiguousMoves.some(x => Utils.getRank(x.fromIndex) === rank);
+    if (isRankUnique) return `${symbol}${rank + 1}`;
+
+    return `${symbol}${'abcdefgh'[file]}${rank + 1}`;
   };
 
   static _getAction = (move) => MoveType.captureMoves.includes(move.type) ? 'x' : '';
@@ -881,6 +909,7 @@ class Game {
   };
 
   postMoveActions = (move) => {
+    const legalMoves = [...this.legalMoves];
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
     this.setHalfMoveClock(move);
@@ -890,7 +919,7 @@ class Game {
       this.updateFullMoveNumber(move);
     }
     this.updateMove(move);
-    this.appendToPgn(move);
+    this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
   };
 
@@ -944,11 +973,11 @@ class Game {
     this.moveHistory.push(move);
   }
 
-  appendToPgn = (move) => {
+  appendToPgn = (move, legalMoves) => {
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
-    this.pgnParts.push(PGN.get(move));
+    this.pgnParts.push(PGN.get(move, legalMoves));
   };
 
   generateMoves = () => {
