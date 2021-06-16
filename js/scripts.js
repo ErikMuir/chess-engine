@@ -16,7 +16,6 @@ window.onload = () => {
 /**
  * FEATURES
  * ------------------------------------
- *  pawn promotion (non-queen options)
  *  PGN handles disambiguation
  *  determine best move
  * 
@@ -201,7 +200,7 @@ class Move {
       : squares[toIndex];
     this.isCheck = false;
     this.isCheckmate = false;
-    this.pawnPromotionType = null;
+    this.pawnPromotionType = PieceType.queen;
   }
 
   get pieceType() { return PieceType.fromPieceValue(this.piece); }
@@ -213,6 +212,51 @@ class Move {
     const promotionRank = this.pieceColor === PieceColor.white ? 7 : 0;
     const isPromotionRank = Utils.getRank(this.toIndex) === promotionRank;
     return isPawn && isPromotionRank;
+  }
+
+  getPgn = () => {
+    let pgn = '';
+    switch (this.type) {
+      case MoveType.kingSideCastle:
+        pgn += 'O-O';
+        break;
+      case MoveType.queenSideCastle:
+        pgn += 'O-O-O';
+        break;
+      default:
+        pgn += this.getPgnPiece();
+        pgn += this.getPgnAction();
+        pgn += this.getPgnDestination();
+        break;
+    }
+    pgn += this.getPgnResult();
+    return pgn;
+  };
+
+  getPgnPiece = () => {
+    if (this.pieceType === PieceType.pawn) {
+      return MoveType.captureMoves.includes(this.type)
+        ? 'abcdefgh'[Utils.getFile(this.fromIndex)]
+        : '';
+    }
+    // todo : handle disambiguation
+    return PieceType.toString(this.pieceType);
+  }
+
+  getPgnAction = () => MoveType.captureMoves.includes(this.type) ? 'x' : '';
+
+  getPgnDestination = () => Utils.getCoordinatesFromSquareIndex(this.toIndex);
+
+  getPgnResult = () => {
+    let result = '';
+    if (this.isPawnPromotion) {
+      const type = this.pawnPromotionType;
+      const symbol = PieceType.toString(type);
+      result += `=${symbol}`;
+    }
+    if (this.isCheckmate) result += '#';
+    else if (this.isCheck) result += '+';
+    return result;
   }
 }
 
@@ -227,16 +271,16 @@ class DirectionIndex {
   static southWest = 7;
 }
 
-class Fen {
+class FEN {
   static load = (fen, game) => {
     try {
       const fenParts = fen.split(' ');
-      Fen.parsePiecePlacement(fenParts[0], game);
-      Fen.parseActivePlayer(fenParts[1], game);
-      Fen.parseCastlingAvailability(fenParts[2], game);
-      Fen.parseEnPassantTargetSquare(fenParts[3], game);
-      Fen.parseHalfMoveClock(fenParts[4], game);
-      Fen.parseFullMoveNumber(fenParts[5], game);
+      FEN.parsePiecePlacement(fenParts[0], game);
+      FEN.parseActivePlayer(fenParts[1], game);
+      FEN.parseCastlingAvailability(fenParts[2], game);
+      FEN.parseEnPassantTargetSquare(fenParts[3], game);
+      FEN.parseHalfMoveClock(fenParts[4], game);
+      FEN.parseFullMoveNumber(fenParts[5], game);
     } catch (e) {
       throw new Error('Invalid FEN');
     }
@@ -244,12 +288,12 @@ class Fen {
 
   static get = (game) => {
     const fenParts = [
-      Fen.getPiecePlacement(game),
-      Fen.getActivePlayer(game),
-      Fen.getCastlingAvailability(game),
-      Fen.getEnPassantTargetSquare(game),
-      Fen.getHalfMoveClock(game),
-      Fen.getFullMoveNumber(game),
+      FEN.getPiecePlacement(game),
+      FEN.getActivePlayer(game),
+      FEN.getCastlingAvailability(game),
+      FEN.getEnPassantTargetSquare(game),
+      FEN.getHalfMoveClock(game),
+      FEN.getFullMoveNumber(game),
     ];
     return fenParts.join(' ');
   };
@@ -272,7 +316,7 @@ class Fen {
   static getPiecePlacement = (game) => {
     let output = '';
     for (let rank = 7; rank >= 0; rank--) {
-      output += Fen.getFenByRank(rank, game);
+      output += FEN.getFenByRank(rank, game);
       if (rank > 0) output += '/';
     }
     return output;
@@ -351,6 +395,7 @@ class Board {
     this.squares = new Array(64);
 
     this.ctx = null;
+    this.ppCtx = null;
     this.whitePieceImages = {};
     this.blackPieceImages = {};
     this.activeSquare = null;
@@ -358,6 +403,13 @@ class Board {
     this.previousMove = {};
     this.dragPiece = null;
     this.deselect = false;
+    this.promotionMove = null;
+    this.promotionTypes = [
+      PieceType.queen,
+      PieceType.rook,
+      PieceType.bishop,
+      PieceType.knight,
+    ];
 
     this.initCanvas();
     this.initPieces();
@@ -374,6 +426,12 @@ class Board {
     canvas.onmousemove = this.onMouseMove;
     canvas.onmouseout = this.onMouseOut;
     this.ctx = canvas.getContext('2d');
+
+    const ppCanvas = document.getElementById('pawn-promotion-canvas');
+    ppCanvas.width = Constants.squareSize * 4;
+    ppCanvas.height = Constants.squareSize;
+    ppCanvas.onmouseup = this.onPawnPromotionChoice;
+    this.ppCtx = ppCanvas.getContext('2d');
   };
 
   initPieces = () => {
@@ -455,7 +513,14 @@ class Board {
     }
 
     const move = this.getLegalMove(square);
-    if (move) this.doMove(move);
+
+    if (!move) return;
+
+    if (move.isPawnPromotion) {
+      this.showPawnPromotionModal(move);
+    } else {
+      this.doMove(move);
+    }
   };
 
   onMouseMove = (e) => {
@@ -564,6 +629,30 @@ class Board {
   getStalemateMessage = () => {
     const activePlayer = PieceColor.toString(this.game.activePlayer);
     return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`
+  };
+
+  showPawnPromotionModal = (move) => {
+    this.promotionMove = move;
+    const color = this.game.activePlayer;
+    const offset = Utils.proportion(0.1);
+    const size = Utils.proportion(0.8);
+    this.promotionTypes.forEach((type, index) => {
+      const piece = new Piece(color, type);
+      const img = this.getPieceImage(piece);
+      const x = (Constants.squareSize * index) + offset;
+      const y = offset;
+      this.ppCtx.drawImage(img, x, y, size, size);
+    });
+    MicroModal.show('pawn-promotion-modal');
+  };
+
+  onPawnPromotionChoice = (e) => {
+    const index = Math.floor(e.offsetX / Constants.squareSize);
+    const move = this.promotionMove;
+    move.pawnPromotionType = this.promotionTypes[index];
+    MicroModal.close('pawn-promotion-modal');
+    this.doMove(move);
+    this.promotionMove = null;
   };
 }
 
@@ -705,10 +794,11 @@ class Game {
     this.fullMoveNumber = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
+    this.moveHistory = [];
     this.pgnParts = [];
 
     this.preventRecursion = preventRecursion;
-    Fen.load(fen, this);
+    FEN.load(fen, this);
     this.init();
     this.generateMoves();
   }
@@ -763,7 +853,7 @@ class Game {
 
   getMovePiece = (move) => {
     if (!move.isPawnPromotion) return move.piece;
-    return this.activePlayer | PieceType.queen;
+    return this.activePlayer | move.pawnPromotionType;
   };
 
   handleEnPassant = (move) => {
@@ -794,6 +884,7 @@ class Game {
     }
     this.updateMove(move);
     this.appendToPgn(move);
+    this.archiveMove(move);
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -842,54 +933,16 @@ class Game {
     move.isCheckmate = this.isCheckmate;
   };
 
+  archiveMove = (move) => {
+    this.moveHistory.push(move);
+  }
+
   appendToPgn = (move) => {
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
-    const pgnMove = this.getMovePgn(move);
-    this.pgnParts.push(pgnMove);
+    this.pgnParts.push(move.getPgn());
   };
-
-  getMovePgn = (move) => {
-    let movePgn = '';
-    switch (move.type) {
-      case MoveType.kingSideCastle:
-        movePgn += 'O-O';
-        break;
-      case MoveType.queenSideCastle:
-        movePgn += 'O-O-O';
-        break;
-      default:
-        movePgn += this.getMovePgnPiece(move);
-        movePgn += this.getMovePgnAction(move);
-        movePgn += this.getMovePgnDestination(move);
-        break;
-    }
-    movePgn += this.getMovePgnStatus(move);
-    return movePgn;
-  };
-
-  getMovePgnPiece = (move) => {
-    if (move.pieceType === PieceType.pawn) {
-      if (MoveType.captureMoves.includes(move.type)) {
-        const file = Utils.getFile(move.fromIndex);
-        return 'abcdefgh'[file];
-      }
-      return '';
-    }
-    // todo : handle disambiguation
-    return PieceType.toString(move.pieceType);
-  }
-
-  getMovePgnAction = (move) => MoveType.captureMoves.includes(move.type) ? 'x' : '';
-
-  getMovePgnDestination = (move) => Utils.getCoordinatesFromSquareIndex(move.toIndex);
-
-  getMovePgnStatus = (move) => {
-    if (move.isCheckmate) return '#';
-    if (move.isCheck) return '+';
-    return '';
-  }
 
   generateMoves = () => {
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
@@ -930,7 +983,7 @@ class Game {
     const activePlayerMoves = this.pseudoLegalMoves
       .filter(move => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
     if (this.preventRecursion) return activePlayerMoves;
-    const fen = Fen.get(this);
+    const fen = FEN.get(this);
     const moves = [];
     activePlayerMoves.forEach(move => {
       const futureGame = new Game({ fen, preventRecursion: true });
