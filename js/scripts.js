@@ -19,6 +19,11 @@ window.onload = () => {
  *  PGN handles disambiguation
  *  determine best move
  * 
+ * TECH DEBT
+ * ------------------------------------
+ *  modularize using babel
+ *  unit tests
+ * 
  * BUGS
  * ------------------------------------
  */
@@ -33,6 +38,17 @@ class Constants {
   static overlayOpacity = 0.4;
   static directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
   static startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+}
+
+class DirectionIndex {
+  static north = 0;
+  static south = 1;
+  static west = 2;
+  static east = 3;
+  static northWest = 4;
+  static southEast = 5;
+  static northEast = 6;
+  static southWest = 7;
 }
 
 class Utils {
@@ -213,10 +229,12 @@ class Move {
     const isPromotionRank = Utils.getRank(this.toIndex) === promotionRank;
     return isPawn && isPromotionRank;
   }
+}
 
-  getPgn = () => {
+class PGN {
+  static get = (move) => {
     let pgn = '';
-    switch (this.type) {
+    switch (move.type) {
       case MoveType.kingSideCastle:
         pgn += 'O-O';
         break;
@@ -224,51 +242,40 @@ class Move {
         pgn += 'O-O-O';
         break;
       default:
-        pgn += this.getPgnPiece();
-        pgn += this.getPgnAction();
-        pgn += this.getPgnDestination();
+        pgn += PGN._getPiece(move);
+        pgn += PGN._getAction(move);
+        pgn += PGN._getDestination(move);
         break;
     }
-    pgn += this.getPgnResult();
+    pgn += PGN._getResult(move);
     return pgn;
   };
-
-  getPgnPiece = () => {
-    if (this.pieceType === PieceType.pawn) {
-      return MoveType.captureMoves.includes(this.type)
-        ? 'abcdefgh'[Utils.getFile(this.fromIndex)]
+  
+  static _getPiece = (move) => {
+    if (move.pieceType === PieceType.pawn) {
+      return MoveType.captureMoves.includes(move.type)
+        ? 'abcdefgh'[Utils.getFile(move.fromIndex)]
         : '';
     }
     // todo : handle disambiguation
-    return PieceType.toString(this.pieceType);
-  }
+    return PieceType.toString(move.pieceType);
+  };
 
-  getPgnAction = () => MoveType.captureMoves.includes(this.type) ? 'x' : '';
+  static _getAction = (move) => MoveType.captureMoves.includes(move.type) ? 'x' : '';
 
-  getPgnDestination = () => Utils.getCoordinatesFromSquareIndex(this.toIndex);
+  static _getDestination = (move) => Utils.getCoordinatesFromSquareIndex(move.toIndex);
 
-  getPgnResult = () => {
+  static _getResult = (move) => {
     let result = '';
-    if (this.isPawnPromotion) {
-      const type = this.pawnPromotionType;
+    if (move.isPawnPromotion) {
+      const type = move.pawnPromotionType;
       const symbol = PieceType.toString(type);
       result += `=${symbol}`;
     }
-    if (this.isCheckmate) result += '#';
-    else if (this.isCheck) result += '+';
+    if (move.isCheckmate) result += '#';
+    else if (move.isCheck) result += '+';
     return result;
-  }
-}
-
-class DirectionIndex {
-  static north = 0;
-  static south = 1;
-  static west = 2;
-  static east = 3;
-  static northWest = 4;
-  static southEast = 5;
-  static northEast = 6;
-  static southWest = 7;
+  };
 }
 
 class FEN {
@@ -615,7 +622,7 @@ class Board {
     const message = this.game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
     document.getElementById('game-over-modal-title').innerHTML = title;
     document.getElementById('game-over-modal-message').innerHTML = message;
-    document.getElementById('game-over-modal-moves').innerHTML = this.game.getPgn();;
+    document.getElementById('game-over-modal-moves').innerHTML = this.game.getPgn();
     MicroModal.show('game-over-modal');
   };
 
@@ -941,7 +948,7 @@ class Game {
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
-    this.pgnParts.push(move.getPgn());
+    this.pgnParts.push(PGN.get(move));
   };
 
   generateMoves = () => {
