@@ -150,10 +150,6 @@
   color: #fff;
 }
 
-/**************************\
-  Demo Animation Style
-\**************************/
-
 @keyframes mmfadeIn {
   from {
     opacity: 0;

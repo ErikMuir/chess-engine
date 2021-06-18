@@ -1,0 +1,17 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "shippedProposals": true,
+        "debug": true,
+        "targets": {
+          "esmodules": true
+        },
+        "bugfixes": true // will be default in Babel 8
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "plugins": []
+}
