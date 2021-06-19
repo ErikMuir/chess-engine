@@ -2,7 +2,10 @@ import React from 'react';
 
 const Footer = () => (
   <footer>
-    <span>&copy; Copyright {new Date().getFullYear()}</span>
+    <span>
+      &copy; Copyright
+      {new Date().getFullYear()}
+    </span>
   </footer>
 );
 
