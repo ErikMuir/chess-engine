@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
 import { whitePieces, blackPieces } from './pieces';

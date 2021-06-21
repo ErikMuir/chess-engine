@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCanvas } from './CanvasHelpers';
+import { useCanvas } from '../game/helpers';
 
 const Canvas = (props) => {
   const { draw, ...rest } = props;

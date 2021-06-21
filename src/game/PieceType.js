@@ -13,6 +13,15 @@ class PieceType {
 
   static queen = 6;
 
+  static allTypes = [
+    PieceType.king,
+    PieceType.queen,
+    PieceType.rook,
+    PieceType.bishop,
+    PieceType.knight,
+    PieceType.pawn,
+  ];
+
   static ambiguousTypes = [
     PieceType.knight,
     PieceType.bishop,

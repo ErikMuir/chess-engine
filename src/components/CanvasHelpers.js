@@ -53,14 +53,6 @@ const useCanvas = (draw) => {
   return canvasRef;
 };
 
-const drawLine = (ctx, line) => {
-  ctx.beginPath();
-  ctx.moveTo(line.begin.x, line.begin.y);
-  ctx.lineTo(line.end.x, line.end.y);
-  ctx.stroke();
-};
-
 export {
   useCanvas,
-  drawLine,
 };

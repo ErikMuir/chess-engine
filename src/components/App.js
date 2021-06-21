@@ -1,13 +1,13 @@
 import React from 'react';
 import Header from './Header';
-import Board from './Board';
+import BoardContainer from './BoardContainer';
 import Footer from './Footer';
 
 const App = () => (
   <div className="container">
     <Header />
     <main>
-      <Board />
+      <BoardContainer />
     </main>
     <Footer />
   </div>
