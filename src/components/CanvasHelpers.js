@@ -40,7 +40,7 @@ const useCanvas = (draw) => {
       predraw(context, canvas);
       draw(context, frameCount);
       postdraw(context);
-      animationFrameId = window.requestAnimationFrame(render);
+      // animationFrameId = window.requestAnimationFrame(render);
     };
 
     render();

@@ -4,7 +4,7 @@ import Piece from './Piece';
 import Square from './Square';
 import { squareSize } from './constants';
 import { proportion } from './utils';
-import { getPieceImage } from './helpers';
+import { getPieceImage } from './pieceHelpers';
 
 export default class Board {
   constructor(game) {
@@ -13,8 +13,8 @@ export default class Board {
 
     this.ctx = null;
     this.ppCtx = null;
-    this.pieces = {};
-    this.pieceImages = {};
+    // this.pieces = {};
+    // this.pieceImages = {};
     this.activeSquare = null;
     this.possibleSquares = [];
     this.previousMove = {};
@@ -28,67 +28,67 @@ export default class Board {
       PieceType.knight,
     ];
 
-    this.initCanvas();
-    this.initPieces();
+    // this.initCanvas();
+    // this.initPieces();
     this.initSquares();
-    setInterval(this.draw, 10);
+    // setInterval(this.draw, 10);
   }
 
-  initCanvas = () => {
-    const canvas = document.getElementById('canvas');
-    canvas.width = squareSize * 8;
-    canvas.height = squareSize * 8;
-    canvas.onmousedown = this.onMouseDown;
-    canvas.onmouseup = this.onMouseUp;
-    canvas.onmousemove = this.onMouseMove;
-    canvas.onmouseout = this.onMouseOut;
-    this.ctx = canvas.getContext('2d');
+  // initCanvas = () => {
+  //   const canvas = document.getElementById('canvas-chess-board');
+  //   canvas.width = squareSize * 8;
+  //   canvas.height = squareSize * 8;
+  //   canvas.onmousedown = this.onMouseDown;
+  //   canvas.onmouseup = this.onMouseUp;
+  //   canvas.onmousemove = this.onMouseMove;
+  //   canvas.onmouseout = this.onMouseOut;
+  //   this.ctx = canvas.getContext('2d');
 
-    const ppCanvas = document.getElementById('pawn-promotion-canvas');
-    ppCanvas.width = squareSize * 4;
-    ppCanvas.height = squareSize;
-    ppCanvas.onmouseup = this.onPawnPromotionChoice;
-    this.ppCtx = ppCanvas.getContext('2d');
-  };
+  //   const ppCanvas = document.getElementById('pawn-promotion-canvas');
+  //   ppCanvas.width = squareSize * 4;
+  //   ppCanvas.height = squareSize;
+  //   ppCanvas.onmouseup = this.onPawnPromotionChoice;
+  //   this.ppCtx = ppCanvas.getContext('2d');
+  // };
 
-  initPieces = () => {
-    this.pieces = {
-      white: {
-        king: new Piece(PieceColor.white, PieceType.king),
-        queen: new Piece(PieceColor.white, PieceType.queen),
-        rook: new Piece(PieceColor.white, PieceType.rook),
-        bishop: new Piece(PieceColor.white, PieceType.bishop),
-        knight: new Piece(PieceColor.white, PieceType.knight),
-        pawn: new Piece(PieceColor.white, PieceType.pawn),
-      },
-      black: {
-        king: new Piece(PieceColor.black, PieceType.king),
-        queen: new Piece(PieceColor.black, PieceType.queen),
-        rook: new Piece(PieceColor.black, PieceType.rook),
-        bishop: new Piece(PieceColor.black, PieceType.bishop),
-        knight: new Piece(PieceColor.black, PieceType.knight),
-        pawn: new Piece(PieceColor.black, PieceType.pawn),
-      },
-    };
-    this.pieceImages = {
-      white: {
-        king: getPieceImage(this.pieces.white.king),
-        queen: getPieceImage(this.pieces.white.queen),
-        rook: getPieceImage(this.pieces.white.rook),
-        bishop: getPieceImage(this.pieces.white.bishop),
-        knight: getPieceImage(this.pieces.white.knight),
-        pawn: getPieceImage(this.pieces.white.pawn),
-      },
-      black: {
-        king: getPieceImage(this.pieces.white.king),
-        queen: getPieceImage(this.pieces.white.queen),
-        rook: getPieceImage(this.pieces.white.rook),
-        bishop: getPieceImage(this.pieces.white.bishop),
-        knight: getPieceImage(this.pieces.white.knight),
-        pawn: getPieceImage(this.pieces.white.pawn),
-      },
-    };
-  };
+  // initPieces = () => {
+  //   this.pieces = {
+  //     white: {
+  //       king: new Piece(PieceColor.white, PieceType.king),
+  //       queen: new Piece(PieceColor.white, PieceType.queen),
+  //       rook: new Piece(PieceColor.white, PieceType.rook),
+  //       bishop: new Piece(PieceColor.white, PieceType.bishop),
+  //       knight: new Piece(PieceColor.white, PieceType.knight),
+  //       pawn: new Piece(PieceColor.white, PieceType.pawn),
+  //     },
+  //     black: {
+  //       king: new Piece(PieceColor.black, PieceType.king),
+  //       queen: new Piece(PieceColor.black, PieceType.queen),
+  //       rook: new Piece(PieceColor.black, PieceType.rook),
+  //       bishop: new Piece(PieceColor.black, PieceType.bishop),
+  //       knight: new Piece(PieceColor.black, PieceType.knight),
+  //       pawn: new Piece(PieceColor.black, PieceType.pawn),
+  //     },
+  //   };
+  //   this.pieceImages = {
+  //     white: {
+  //       king: this.pieces.white.king.image,
+  //       queen: this.pieces.white.queen.image,
+  //       rook: this.pieces.white.rook.image,
+  //       bishop: this.pieces.white.bishop.image,
+  //       knight: this.pieces.white.knight.image,
+  //       pawn: this.pieces.white.pawn.image,
+  //     },
+  //     black: {
+  //       king: this.pieces.white.king.image,
+  //       queen: this.pieces.white.queen.image,
+  //       rook: this.pieces.white.rook.image,
+  //       bishop: this.pieces.white.bishop.image,
+  //       knight: this.pieces.white.knight.image,
+  //       pawn: this.pieces.white.pawn.image,
+  //     },
+  //   };
+  // };
 
   initSquares = () => {
     for (let rank = 0; rank < 8; rank += 1) {
@@ -117,11 +117,11 @@ export default class Board {
 
   drawDragPiece = (ctx) => {
     if (!this.dragPiece) return;
-    const img = this.getPieceImage(this.dragPiece);
     const size = proportion(0.8);
     const x = this.hoverX - (size / 2);
     const y = this.hoverY - (size / 2);
-    ctx.drawImage(img, x, y, size, size);
+    getPieceImage(this.dragPiece)
+      .then((img) => ctx.drawImage(img, x, y, size, size));
   };
 
   onMouseDown = (e) => {
@@ -183,25 +183,6 @@ export default class Board {
     return this.squares[rank * 8 + file];
   };
 
-  getPieceImage = (piece) => {
-    if (!piece) return null;
-    let set;
-    switch (piece.color) {
-      case PieceColor.white: set = this.pieceImages.white; break;
-      case PieceColor.black: set = this.pieceImages.black; break;
-      default: set = {};
-    }
-    switch (piece.type) {
-      case PieceType.king: return set.king;
-      case PieceType.pawn: return set.pawn;
-      case PieceType.knight: return set.knight;
-      case PieceType.bishop: return set.bishop;
-      case PieceType.rook: return set.rook;
-      case PieceType.queen: return set.queen;
-      default: return null;
-    }
-  };
-
   initDrag = (fromSquare) => {
     this.dragPiece = fromSquare.piece;
   };
@@ -253,7 +234,7 @@ export default class Board {
     document.getElementById('game-over-modal-title').innerHTML = title;
     document.getElementById('game-over-modal-message').innerHTML = message;
     document.getElementById('game-over-modal-moves').innerHTML = this.game.getPgn();
-    MicroModal.show('game-over-modal');
+    // MicroModal.show('game-over-modal');
   };
 
   getCheckmateMessage = () => {
@@ -275,19 +256,19 @@ export default class Board {
     const size = proportion(0.8);
     this.promotionTypes.forEach((type, index) => {
       const piece = new Piece(color, type);
-      const img = this.getPieceImage(piece);
+      const img = piece.image;
       const x = (squareSize * index) + offset;
       const y = offset;
       this.ppCtx.drawImage(img, x, y, size, size);
     });
-    MicroModal.show('pawn-promotion-modal');
+    // MicroModal.show('pawn-promotion-modal');
   };
 
   onPawnPromotionChoice = (e) => {
     const index = Math.floor(e.offsetX / squareSize);
     const move = this.promotionMove;
     move.pawnPromotionType = this.promotionTypes[index];
-    MicroModal.close('pawn-promotion-modal');
+    // MicroModal.close('pawn-promotion-modal');
     this.doMove(move);
     this.promotionMove = null;
   };

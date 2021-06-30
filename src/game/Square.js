@@ -1,4 +1,5 @@
 import { proportion } from './utils';
+import { getPieceImage } from './pieceHelpers';
 import {
   lightColor,
   darkColor,
@@ -29,9 +30,9 @@ export default class Square {
 
   get coordinates() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
 
-  getPieceImage = () => this.board.getPieceImage(this.piece);
-
   draw = (ctx) => {
+    if (!ctx) return;
+
     const { activeSquare, possibleSquares, previousMove } = this.board;
 
     this.drawBackground(ctx);
@@ -129,12 +130,12 @@ export default class Square {
     ctx.globalAlpha = 1.0;
   };
 
-  drawPiece = (ctx) => {
-    const img = this.getPieceImage();
+  drawPiece = async (ctx) => {
     const offset = proportion(0.1);
     const size = proportion(0.8);
     const x = this.xPos + offset;
     const y = this.yPos + offset;
+    const img = await getPieceImage(this.piece);
     ctx.drawImage(img, x, y, size, size);
   };
 }

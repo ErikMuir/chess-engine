@@ -1,10 +1,10 @@
 import React from 'react';
-import { useCanvas } from '../game/helpers';
+import { useCanvas } from './CanvasHelpers';
 
 const Canvas = (props) => {
-  const { draw, ...rest } = props;
+  const { draw, canvasId, ...rest } = props;
   const canvasRef = useCanvas(draw);
-  return <canvas ref={canvasRef} {...rest} />;
+  return <canvas id={canvasId} ref={canvasRef} {...rest} />;
 };
 
 export default Canvas;

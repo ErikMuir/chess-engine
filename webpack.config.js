@@ -12,7 +12,7 @@ module.exports = {
       { test: /\.(js)$/, use: 'babel-loader' },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       { test: /\.(jpg|png)$/, use: { loader: 'url-loader' } },
-      { test: /\.(svg)$/, use: [{ loader: 'url-loader', options: { encoding: 'utf8' } }] },
+      { test: /\.svg$/, use: [{ loader: 'svg-url-loader', options: { limit: 10000 } }] },
     ],
   },
   mode: 'development',
