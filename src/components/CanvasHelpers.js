@@ -4,11 +4,11 @@ const resizeCanvas = (canvas) => {
   const { width, height } = canvas.getBoundingClientRect();
 
   if (canvas.width !== width || canvas.height !== height) {
-    const { devicePixelRatio: ratio = 1 } = window;
-    const context = canvas.getContext('2d');
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
-    context.scale(ratio, ratio);
+    // const { devicePixelRatio: ratio = 1 } = window;
+    // const context = canvas.getContext('2d');
+    // canvas.width = width * ratio;
+    // canvas.height = height * ratio;
+    // context.scale(ratio, ratio);
     return true;
   }
 
@@ -40,7 +40,7 @@ const useCanvas = (draw) => {
       predraw(context, canvas);
       draw(context, frameCount);
       postdraw(context);
-      // animationFrameId = window.requestAnimationFrame(render);
+      animationFrameId = window.requestAnimationFrame(render);
     };
 
     render();

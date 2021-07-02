@@ -16,11 +16,7 @@ export default class CanvasContainer extends Component {
     if (className) classNames += ` ${className}`;
 
     return (
-      <div
-        ref={this.myRef}
-        className={classNames}
-        style={{ width, height }}
-      >
+      <div ref={this.myRef} className={classNames} style={{ width, height }}>
         <Canvas draw={draw} canvasId={canvasId} />
       </div>
     );

@@ -4,7 +4,6 @@ import Piece from './Piece';
 import Square from './Square';
 import { squareSize } from './constants';
 import { proportion } from './utils';
-import { getPieceImage } from './pieceHelpers';
 
 export default class Board {
   constructor(game) {
@@ -13,8 +12,6 @@ export default class Board {
 
     this.ctx = null;
     this.ppCtx = null;
-    // this.pieces = {};
-    // this.pieceImages = {};
     this.activeSquare = null;
     this.possibleSquares = [];
     this.previousMove = {};
@@ -28,67 +25,8 @@ export default class Board {
       PieceType.knight,
     ];
 
-    // this.initCanvas();
-    // this.initPieces();
     this.initSquares();
-    // setInterval(this.draw, 10);
   }
-
-  // initCanvas = () => {
-  //   const canvas = document.getElementById('canvas-chess-board');
-  //   canvas.width = squareSize * 8;
-  //   canvas.height = squareSize * 8;
-  //   canvas.onmousedown = this.onMouseDown;
-  //   canvas.onmouseup = this.onMouseUp;
-  //   canvas.onmousemove = this.onMouseMove;
-  //   canvas.onmouseout = this.onMouseOut;
-  //   this.ctx = canvas.getContext('2d');
-
-  //   const ppCanvas = document.getElementById('pawn-promotion-canvas');
-  //   ppCanvas.width = squareSize * 4;
-  //   ppCanvas.height = squareSize;
-  //   ppCanvas.onmouseup = this.onPawnPromotionChoice;
-  //   this.ppCtx = ppCanvas.getContext('2d');
-  // };
-
-  // initPieces = () => {
-  //   this.pieces = {
-  //     white: {
-  //       king: new Piece(PieceColor.white, PieceType.king),
-  //       queen: new Piece(PieceColor.white, PieceType.queen),
-  //       rook: new Piece(PieceColor.white, PieceType.rook),
-  //       bishop: new Piece(PieceColor.white, PieceType.bishop),
-  //       knight: new Piece(PieceColor.white, PieceType.knight),
-  //       pawn: new Piece(PieceColor.white, PieceType.pawn),
-  //     },
-  //     black: {
-  //       king: new Piece(PieceColor.black, PieceType.king),
-  //       queen: new Piece(PieceColor.black, PieceType.queen),
-  //       rook: new Piece(PieceColor.black, PieceType.rook),
-  //       bishop: new Piece(PieceColor.black, PieceType.bishop),
-  //       knight: new Piece(PieceColor.black, PieceType.knight),
-  //       pawn: new Piece(PieceColor.black, PieceType.pawn),
-  //     },
-  //   };
-  //   this.pieceImages = {
-  //     white: {
-  //       king: this.pieces.white.king.image,
-  //       queen: this.pieces.white.queen.image,
-  //       rook: this.pieces.white.rook.image,
-  //       bishop: this.pieces.white.bishop.image,
-  //       knight: this.pieces.white.knight.image,
-  //       pawn: this.pieces.white.pawn.image,
-  //     },
-  //     black: {
-  //       king: this.pieces.white.king.image,
-  //       queen: this.pieces.white.queen.image,
-  //       rook: this.pieces.white.rook.image,
-  //       bishop: this.pieces.white.bishop.image,
-  //       knight: this.pieces.white.knight.image,
-  //       pawn: this.pieces.white.pawn.image,
-  //     },
-  //   };
-  // };
 
   initSquares = () => {
     for (let rank = 0; rank < 8; rank += 1) {
@@ -120,7 +58,7 @@ export default class Board {
     const size = proportion(0.8);
     const x = this.hoverX - (size / 2);
     const y = this.hoverY - (size / 2);
-    getPieceImage(this.dragPiece)
+    this.dragPiece.getImage()
       .then((img) => ctx.drawImage(img, x, y, size, size));
   };
 
@@ -255,11 +193,11 @@ export default class Board {
     const offset = proportion(0.1);
     const size = proportion(0.8);
     this.promotionTypes.forEach((type, index) => {
-      const piece = new Piece(color, type);
-      const img = piece.image;
       const x = (squareSize * index) + offset;
       const y = offset;
-      this.ppCtx.drawImage(img, x, y, size, size);
+      const piece = new Piece(color, type);
+      piece.getImage()
+        .then((img) => this.ppCtx.drawImage(img, x, y, size, size));
     });
     // MicroModal.show('pawn-promotion-modal');
   };

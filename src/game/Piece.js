@@ -1,5 +1,6 @@
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
+import { getPieceImage } from './PieceImages';
 
 class Piece {
   constructor(color, type) {
@@ -7,6 +8,8 @@ class Piece {
     this.type = type;
     this.value = color | type;
   }
+
+  getImage = async () => getPieceImage(this);
 
   static fromPieceValue = (val) => {
     if (!val) return null;

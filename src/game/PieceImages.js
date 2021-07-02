@@ -13,7 +13,7 @@ import whiteRook from '../assets/images/white-rook.svg';
 import whiteQueen from '../assets/images/white-queen.svg';
 import whiteKing from '../assets/images/white-king.svg';
 
-const rawPieceImages = {
+const rawPieceSVGs = {
   white: {
     p: whitePawn,
     n: whiteKnight,
@@ -32,7 +32,7 @@ const rawPieceImages = {
   },
 };
 
-const pieceImages = {
+const cachedPieceImages = {
   white: {},
   black: {},
 };
@@ -41,16 +41,16 @@ const getPieceImage = async (piece) => new Promise((resolve, reject) => {
   if (!piece) resolve(null);
   const color = PieceColor.toString(piece.color).toLowerCase();
   const type = PieceType.toString(piece.type).toLowerCase();
-  if (pieceImages[color][type]) resolve(pieceImages[color][type]);
+  if (cachedPieceImages[color][type]) resolve(cachedPieceImages[color][type]);
   const img = new Image();
   img.onload = () => {
-    pieceImages[color][type] = img;
-    resolve(pieceImages[color][type]);
+    cachedPieceImages[color][type] = img;
+    resolve(cachedPieceImages[color][type]);
   };
   img.onerror = () => {
     reject();
   };
-  img.src = rawPieceImages[color][type];
+  img.src = rawPieceSVGs[color][type];
 });
 
 export {

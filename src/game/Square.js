@@ -1,5 +1,4 @@
 import { proportion } from './utils';
-import { getPieceImage } from './pieceHelpers';
 import {
   lightColor,
   darkColor,
@@ -130,12 +129,12 @@ export default class Square {
     ctx.globalAlpha = 1.0;
   };
 
-  drawPiece = async (ctx) => {
+  drawPiece = (ctx) => {
     const offset = proportion(0.1);
     const size = proportion(0.8);
     const x = this.xPos + offset;
     const y = this.yPos + offset;
-    const img = await getPieceImage(this.piece);
-    ctx.drawImage(img, x, y, size, size);
+    this.piece.getImage()
+      .then((img) => ctx.drawImage(img, x, y, size, size));
   };
 }
