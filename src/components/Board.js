@@ -3,6 +3,7 @@ import CanvasContainer from './CanvasContainer';
 import PawnPromotionModal from './PawnPromotionModal';
 import Game from '../game/Game';
 import PieceColor from '../game/PieceColor';
+import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
 import { proportion } from '../game/utils';
@@ -22,7 +23,7 @@ const boardCanvasId = 'canvas-chess-board';
 class Board extends React.Component {
   constructor(props) {
     super(props);
-    this.game = new Game({ fen: testFEN.promotion });
+    this.game = new Game({ fen: testFEN.checkmate });
     this.state = {
       squares: this.initSquares(),
       ctx: null,
@@ -34,6 +35,7 @@ class Board extends React.Component {
       promotionMove: null,
     };
     this.draw = this.draw.bind(this);
+    this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
   }
 
   componentDidMount() {
@@ -74,50 +76,54 @@ class Board extends React.Component {
   };
 
   draw = () => {
-    const { squares } = this.state;
+    const { ctx, squares } = this.state;
+    if (!ctx) return;
     squares.forEach((sq) => this.drawSquare(sq));
     this.drawDragPiece();
   };
 
   drawSquare = (square) => {
-    const { ctx, previousMove, possibleSquares } = this.state;
-    if (!ctx) return;
+    const {
+      activeSquare,
+      possibleSquares,
+      previousMove: { fromIndex, toIndex } = {},
+    } = this.state;
 
-    this.drawBackground(square, ctx);
+    this.drawBackground(square);
 
     if (square.file === 0) {
-      this.drawRankLabel(square, ctx);
+      this.drawRankLabel(square);
     }
 
     if (square.rank === 0) {
-      this.drawFileLabel(square, ctx);
+      this.drawFileLabel(square);
     }
 
-    if (square === this.activeSquare) {
-      this.drawActiveOverlay(square, ctx);
+    if (square === activeSquare) {
+      this.drawActiveOverlay(square);
     }
 
-    if (previousMove
-      && [previousMove.fromIndex, previousMove.toIndex].includes(square.index)
-    ) {
-      this.drawPreviousOverlay(square, ctx);
+    if ([fromIndex, toIndex].includes(square.index)) {
+      this.drawPreviousOverlay(square);
     }
 
     if (square.piece) {
-      this.drawPiece(square, ctx);
+      this.drawPiece(square);
     }
 
     if (possibleSquares.includes(square.index)) {
-      this.drawPossibleOverlay(square, ctx);
+      this.drawPossibleOverlay(square);
     }
   };
 
-  drawBackground = (square, ctx) => {
+  drawBackground = (square) => {
+    const { ctx } = this.state;
     ctx.fillStyle = square.squareColor;
     ctx.fillRect(square.xPos, square.yPos, squareSize, squareSize);
   };
 
-  drawRankLabel = (square, ctx) => {
+  drawRankLabel = (square) => {
+    const { ctx } = this.state;
     const rankText = `${square.rank + 1}`;
     const x = square.xPos + proportion(0.05);
     const y = square.yPos + proportion(0.2);
@@ -126,7 +132,8 @@ class Board extends React.Component {
     ctx.fillText(rankText, x, y);
   };
 
-  drawFileLabel = (square, ctx) => {
+  drawFileLabel = (square) => {
+    const { ctx } = this.state;
     const fileText = 'abcdefgh'[square.file];
     const x = square.xPos + squareSize - proportion(0.15);
     const y = square.yPos + squareSize - proportion(0.075);
@@ -135,29 +142,32 @@ class Board extends React.Component {
     ctx.fillText(fileText, x, y);
   };
 
-  drawActiveOverlay = (square, ctx) => {
+  drawActiveOverlay = (square) => {
+    const { ctx } = this.state;
     ctx.fillStyle = activeOverlay;
     ctx.globalAlpha = overlayOpacity;
     ctx.fillRect(square.xPos, square.yPos, squareSize, squareSize);
     ctx.globalAlpha = 1.0;
   };
 
-  drawPreviousOverlay = (square, ctx) => {
+  drawPreviousOverlay = (square) => {
+    const { ctx } = this.state;
     ctx.fillStyle = previousOverlay;
     ctx.globalAlpha = overlayOpacity;
     ctx.fillRect(square.xPos, square.yPos, squareSize, squareSize);
     ctx.globalAlpha = 1.0;
   };
 
-  drawPossibleOverlay = (square, ctx) => {
+  drawPossibleOverlay = (square) => {
     if (this.piece) {
-      this.drawPossibleOverlayOccupied(square, ctx);
+      this.drawPossibleOverlayOccupied(square);
     } else {
-      this.drawPossibleOverlayEmpty(square, ctx);
+      this.drawPossibleOverlayEmpty(square);
     }
   };
 
-  drawPossibleOverlayEmpty = (square, ctx) => {
+  drawPossibleOverlayEmpty = (square) => {
+    const { ctx } = this.state;
     const offset = proportion(0.5);
     const radius = proportion(0.17);
     ctx.globalAlpha = 0.2;
@@ -168,7 +178,8 @@ class Board extends React.Component {
     ctx.globalAlpha = 1.0;
   };
 
-  drawPossibleOverlayOccupied = (square, ctx) => {
+  drawPossibleOverlayOccupied = (square) => {
+    const { ctx } = this.state;
     const offset = proportion(0.5);
     const radius = proportion(0.46);
     ctx.globalAlpha = 0.2;
@@ -180,7 +191,8 @@ class Board extends React.Component {
     ctx.globalAlpha = 1.0;
   };
 
-  drawPiece = (square, ctx) => {
+  drawPiece = (square) => {
+    const { ctx } = this.state;
     const offset = proportion(0.1);
     const size = proportion(0.8);
     const x = square.xPos + offset;
@@ -233,9 +245,7 @@ class Board extends React.Component {
     if (!move) return;
 
     if (move.isPawnPromotion) {
-      const promotionMove = move;
-      this.setState({ promotionMove });
-      console.log('this triggers the modal', { promotionMove });
+      this.doPawnPromotion(move);
     } else {
       this.doMove(move);
     }
@@ -251,6 +261,14 @@ class Board extends React.Component {
       this.clearActiveSquare();
       this.clearPossibleSquares();
     }
+  };
+
+  onClickPawnPromotion = (e) => {
+    const { promotionMove } = this.state;
+    const index = Math.floor(e.offsetX / squareSize);
+    promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
+    this.doMove(promotionMove);
+    this.setState({ promotionMove: null });
   };
 
   setHover = (e) => {
@@ -288,6 +306,16 @@ class Board extends React.Component {
       activeSquare: fromSquare,
       possibleSquares,
     });
+  };
+
+  doPawnPromotion = (move) => {
+    // temporarily move pawn to new square
+    this.game.squares[move.fromIndex] = null;
+    this.game.squares[move.toIndex] = move.piece;
+    this.refresh();
+
+    // trigger the promotion modal
+    this.setState({ promotionMove: move });
   };
 
   doMove = (move) => {
@@ -341,17 +369,31 @@ class Board extends React.Component {
     return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`;
   };
 
-  render() {
+  getCanvas = () => (
+    <CanvasContainer
+      canvasId={boardCanvasId}
+      draw={this.draw}
+      width={boardSize}
+      height={boardSize}
+    />
+  );
+
+  getPromotionModal = () => {
     const { promotionMove } = this.state;
+    return promotionMove
+      ? (
+        <PawnPromotionModal
+          activePlayer={this.game.activePlayer}
+          onClick={this.onClickPawnPromotion}
+        />
+      ) : null;
+  };
+
+  render() {
     return (
       <>
-        <CanvasContainer
-          canvasId={boardCanvasId}
-          draw={this.draw}
-          width={boardSize}
-          height={boardSize}
-        />
-        {promotionMove && <PawnPromotionModal board={null} />}
+        {this.getCanvas()}
+        {this.getPromotionModal()}
       </>
     );
   }
