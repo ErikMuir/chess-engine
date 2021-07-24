@@ -23,10 +23,17 @@ class PieceType {
   ];
 
   static ambiguousTypes = [
-    PieceType.knight,
-    PieceType.bishop,
-    PieceType.rook,
     PieceType.queen,
+    PieceType.rook,
+    PieceType.bishop,
+    PieceType.knight,
+  ];
+
+  static promotionTypes = [
+    PieceType.queen,
+    PieceType.rook,
+    PieceType.bishop,
+    PieceType.knight,
   ];
 
   static fromPieceValue = (val) => {

@@ -108,7 +108,7 @@ class FEN {
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
-    game.enPassantTargetSquare = getSquareIndexFromCoordinates(val);
+    game.enPassantTargetSquare = val === '-' ? -1 : getSquareIndexFromCoordinates(val);
   };
 
   static getEnPassantTargetSquare = (game) => (game.enPassantTargetSquare === -1
