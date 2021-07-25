@@ -1,44 +1,97 @@
 import React from 'react';
+import Modal from 'react-modal';
 import PieceColor from '../game/PieceColor';
+import { squareSize } from '../game/constants';
 
-const getCheckmateMessage = (game) => {
-  const winner = PieceColor.toString(PieceColor.opposite(game.activePlayer));
-  const loser = PieceColor.toString(game.activePlayer);
-  const moveCount = game.fullMoveNumber;
-  return `${winner} mated ${loser} in ${moveCount} moves.`;
-};
+class GameOverModal extends React.Component {
+  getCheckmateMessage = () => {
+    const { game } = this.props;
+    const { activePlayer, fullMoveNumber } = game;
+    const winner = PieceColor.toString(PieceColor.opposite(activePlayer));
+    const loser = PieceColor.toString(activePlayer);
+    const moveCount = fullMoveNumber;
+    return `${winner} mated ${loser} in ${moveCount} moves.`;
+  };
 
-const getStalemateMessage = (game) => {
-  const activePlayer = PieceColor.toString(game.activePlayer);
-  return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`;
-};
+  getStalemateMessage = () => {
+    const { game } = this.props;
+    const activePlayer = PieceColor.toString(game.activePlayer);
+    return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`;
+  };
 
-const GameOverModal = (game) => {
-  const { isCheckmate, getPgn } = game;
-  const title = isCheckmate ? 'Checkmate' : 'Stalemate';
-  const message = isCheckmate ? getCheckmateMessage(game) : getStalemateMessage(game);
-  const moves = getPgn();
-  return (
-    <div className="modal micromodal-slide" id="game-over-modal" aria-hidden="true">
-      <div className="modal__overlay" tabIndex="-1" data-micromodal-close>
-        <div className="modal__container" role="dialog" aria-modal="true" aria-labelledby="game-over-modal-title">
-          <header className="modal__header">
-            <h2 className="modal__title">{title}</h2>
-            <button type="button" className="modal__close" aria-label="Close modal" data-micromodal-close />
-          </header>
-          <main className="modal__content-container" id="game-over-modal-content">
-            <div className="modal__content">
-              <p id="game-over-modal-message">{message}</p>
-              <p id="game-over-modal-moves">{moves}</p>
-            </div>
-            <footer id="modal-footer" className="modal__footer">
-              <button type="button" className="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
-            </footer>
-          </main>
-        </div>
-      </div>
-    </div>
-  );
-};
+  getOverlayStyle = () => ({
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  });
+
+  getContentStyle = () => ({
+    backgroundColor: 'transparent',
+    padding: 0,
+    maxWidth: '740px',
+    height: '75vh',
+    width: '50%',
+    borderRadius: 0,
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    position: 'relative',
+    inset: 0,
+    marginTop: `${squareSize * 4}px`,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    border: 'none',
+    outline: 'none',
+  });
+
+  render() {
+    const { game, closeGameOverModal } = this.props;
+    const title = game.isCheckmate ? 'Checkmate' : 'Stalemate';
+    const message = game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
+    const moves = game.getPgn();
+    const overlay = this.getOverlayStyle();
+    const content = this.getContentStyle();
+    const style = { overlay, content };
+    return (
+      <Modal
+        isOpen
+        onRequestClose={closeGameOverModal}
+        style={style}
+      >
+        <header className="modal__header">
+          <h2 className="modal__title">{title}</h2>
+          <button
+            type="button"
+            className="modal__close"
+            aria-label="Close modal"
+            onClick={closeGameOverModal}
+          />
+        </header>
+        <main className="modal__content-container">
+          <div className="modal__content">
+            <p>{message}</p>
+            <p>{moves}</p>
+          </div>
+          <footer className="modal__footer">
+            <button
+              type="button"
+              className="modal__btn"
+              aria-label="Close modal"
+              onClick={closeGameOverModal}
+            >
+              Close
+            </button>
+          </footer>
+        </main>
+      </Modal>
+    );
+  }
+}
 
 export default GameOverModal;

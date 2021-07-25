@@ -1,8 +1,8 @@
 import React from 'react';
 import CanvasContainer from './CanvasContainer';
+import GameOverModal from './GameOverModal';
 import PawnPromotionModal from './PawnPromotionModal';
 import Game from '../game/Game';
-import PieceColor from '../game/PieceColor';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
@@ -10,8 +10,8 @@ import { proportion } from '../game/utils';
 import {
   squareSize,
   boardSize,
-  // startPosition,
-  testFEN,
+  startPosition,
+  // testFEN,
   activeOverlay,
   previousOverlay,
   possibleOverlay,
@@ -23,7 +23,7 @@ const boardCanvasId = 'canvas-chess-board';
 class Board extends React.Component {
   constructor(props) {
     super(props);
-    this.game = new Game({ fen: testFEN.checkmate });
+    this.game = new Game({ fen: startPosition });
     this.state = {
       squares: this.initSquares(),
       ctx: null,
@@ -33,9 +33,11 @@ class Board extends React.Component {
       dragPiece: null,
       deselect: false,
       promotionMove: null,
+      showGameOverModal: false,
     };
     this.draw = this.draw.bind(this);
     this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
+    this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
   componentDidMount() {
@@ -64,7 +66,7 @@ class Board extends React.Component {
     return squares;
   };
 
-  refresh = () => {
+  syncSquares = () => {
     this.clearPossibleSquares();
     const { squares } = this.state;
     const newSquares = [...squares];
@@ -271,6 +273,10 @@ class Board extends React.Component {
     this.setState({ promotionMove: null });
   };
 
+  closeGameOverModal = () => {
+    this.setState({ showGameOverModal: false });
+  };
+
   setHover = (e) => {
     this.setState({
       hoverX: e.offsetX,
@@ -312,7 +318,7 @@ class Board extends React.Component {
     // temporarily move pawn to new square
     this.game.squares[move.fromIndex] = null;
     this.game.squares[move.toIndex] = move.piece;
-    this.refresh();
+    this.syncSquares();
 
     // trigger the promotion modal
     this.setState({ promotionMove: move });
@@ -320,12 +326,10 @@ class Board extends React.Component {
 
   doMove = (move) => {
     this.game.doMove(move);
-    this.refresh();
+    this.syncSquares();
     this.game.postMoveActions(move);
     this.setPreviousMove(move);
-    if (this.game.isGameOver) {
-      this.showGameOverModal();
-    }
+    this.setState({ showGameOverModal: this.game.isGameOver });
   };
 
   clearActiveSquare = () => {
@@ -345,28 +349,6 @@ class Board extends React.Component {
     return this.game.legalMoves
       .find((move) => move.fromIndex === activeSquare.index
         && move.toIndex === toSquare.index);
-  }
-
-  showGameOverModal = () => {
-    // TODO : change from MicroModal to react-modal
-    const title = this.game.isCheckmate ? 'Checkmate' : 'Stalemate';
-    const message = this.game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
-    document.getElementById('game-over-modal-title').innerHTML = title;
-    document.getElementById('game-over-modal-message').innerHTML = message;
-    document.getElementById('game-over-modal-moves').innerHTML = this.game.getPgn();
-    // MicroModal.show('game-over-modal');
-  };
-
-  getCheckmateMessage = () => {
-    const winner = PieceColor.toString(PieceColor.opposite(this.game.activePlayer));
-    const loser = PieceColor.toString(this.game.activePlayer);
-    const moveCount = this.game.fullMoveNumber;
-    return `${winner} mated ${loser} in ${moveCount} moves.`;
-  };
-
-  getStalemateMessage = () => {
-    const activePlayer = PieceColor.toString(this.game.activePlayer);
-    return `${activePlayer} is not in check but has no legal moves, therefore it is a draw.`;
   };
 
   getCanvas = () => (
@@ -389,11 +371,23 @@ class Board extends React.Component {
       ) : null;
   };
 
+  getGameOverModal = () => {
+    const { showGameOverModal } = this.state;
+    return showGameOverModal
+      ? (
+        <GameOverModal
+          game={this.game}
+          closeGameOverModal={this.closeGameOverModal}
+        />
+      ) : null;
+  };
+
   render() {
     return (
       <>
         {this.getCanvas()}
         {this.getPromotionModal()}
+        {this.getGameOverModal()}
       </>
     );
   }
