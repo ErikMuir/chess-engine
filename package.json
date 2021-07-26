@@ -2,7 +2,7 @@
   "name": "chess-engine",
   "version": "1.0.0",
   "description": "A chess engine and GUI",
-  "main": "index.js",
+  "main": "./src/index.js",
   "keywords": [],
   "author": "Erik Muir",
   "license": "ISC",
