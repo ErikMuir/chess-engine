@@ -1,7 +1,11 @@
 import { lightColor, darkColor, squareSize } from './constants';
+import Logger from '../utils/Logger';
+
+const logger = new Logger('Square');
 
 export default class Square {
   constructor(file, rank) {
+    logger.trace('Square.ctor', { file, rank });
     this.file = file;
     this.rank = rank;
     this.piece = null;
@@ -9,13 +13,28 @@ export default class Square {
     this.isLightSquare = (file + rank) % 2 === 1;
   }
 
-  get squareColor() { return this.isLightSquare ? lightColor : darkColor; }
+  get squareColor() {
+    logger.trace('Square.squareColor');
+    return this.isLightSquare ? lightColor : darkColor;
+  }
 
-  get textColor() { return this.isLightSquare ? darkColor : lightColor; }
+  get textColor() {
+    logger.trace('Square.textColor');
+    return this.isLightSquare ? darkColor : lightColor;
+  }
 
-  get xPos() { return this.file * squareSize; }
+  get xPos() {
+    logger.trace('Square.xPos');
+    return this.file * squareSize;
+  }
 
-  get yPos() { return (squareSize * 7) - (this.rank * squareSize); }
+  get yPos() {
+    logger.trace('Square.yPos');
+    return (squareSize * 7) - (this.rank * squareSize);
+  }
 
-  get coordinates() { return `${'abcdefgh'[this.file]}${this.rank + 1}`; }
+  get coordinates() {
+    logger.trace('Square.coordinates');
+    return `${'abcdefgh'[this.file]}${this.rank + 1}`;
+  }
 }
