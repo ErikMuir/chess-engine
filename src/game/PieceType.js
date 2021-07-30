@@ -1,3 +1,7 @@
+import Logger from '../utils/Logger';
+
+const logger = new Logger('PieceType');
+
 class PieceType {
   static none = 0;
 
@@ -37,6 +41,7 @@ class PieceType {
   ];
 
   static fromPieceValue = (val) => {
+    logger.trace('PieceType.fromPieceValue', { val });
     switch (val % 8) {
       case 1: return PieceType.king;
       case 2: return PieceType.pawn;
@@ -49,6 +54,7 @@ class PieceType {
   };
 
   static fromFEN = (val) => {
+    logger.trace('PieceType.fromFEN', { val });
     switch (val.toUpperCase()) {
       case 'K': return PieceType.king;
       case 'P': return PieceType.pawn;
@@ -61,6 +67,7 @@ class PieceType {
   };
 
   static toString = (val) => {
+    logger.trace('PieceType.toString', { val });
     switch (val) {
       case PieceType.king: return 'K';
       case PieceType.pawn: return 'P';
