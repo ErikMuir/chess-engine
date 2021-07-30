@@ -17,7 +17,7 @@ const directionIndex = {
   get northEast() { return 6; },
   get southWest() { return 7; },
 };
-const startPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const startPosition = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const testFEN = {
   promotion: 'k/7P//////K w - - 0 0',
   checkmate: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',

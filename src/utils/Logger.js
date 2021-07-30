@@ -25,47 +25,14 @@ module.exports = class Logger {
   fatal = (...data) => this.#log('fatal', data);
 
   #log = (logType, data) => {
-    if (logLevels[logType] < (logLevels[process.env.LOG_LEVEL] || logLevels.info)) {
+    const logLevel = process.env.LOG_LEVEL || 'info';
+    if (logLevels[logType] < logLevels[logLevel]) {
       return;
     }
-    const { message, error, categorizedData } = this.categorize(data);
-    const logObject = {
-      time: new Date().toISOString(),
-      level: logType,
-      logger: this.name,
-      message,
-      exception: error && error.stack,
-      exceptionType: error && error.name,
-      data: categorizedData,
-    };
-    const serializedLog = JSON.stringify(logObject, (k, v) => (v === null ? undefined : v));
-    process.stdout.write(`${serializedLog}\n`);
-  };
-
-  categorize = (data) => {
-    let message = '';
-    let categorizedData = [];
-    let error;
-    data.forEach((d) => {
-      switch (typeof d) {
-        case 'number':
-        case 'string':
-        case 'boolean':
-          message += d;
-          break;
-        default:
-          if (d instanceof Error) {
-            error = d;
-          } else {
-            categorizedData.push(d);
-          }
-      }
-    });
-    if (categorizedData.length === 0) {
-      categorizedData = undefined;
-    } else if (categorizedData.length === 1) {
-      [categorizedData] = categorizedData;
+    const loggers = process.env.LOGGERS;
+    if (loggers && !loggers.split(',').includes(this.name)) {
+      return;
     }
-    return { message, error, categorizedData };
+    console.log(...data);
   };
 };

@@ -203,7 +203,6 @@ export default class Game {
   };
 
   generateMoves = () => {
-    logger.trace('Game.generateMoves');
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
     if (this.preventRecursion) return;
     this.legalMoves = this.generateLegalMoves();
@@ -256,9 +255,8 @@ export default class Game {
   };
 
   generatePawnMoves = (fromIndex, piece) => {
-    logger.trace('Game.generatePawnMoves', { fromIndex, piece });
-
     const moves = [];
+
     const moveForward = piece.color === PieceColor.white
       ? directionIndex.north
       : directionIndex.south;
@@ -317,8 +315,6 @@ export default class Game {
   };
 
   generateKnightMoves = (fromIndex, piece) => {
-    logger.trace('Game.generateKnightMoves', { fromIndex, piece });
-
     const moves = [];
 
     const checkMove = (passingIndex, dirIndex) => {
@@ -366,8 +362,6 @@ export default class Game {
   };
 
   generateKingMoves = (fromIndex, piece) => {
-    logger.trace('Game.generateKingMoves', { fromIndex, piece });
-
     const moves = [];
 
     for (let dirIndex = 0; dirIndex < 8; dirIndex += 1) {
@@ -406,8 +400,6 @@ export default class Game {
   };
 
   generateSlidingMoves = (fromIndex, piece) => {
-    logger.trace('Game.generateSlidingMoves', { fromIndex, piece });
-
     const moves = [];
 
     const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
@@ -434,7 +426,6 @@ export default class Game {
   };
 
   testForCheck = (color = this.activePlayer) => {
-    logger.trace('Game.testForCheck', { color });
     const king = color | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
   };

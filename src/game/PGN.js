@@ -1,13 +1,9 @@
 import MoveType from './MoveType';
 import PieceType from './PieceType';
 import { getFile, getRank, getCoordinatesFromSquareIndex } from './utils';
-import Logger from '../utils/Logger';
-
-const logger = new Logger('PGN');
 
 class PGN {
   static get = (move, legalMoves) => {
-    logger.trace('PGN.get', { move });
     let pgn = '';
     switch (move.type) {
       case MoveType.kingSideCastle:

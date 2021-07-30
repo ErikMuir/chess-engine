@@ -15,6 +15,8 @@
     "clean": "rm -rf dist",
     "lint": "eslint",
     "start": "webpack serve --mode development --env development --hot --port 3000 --open",
+    "start:debug": "webpack serve --mode development --env development --hot --port 3000 --open --env LOG_LEVEL=debug",
+    "start:trace": "webpack serve --mode development --env development --hot --port 3000 --open --env LOG_LEVEL=trace",
     "test": "jest"
   },
   "dependencies": {
