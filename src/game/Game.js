@@ -39,7 +39,9 @@ export default class Game {
 
   get isCheckmate() { return this.isGameOver && this.isCheck; }
 
-  getPgn = () => this.pgnParts.join(' ');
+  get pgn() {
+    return this.pgnParts.join(' ');
+  }
 
   init = () => {
     for (let file = 0; file < 8; file += 1) {

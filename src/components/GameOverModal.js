@@ -54,7 +54,6 @@ class GameOverModal extends React.Component {
     const { game, closeGameOverModal } = this.props;
     const title = game.isCheckmate ? 'Checkmate' : 'Stalemate';
     const message = game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
-    const moves = game.getPgn();
     const overlay = this.getOverlayStyle();
     const content = this.getContentStyle();
     const style = { overlay, content };
@@ -76,7 +75,7 @@ class GameOverModal extends React.Component {
         <main className="modal__content-container">
           <div className="modal__content">
             <p>{message}</p>
-            <p>{moves}</p>
+            <p>{game.pgn}</p>
           </div>
           <footer className="modal__footer">
             <button
