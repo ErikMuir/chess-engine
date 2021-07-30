@@ -12,7 +12,7 @@ const logger = new Logger('FEN');
 
 class FEN {
   static load = (fen, game) => {
-    logger.trace('FEN.load');
+    logger.trace('FEN.load', { fen });
     try {
       const fenParts = fen.split(' ');
       FEN.parsePiecePlacement(fenParts[0], game);
@@ -40,7 +40,7 @@ class FEN {
   };
 
   static parsePiecePlacement = (val, game) => {
-    logger.trace('FEN.parsePiecePlacement');
+    logger.trace('FEN.parsePiecePlacement', { val });
     let file = 0;
     let rank = 7;
     val.split('').forEach((symbol) => {
@@ -67,7 +67,7 @@ class FEN {
   };
 
   static getFenByRank = (rank, game) => {
-    logger.trace('FEN.getFenByRank');
+    logger.trace('FEN.getFenByRank', { rank });
     let output = '';
     let consecutiveEmptySquares = 0;
     for (let file = 0; file < 8; file += 1) {
@@ -87,7 +87,7 @@ class FEN {
   };
 
   static parseActivePlayer = (val, game) => {
-    logger.trace('FEN.parseActivePlayer');
+    logger.trace('FEN.parseActivePlayer', { val });
     switch (val.toLowerCase()) {
       case 'w': game.activePlayer = PieceColor.white; break;
       case 'b': game.activePlayer = PieceColor.black; break;
@@ -105,7 +105,7 @@ class FEN {
   };
 
   static parseCastlingAvailability = (val, game) => {
-    logger.trace('FEN.parseCastlingAvailability');
+    logger.trace('FEN.parseCastlingAvailability', { val });
     game.castlingAvailability = [];
     if (val.indexOf('K') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
     if (val.indexOf('Q') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
@@ -120,7 +120,7 @@ class FEN {
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
-    logger.trace('FEN.parseEnPassantTargetSquare');
+    logger.trace('FEN.parseEnPassantTargetSquare', { val });
     game.enPassantTargetSquare = val === '-' ? -1 : getSquareIndexFromCoordinates(val);
   };
 
@@ -132,7 +132,7 @@ class FEN {
   }
 
   static parseHalfMoveClock = (val, game) => {
-    logger.trace('FEN.parseHalfMoveClock');
+    logger.trace('FEN.parseHalfMoveClock', { val });
     game.halfMoveClock = parseInt(val, 10) || 0;
   };
 
@@ -142,7 +142,7 @@ class FEN {
   }
 
   static parseFullMoveNumber = (val, game) => {
-    logger.trace('FEN.parseFullMoveNumber');
+    logger.trace('FEN.parseFullMoveNumber', { val });
     game.fullMoveNumber = parseInt(val, 10) || 1;
   };
 

@@ -7,7 +7,7 @@ const logger = new Logger('PGN');
 
 class PGN {
   static get = (move, legalMoves) => {
-    logger.trace('PGN.get');
+    logger.trace('PGN.get', { move });
     let pgn = '';
     switch (move.type) {
       case MoveType.kingSideCastle:

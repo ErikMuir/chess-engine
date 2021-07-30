@@ -8,7 +8,9 @@ const logger = new Logger('Move');
 
 class Move {
   constructor(type, fromIndex, toIndex, squares) {
-    logger.trace('Move.ctor');
+    logger.trace('Move.ctor', {
+      type, fromIndex, toIndex, squares,
+    });
     this.type = type;
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
