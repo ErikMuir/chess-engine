@@ -12,6 +12,9 @@ import whiteBishop from '../assets/images/white-bishop.svg';
 import whiteRook from '../assets/images/white-rook.svg';
 import whiteQueen from '../assets/images/white-queen.svg';
 import whiteKing from '../assets/images/white-king.svg';
+import Logger from '../utils/Logger';
+
+const logger = new Logger('PieceImages');
 
 const rawPieceSVGs = {
   white: {
@@ -38,6 +41,7 @@ const cachedPieceImages = {
 };
 
 const getPieceImage = async (piece) => new Promise((resolve, reject) => {
+  logger.trace('PieceImages.getPieceImage', { piece });
   if (!piece) resolve(null);
   const color = PieceColor.toString(piece.color).toLowerCase();
   const type = PieceType.toString(piece.type).toLowerCase();
