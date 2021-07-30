@@ -8,9 +8,13 @@ import MoveType from './MoveType';
 import Move from './Move';
 import { getFile } from './utils';
 import { startPosition, directionIndex, directionOffsets } from './constants';
+import Logger from '../utils/Logger';
+
+const logger = new Logger('Game');
 
 export default class Game {
   constructor({ fen = startPosition, preventRecursion = false } = {}) {
+    logger.trace('Game.ctor');
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
@@ -30,20 +34,29 @@ export default class Game {
     this.generateMoves();
   }
 
-  get isGameOver() { return this.legalMoves.length === 0; }
+  get isGameOver() {
+    logger.trace('Game.isGameOver');
+    return this.legalMoves.length === 0;
+  }
 
   get isCheck() {
+    logger.trace('Game.isCheck');
     const king = this.activePlayer | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
   }
 
-  get isCheckmate() { return this.isGameOver && this.isCheck; }
+  get isCheckmate() {
+    logger.trace('Game.isCheckmate');
+    return this.isGameOver && this.isCheck;
+  }
 
   get pgn() {
+    logger.trace('Game.pgn');
     return this.pgnParts.join(' ');
   }
 
   init = () => {
+    logger.trace('Game.init');
     for (let file = 0; file < 8; file += 1) {
       for (let rank = 0; rank < 8; rank += 1) {
         const numNorth = 7 - rank;
@@ -68,6 +81,7 @@ export default class Game {
   };
 
   doMove = (move) => {
+    logger.trace('Game.doMove');
     this.squares[move.fromIndex] = null;
     this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
@@ -83,17 +97,20 @@ export default class Game {
   };
 
   getMovePiece = (move) => {
+    logger.trace('Game.getMovePiece');
     if (!move.isPawnPromotion) return move.piece;
     return this.activePlayer | move.pawnPromotionType;
   };
 
   handleEnPassant = (move) => {
+    logger.trace('Game.handleEnPassant');
     const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     this.squares[captureSquareIndex] = null;
   };
 
   handleCastle = (move) => {
+    logger.trace('Game.handleCastle');
     const isKingSide = getFile(move.toIndex) === 6;
     const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
@@ -105,6 +122,7 @@ export default class Game {
   };
 
   postMoveActions = (move) => {
+    logger.trace('Game.postMoveActions');
     const legalMoves = [...this.legalMoves];
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
@@ -120,6 +138,7 @@ export default class Game {
   };
 
   setEnPassantTargetSquare = (move) => {
+    logger.trace('Game.setEnPassantTargetSquare');
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     const distance = Math.abs(move.toIndex - move.fromIndex);
     const color = PieceColor.fromPieceValue(move.piece);
@@ -130,6 +149,7 @@ export default class Game {
   };
 
   updateCastlingAvailability = (move) => {
+    logger.trace('Game.updateCastlingAvailability');
     if (this.castlingAvailability.length === 0) return;
     const { color, type } = Piece.fromPieceValue(move.piece);
     const fromFile = getFile(move.fromIndex);
@@ -143,33 +163,39 @@ export default class Game {
   };
 
   setHalfMoveClock = (move) => {
+    logger.trace('Game.setMoveClock');
     const isCapture = !!move.capturePiece;
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
   };
 
   togglePlayerTurn = () => {
+    logger.trace('Game.togglePlayerTurn');
     this.activePlayer = this.activePlayer === PieceColor.white
       ? PieceColor.black
       : PieceColor.white;
   };
 
   updateFullMoveNumber = (move) => {
+    logger.trace('Game.updateFullMoveNumber');
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
   };
 
   updateMove = (move) => {
+    logger.trace('Game.updateMove');
     move.isCheck = this.isCheck;
     move.isCheckmate = this.isCheckmate;
   };
 
   archiveMove = (move) => {
+    logger.trace('Game.archiveMove');
     this.moveHistory.push(move);
   }
 
   appendToPgn = (move, legalMoves) => {
+    logger.trace('Game.appendToPgn');
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
@@ -177,14 +203,15 @@ export default class Game {
   };
 
   generateMoves = () => {
+    logger.trace('Game.generateMoves');
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
     if (this.preventRecursion) return;
     this.legalMoves = this.generateLegalMoves();
   };
 
   generatePseudoLegalMoves = () => {
+    logger.trace('Game.generatePseudoLegalMoves');
     const moves = [];
-
     for (let fromIndex = 0; fromIndex < 64; fromIndex += 1) {
       const pieceValue = this.squares[fromIndex];
       const piece = Piece.fromPieceValue(pieceValue);
@@ -208,11 +235,11 @@ export default class Game {
           break;
       }
     }
-
     return moves;
   };
 
   generateLegalMoves = () => {
+    logger.trace('Game.generateLegalMoves');
     const activePlayerMoves = this.pseudoLegalMoves
       .filter((move) => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
     if (this.preventRecursion) return activePlayerMoves;
@@ -229,8 +256,9 @@ export default class Game {
   };
 
   generatePawnMoves = (fromIndex, piece) => {
-    const moves = [];
+    logger.trace('Game.generatePawnMoves');
 
+    const moves = [];
     const moveForward = piece.color === PieceColor.white
       ? directionIndex.north
       : directionIndex.south;
@@ -289,6 +317,8 @@ export default class Game {
   };
 
   generateKnightMoves = (fromIndex, piece) => {
+    logger.trace('Game.generateKnightMoves');
+
     const moves = [];
 
     const checkMove = (passingIndex, dirIndex) => {
@@ -336,6 +366,8 @@ export default class Game {
   };
 
   generateKingMoves = (fromIndex, piece) => {
+    logger.trace('Game.generateKingMoves');
+
     const moves = [];
 
     for (let dirIndex = 0; dirIndex < 8; dirIndex += 1) {
@@ -374,6 +406,8 @@ export default class Game {
   };
 
   generateSlidingMoves = (fromIndex, piece) => {
+    logger.trace('Game.generateSlidingMoves');
+
     const moves = [];
 
     const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
@@ -400,6 +434,7 @@ export default class Game {
   };
 
   testForCheck = (color = this.activePlayer) => {
+    logger.trace('Game.testForCheck');
     const king = color | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
   };
