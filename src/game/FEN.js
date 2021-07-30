@@ -6,9 +6,13 @@ import {
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
 } from './utils';
+import Logger from '../utils/Logger';
+
+const logger = new Logger('FEN');
 
 class FEN {
   static load = (fen, game) => {
+    logger.trace('FEN.load');
     try {
       const fenParts = fen.split(' ');
       FEN.parsePiecePlacement(fenParts[0], game);
@@ -23,6 +27,7 @@ class FEN {
   };
 
   static get = (game) => {
+    logger.trace('FEN.get');
     const fenParts = [
       FEN.getPiecePlacement(game),
       FEN.getActivePlayer(game),
@@ -35,6 +40,7 @@ class FEN {
   };
 
   static parsePiecePlacement = (val, game) => {
+    logger.trace('FEN.parsePiecePlacement');
     let file = 0;
     let rank = 7;
     val.split('').forEach((symbol) => {
@@ -51,6 +57,7 @@ class FEN {
   };
 
   static getPiecePlacement = (game) => {
+    logger.trace('FEN.getPiecePlacement');
     let output = '';
     for (let rank = 7; rank >= 0; rank -= 1) {
       output += FEN.getFenByRank(rank, game);
@@ -60,6 +67,7 @@ class FEN {
   };
 
   static getFenByRank = (rank, game) => {
+    logger.trace('FEN.getFenByRank');
     let output = '';
     let consecutiveEmptySquares = 0;
     for (let file = 0; file < 8; file += 1) {
@@ -79,6 +87,7 @@ class FEN {
   };
 
   static parseActivePlayer = (val, game) => {
+    logger.trace('FEN.parseActivePlayer');
     switch (val.toLowerCase()) {
       case 'w': game.activePlayer = PieceColor.white; break;
       case 'b': game.activePlayer = PieceColor.black; break;
@@ -87,6 +96,7 @@ class FEN {
   };
 
   static getActivePlayer = (game) => {
+    logger.trace('FEN.getActivePlayer');
     switch (game.activePlayer) {
       case PieceColor.white: return 'w';
       case PieceColor.black: return 'b';
@@ -95,6 +105,7 @@ class FEN {
   };
 
   static parseCastlingAvailability = (val, game) => {
+    logger.trace('FEN.parseCastlingAvailability');
     game.castlingAvailability = [];
     if (val.indexOf('K') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
     if (val.indexOf('Q') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
@@ -103,25 +114,42 @@ class FEN {
   };
 
   static getCastlingAvailability = (game) => {
+    logger.trace('FEN.getCastlingAvailability');
     if (game.castlingAvailability.length === 0) return '-';
     return game.castlingAvailability.map((x) => Piece.toString(x)).join('');
   };
 
   static parseEnPassantTargetSquare = (val, game) => {
+    logger.trace('FEN.parseEnPassantTargetSquare');
     game.enPassantTargetSquare = val === '-' ? -1 : getSquareIndexFromCoordinates(val);
   };
 
-  static getEnPassantTargetSquare = (game) => (game.enPassantTargetSquare === -1
-    ? '-'
-    : getCoordinatesFromSquareIndex(game.enPassantTargetSquare));
+  static getEnPassantTargetSquare = (game) => {
+    logger.trace('FEN.getEnPassantTargetSquare');
+    return (game.enPassantTargetSquare === -1
+      ? '-'
+      : getCoordinatesFromSquareIndex(game.enPassantTargetSquare));
+  }
 
-  static parseHalfMoveClock = (val, game) => { game.halfMoveClock = parseInt(val, 10) || 0; };
+  static parseHalfMoveClock = (val, game) => {
+    logger.trace('FEN.parseHalfMoveClock');
+    game.halfMoveClock = parseInt(val, 10) || 0;
+  };
 
-  static getHalfMoveClock = (game) => `${game.halfMoveClock}`;
+  static getHalfMoveClock = (game) => {
+    logger.trace('FEN.getHalfMoveClock');
+    return `${game.halfMoveClock}`;
+  }
 
-  static parseFullMoveNumber = (val, game) => { game.fullMoveNumber = parseInt(val, 10) || 1; };
+  static parseFullMoveNumber = (val, game) => {
+    logger.trace('FEN.parseFullMoveNumber');
+    game.fullMoveNumber = parseInt(val, 10) || 1;
+  };
 
-  static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
+  static getFullMoveNumber = (game) => {
+    logger.trace('FEN.getFullMoveNumber');
+    return `${game.fullMoveNumber}`;
+  }
 }
 
 export default FEN;
