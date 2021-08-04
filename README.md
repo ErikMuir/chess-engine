@@ -4,18 +4,21 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-1. determine best move
+- new game
+- save/load game
+- undo/redo move
+- hints
+- analysis
+- play vs computer
 
 ## Tech Debt
 
-1. unit tests
+- unit tests
 
 ## Known Bugs
-_none_
+
+- _none_
 
 ## Attributions
 
-Chess Pieces
-```
-en:User:Cburnett, CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>, via Wikimedia Commons
-```
+- Chess Pieces: `en:User:Cburnett, CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>, via Wikimedia Commons`

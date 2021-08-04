@@ -22,9 +22,9 @@ module.exports = (env) => {
     plugins: [
       new webpack.EnvironmentPlugin({
         LOG_LEVEL: env.LOG_LEVEL || 'info',
-        LOGGERS: process.env.npm_config_loggers || null,
+        LOGGERS: process.env.npm_config_loggers || null, // npm run start:trace --loggers=Game,Board
       }),
-      new HtmlWebpackPlugin({ template: 'src/index.html' }),
+      new HtmlWebpackPlugin({ template: './public/index.html' }),
     ],
   };
 };
