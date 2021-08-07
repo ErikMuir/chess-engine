@@ -1,39 +1,34 @@
 import React from 'react';
 import Modal from 'react-modal';
-import CanvasContainer from './CanvasContainer';
 import Piece from '../game/Piece';
 import PieceType from '../game/PieceType';
 import { squareSize } from '../game/constants';
 import { proportion } from '../game/utils';
+import Logger from '../utils/Logger';
 
-const promotionCanvasId = 'pawn-promotion-canvas';
+const logger = new Logger('LabelsLayer');
+const canvasId = 'promotion-canvas';
 
 class PawnPromotionModal extends React.Component {
   constructor(props) {
     super(props);
-    this.ctx = null;
-    this.draw = this.draw.bind(this);
+    logger.trace('ctor', { props });
     this.onAfterOpen = this.onAfterOpen.bind(this);
   }
 
   onAfterOpen = () => {
-    const { onClick } = this.props;
-    const promotionCanvas = document.getElementById(promotionCanvasId);
-    promotionCanvas.onclick = onClick;
-    this.ctx = promotionCanvas.getContext('2d');
-  };
-
-  draw = () => {
-    if (!this.ctx) return;
-    const { activePlayer } = this.props;
-    const color = activePlayer;
+    logger.trace('onAfterOpen');
+    const { onClick, activePlayer } = this.props;
+    const canvas = document.getElementById(canvasId);
+    canvas.onclick = onClick;
+    const ctx = canvas.getContext('2d');
     const offset = proportion(0.1);
     const size = proportion(0.8);
     PieceType.promotionTypes.forEach((type, index) => {
       const x = squareSize * index;
       const y = offset;
-      const piece = new Piece(color, type);
-      piece.getImage().then((img) => this.ctx.drawImage(img, x, y, size, size * 2));
+      const piece = new Piece(activePlayer, type);
+      piece.getImage().then((img) => ctx.drawImage(img, x, y, size, size * 2));
     });
   };
 
@@ -64,25 +59,24 @@ class PawnPromotionModal extends React.Component {
   });
 
   render() {
+    logger.trace('render');
     const height = squareSize;
     const width = squareSize * PieceType.promotionTypes.length;
-    const overlay = this.getOverlayStyle();
-    const content = this.getContentStyle(width, height);
-    const style = { overlay, content };
+    const modalStyle = {
+      overlay: this.getOverlayStyle(),
+      content: this.getContentStyle(width, height),
+    };
     return (
       <Modal
         isOpen
         onAfterOpen={this.onAfterOpen}
         shouldCloseOnOverlayClick={false}
         shouldCloseOnEsc={false}
-        style={style}
+        style={modalStyle}
       >
-        <CanvasContainer
-          canvasId={promotionCanvasId}
-          draw={this.draw}
-          width={width}
-          height={height}
-        />
+        <div className="canvas-container" style={{ width, height }}>
+          <canvas id={canvasId} />
+        </div>
       </Modal>
     );
   }

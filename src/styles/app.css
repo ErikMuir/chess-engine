@@ -17,10 +17,10 @@ body {
   text-align: center;
 }
 
-#canvas-chess-board {
+#board-canvas {
   border-radius: 3px;
 }
 
-#pawn-promotion-canvas {
+#promotion-canvas {
   cursor: pointer;
 }

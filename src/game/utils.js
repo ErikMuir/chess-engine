@@ -14,6 +14,7 @@ const getCoordinatesFromSquareIndex = (index) => {
   const file = getFile(index);
   return `${'abcdefgh'[file]}${rank + 1}`;
 };
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export {
   isDigit,
@@ -22,4 +23,5 @@ export {
   getRank,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
+  sleep,
 };

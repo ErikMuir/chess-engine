@@ -17,7 +17,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+- pawn possible moves
 
 ## Attributions
 

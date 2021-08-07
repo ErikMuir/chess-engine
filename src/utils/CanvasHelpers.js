@@ -1,25 +1,13 @@
 import { useRef, useEffect } from 'react';
 
-const resizeCanvas = (canvas) => {
-  const { width, height } = canvas.getBoundingClientRect();
-
-  if (canvas.width !== width || canvas.height !== height) {
-    // const { devicePixelRatio: ratio = 1 } = window;
-    // const context = canvas.getContext('2d');
-    // canvas.width = width * ratio;
-    // canvas.height = height * ratio;
-    // context.scale(ratio, ratio);
-    return true;
-  }
-
-  return false;
-};
-
-const predraw = (context, canvas) => {
-  context.save();
-  resizeCanvas(canvas);
+const clearCanvas = (context) => {
   const { width, height } = context.canvas;
   context.clearRect(0, 0, width, height);
+};
+
+const predraw = (context) => {
+  context.save();
+  clearCanvas(context);
 };
 
 const postdraw = (context) => {
@@ -37,7 +25,7 @@ const useCanvas = (draw) => {
 
     const render = () => {
       frameCount += 1;
-      predraw(context, canvas);
+      predraw(context);
       draw(context, frameCount);
       postdraw(context);
       animationFrameId = window.requestAnimationFrame(render);
@@ -54,5 +42,6 @@ const useCanvas = (draw) => {
 };
 
 export {
+  clearCanvas,
   useCanvas,
 };
