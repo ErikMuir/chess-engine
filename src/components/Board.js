@@ -17,12 +17,15 @@ import {
   possibleOverlay,
   overlayOpacity,
 } from '../game/constants';
+import Logger from '../utils/Logger';
 
+const logger = new Logger('Board');
 const boardCanvasId = 'canvas-chess-board';
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
+    logger.trace('ctor');
     this.game = new Game({ fen: startPosition });
     this.state = {
       squares: this.initSquares(),
@@ -41,6 +44,7 @@ class Board extends React.Component {
   }
 
   componentDidMount() {
+    logger.trace('componentDidMount');
     const boardCanvas = document.getElementById(boardCanvasId);
     boardCanvas.width = boardSize;
     boardCanvas.height = boardSize;
@@ -53,6 +57,7 @@ class Board extends React.Component {
   }
 
   initSquares = () => {
+    logger.trace('initSquares');
     const squares = new Array(64);
     for (let rank = 0; rank < 8; rank += 1) {
       for (let file = 0; file < 8; file += 1) {
@@ -67,6 +72,7 @@ class Board extends React.Component {
   };
 
   syncSquares = () => {
+    logger.trace('syncSquares');
     this.clearPossibleSquares();
     const { squares } = this.state;
     const newSquares = [...squares];
@@ -215,9 +221,10 @@ class Board extends React.Component {
       .then((img) => ctx.drawImage(img, x, y, size, size));
   };
 
-  onMouseDown = (e) => {
+  onMouseDown = (event) => {
+    logger.trace('onMouseDown', { event });
     if (this.game.isGameOver) return;
-    const square = this.getEventSquare(e);
+    const square = this.getEventSquare(event);
     const { activeSquare } = this.state;
     if (square === activeSquare) {
       this.setState({ deselect: true });
@@ -225,16 +232,17 @@ class Board extends React.Component {
     if (square.piece && square.piece.color === this.game.activePlayer) {
       this.initDrag(square);
       this.initMove(square);
-      this.setHover(e);
+      this.setHover(event);
     }
   };
 
-  onMouseUp = (e) => {
+  onMouseUp = (event) => {
+    logger.trace('onMouseUp', { event });
     const { activeSquare, dragPiece, deselect } = this.state;
     if (!activeSquare) return;
     if (dragPiece) this.cancelDrag();
 
-    const square = this.getEventSquare(e);
+    const square = this.getEventSquare(event);
     if (square === activeSquare && deselect) {
       this.clearActiveSquare();
       this.clearPossibleSquares();
@@ -265,37 +273,42 @@ class Board extends React.Component {
     }
   };
 
-  onClickPawnPromotion = (e) => {
+  onClickPawnPromotion = (event) => {
+    logger.trace('onClickPawnPromotion', { event });
     const { promotionMove } = this.state;
-    const index = Math.floor(e.offsetX / squareSize);
+    const index = Math.floor(event.offsetX / squareSize);
     promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
     this.doMove(promotionMove);
     this.setState({ promotionMove: null });
   };
 
   closeGameOverModal = () => {
+    logger.trace('closeGameOverModal');
     this.setState({ showGameOverModal: false });
   };
 
-  setHover = (e) => {
+  setHover = (event) => {
     this.setState({
-      hoverX: e.offsetX,
-      hoverY: e.offsetY,
+      hoverX: event.offsetX,
+      hoverY: event.offsetY,
     });
   };
 
-  getEventSquare = (e) => {
+  getEventSquare = (event) => {
+    logger.trace('getEventSquare', { event });
     const { squares } = this.state;
-    const rank = 7 - Math.floor(e.offsetY / squareSize);
-    const file = Math.floor(e.offsetX / squareSize);
+    const rank = 7 - Math.floor(event.offsetY / squareSize);
+    const file = Math.floor(event.offsetX / squareSize);
     return squares[rank * 8 + file];
   };
 
   initDrag = (fromSquare) => {
+    logger.trace('initDrag', { fromSquare });
     this.setState({ dragPiece: fromSquare.piece });
   };
 
   cancelDrag = () => {
+    logger.trace('cancelDrag');
     const { activeSquare, dragPiece } = this.state;
     if (activeSquare) {
       activeSquare.piece = dragPiece; // setState did not work as expected here
@@ -304,6 +317,7 @@ class Board extends React.Component {
   };
 
   initMove = (fromSquare) => {
+    logger.trace('initMove', { fromSquare });
     fromSquare.piece = null;
     const possibleSquares = this.game.legalMoves
       .filter((move) => move.fromIndex === fromSquare.index)
@@ -315,6 +329,7 @@ class Board extends React.Component {
   };
 
   doPawnPromotion = (move) => {
+    logger.trace('doPawnPromotion', { move });
     // temporarily move pawn to new square
     this.game.squares[move.fromIndex] = null;
     this.game.squares[move.toIndex] = move.piece;
@@ -325,6 +340,7 @@ class Board extends React.Component {
   };
 
   doMove = (move) => {
+    logger.trace('doMove', { move });
     this.game.doMove(move);
     this.syncSquares();
     this.game.postMoveActions(move);
@@ -333,18 +349,22 @@ class Board extends React.Component {
   };
 
   clearActiveSquare = () => {
+    logger.trace('clearActiveSquare');
     this.setState({ activeSquare: null });
   };
 
   clearPossibleSquares = () => {
+    logger.trace('clearPossibleSquares');
     this.setState({ possibleSquares: [] });
   };
 
   setPreviousMove = (move) => {
+    logger.trace('setPreviousMove', { move });
     this.setState({ previousMove: move });
   };
 
   getLegalMove = (toSquare) => {
+    logger.trace('getLegalMove', { toSquare });
     const { activeSquare } = this.state;
     return this.game.legalMoves
       .find((move) => move.fromIndex === activeSquare.index

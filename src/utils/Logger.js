@@ -33,6 +33,6 @@ module.exports = class Logger {
     if (loggers && !loggers.split(',').includes(this.name)) {
       return;
     }
-    console.log(...data);
+    console.log(this.name, ...data);
   };
 };

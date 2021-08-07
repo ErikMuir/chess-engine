@@ -14,7 +14,7 @@ const logger = new Logger('Game');
 
 export default class Game {
   constructor({ fen = startPosition, preventRecursion = false } = {}) {
-    logger.trace('Game.ctor', { fen, preventRecursion });
+    if (!preventRecursion) logger.trace('ctor', { fen, preventRecursion });
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
@@ -27,36 +27,36 @@ export default class Game {
     this.legalMoves = [];
     this.moveHistory = [];
     this.pgnParts = [];
-
     this.preventRecursion = preventRecursion;
+
     FEN.load(fen, this);
     this.init();
     this.generateMoves();
   }
 
   get isGameOver() {
-    logger.trace('Game.isGameOver');
+    if (!this.preventRecursion) logger.trace('isGameOver');
     return this.legalMoves.length === 0;
   }
 
   get isCheck() {
-    logger.trace('Game.isCheck');
+    if (!this.preventRecursion) logger.trace('isCheck');
     const king = this.activePlayer | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
   }
 
   get isCheckmate() {
-    logger.trace('Game.isCheckmate');
+    if (!this.preventRecursion) logger.trace('isCheckmate');
     return this.isGameOver && this.isCheck;
   }
 
   get pgn() {
-    logger.trace('Game.pgn');
+    if (!this.preventRecursion) logger.trace('pgn');
     return this.pgnParts.join(' ');
   }
 
   init = () => {
-    logger.trace('Game.init');
+    if (!this.preventRecursion) logger.trace('init');
     for (let file = 0; file < 8; file += 1) {
       for (let rank = 0; rank < 8; rank += 1) {
         const numNorth = 7 - rank;
@@ -81,7 +81,7 @@ export default class Game {
   };
 
   doMove = (move) => {
-    logger.trace('Game.doMove', { move });
+    if (!this.preventRecursion) logger.trace('doMove', { move });
     this.squares[move.fromIndex] = null;
     this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
@@ -97,20 +97,20 @@ export default class Game {
   };
 
   getMovePiece = (move) => {
-    logger.trace('Game.getMovePiece', { move });
+    if (!this.preventRecursion) logger.trace('getMovePiece', { move });
     if (!move.isPawnPromotion) return move.piece;
     return this.activePlayer | move.pawnPromotionType;
   };
 
   handleEnPassant = (move) => {
-    logger.trace('Game.handleEnPassant', { move });
+    if (!this.preventRecursion) logger.trace('handleEnPassant', { move });
     const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     this.squares[captureSquareIndex] = null;
   };
 
   handleCastle = (move) => {
-    logger.trace('Game.handleCastle', { move });
+    if (!this.preventRecursion) logger.trace('handleCastle', { move });
     const isKingSide = getFile(move.toIndex) === 6;
     const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
@@ -122,7 +122,7 @@ export default class Game {
   };
 
   postMoveActions = (move) => {
-    logger.trace('Game.postMoveActions', { move });
+    if (!this.preventRecursion) logger.trace('postMoveActions', { move });
     const legalMoves = [...this.legalMoves];
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
@@ -138,7 +138,7 @@ export default class Game {
   };
 
   setEnPassantTargetSquare = (move) => {
-    logger.trace('Game.setEnPassantTargetSquare', { move });
+    if (!this.preventRecursion) logger.trace('setEnPassantTargetSquare', { move });
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     const distance = Math.abs(move.toIndex - move.fromIndex);
     const color = PieceColor.fromPieceValue(move.piece);
@@ -149,7 +149,7 @@ export default class Game {
   };
 
   updateCastlingAvailability = (move) => {
-    logger.trace('Game.updateCastlingAvailability', { move });
+    if (!this.preventRecursion) logger.trace('updateCastlingAvailability', { move });
     if (this.castlingAvailability.length === 0) return;
     const { color, type } = Piece.fromPieceValue(move.piece);
     const fromFile = getFile(move.fromIndex);
@@ -163,39 +163,39 @@ export default class Game {
   };
 
   setHalfMoveClock = (move) => {
-    logger.trace('Game.setMoveClock', { move });
+    if (!this.preventRecursion) logger.trace('setMoveClock', { move });
     const isCapture = !!move.capturePiece;
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
   };
 
   togglePlayerTurn = () => {
-    logger.trace('Game.togglePlayerTurn');
+    if (!this.preventRecursion) logger.trace('togglePlayerTurn');
     this.activePlayer = this.activePlayer === PieceColor.white
       ? PieceColor.black
       : PieceColor.white;
   };
 
   updateFullMoveNumber = (move) => {
-    logger.trace('Game.updateFullMoveNumber', { move });
+    if (!this.preventRecursion) logger.trace('updateFullMoveNumber', { move });
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
   };
 
   updateMove = (move) => {
-    logger.trace('Game.updateMove', { move });
+    if (!this.preventRecursion) logger.trace('updateMove', { move });
     move.isCheck = this.isCheck;
     move.isCheckmate = this.isCheckmate;
   };
 
   archiveMove = (move) => {
-    logger.trace('Game.archiveMove', { move });
+    if (!this.preventRecursion) logger.trace('archiveMove', { move });
     this.moveHistory.push(move);
   }
 
   appendToPgn = (move, legalMoves) => {
-    logger.trace('Game.appendToPgn', { move });
+    if (!this.preventRecursion) logger.trace('appendToPgn', { move });
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }
@@ -209,7 +209,7 @@ export default class Game {
   };
 
   generatePseudoLegalMoves = () => {
-    logger.trace('Game.generatePseudoLegalMoves');
+    if (!this.preventRecursion) logger.trace('generatePseudoLegalMoves');
     const moves = [];
     for (let fromIndex = 0; fromIndex < 64; fromIndex += 1) {
       const pieceValue = this.squares[fromIndex];
@@ -238,7 +238,7 @@ export default class Game {
   };
 
   generateLegalMoves = () => {
-    logger.trace('Game.generateLegalMoves');
+    if (!this.preventRecursion) logger.trace('generateLegalMoves');
     const activePlayerMoves = this.pseudoLegalMoves
       .filter((move) => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
     if (this.preventRecursion) return activePlayerMoves;
