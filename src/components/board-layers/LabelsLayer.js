@@ -1,7 +1,6 @@
 import React from 'react';
-import { squareSize, boardSize } from '../../game/constants';
-import { proportion } from '../../game/utils';
-import Logger from '../../utils/Logger';
+import { boardSize, proportion, squareSize } from '../../game/utils';
+import Logger from '../../Logger';
 
 const logger = new Logger('LabelsLayer');
 const canvasId = 'labels-layer';

@@ -2,9 +2,9 @@ import React from 'react';
 import Modal from 'react-modal';
 import Piece from '../game/Piece';
 import PieceType from '../game/PieceType';
-import { squareSize } from '../game/constants';
-import { proportion } from '../game/utils';
-import Logger from '../utils/Logger';
+import { squareSize, proportion } from '../game/utils';
+
+import Logger from '../Logger';
 
 const logger = new Logger('LabelsLayer');
 const canvasId = 'promotion-canvas';
@@ -62,20 +62,19 @@ class PawnPromotionModal extends React.Component {
     logger.trace('render');
     const height = squareSize;
     const width = squareSize * PieceType.promotionTypes.length;
-    const modalStyle = {
-      overlay: this.getOverlayStyle(),
-      content: this.getContentStyle(width, height),
-    };
+    const overlay = this.getOverlayStyle();
+    const content = this.getContentStyle(width, height);
+    const cursor = 'pointer';
     return (
       <Modal
         isOpen
         onAfterOpen={this.onAfterOpen}
         shouldCloseOnOverlayClick={false}
         shouldCloseOnEsc={false}
-        style={modalStyle}
+        style={{ overlay, content }}
       >
         <div className="canvas-container" style={{ width, height }}>
-          <canvas id={canvasId} />
+          <canvas id={canvasId} style={{ cursor }} />
         </div>
       </Modal>
     );

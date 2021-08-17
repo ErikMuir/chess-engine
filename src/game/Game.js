@@ -6,9 +6,13 @@ import PieceType from './PieceType';
 import Piece from './Piece';
 import MoveType from './MoveType';
 import Move from './Move';
-import { getFile } from './utils';
-import { startPosition, directionIndex, directionOffsets } from './constants';
-import Logger from '../utils/Logger';
+import {
+  getFile,
+  startPosition,
+  directionIndex,
+  directionOffsets,
+} from './utils';
+import Logger from '../Logger';
 
 const logger = new Logger('Game');
 

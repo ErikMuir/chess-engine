@@ -1,6 +1,6 @@
 import React from 'react';
-import { boardSize } from '../../game/constants';
-import Logger from '../../utils/Logger';
+import { boardSize } from '../../game/utils';
+import Logger from '../../Logger';
 
 const logger = new Logger('InteractiveLayer');
 const canvasId = 'interactive-layer';

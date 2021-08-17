@@ -1,8 +1,7 @@
 import React from 'react';
-import { proportion } from '../../game/utils';
-import { boardSize, possibleOverlay } from '../../game/constants';
-import { clearCanvas } from '../../utils/CanvasHelpers';
-import Logger from '../../utils/Logger';
+import { boardSize, possibleOverlay, proportion } from '../../game/utils';
+import { clearCanvas } from '../../utils';
+import Logger from '../../Logger';
 
 const logger = new Logger('PossibleLayer');
 const canvasId = 'possible-layer';

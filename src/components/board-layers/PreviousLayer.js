@@ -2,22 +2,22 @@ import React from 'react';
 import {
   squareSize,
   boardSize,
-  activeOverlay,
+  previousOverlay,
   overlayOpacity,
-} from '../../game/constants';
-import { clearCanvas } from '../../utils/CanvasHelpers';
-import Logger from '../../utils/Logger';
+} from '../../game/utils';
+import { clearCanvas } from '../../utils';
+import Logger from '../../Logger';
 
-const logger = new Logger('ActiveLayer');
-const canvasId = 'active-layer';
+const logger = new Logger('PreviousLayer');
+const canvasId = 'previous-layer';
 
-class ActiveLayer extends React.Component {
+class PreviousLayer extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor', { props });
     this.state = {
       ctx: null,
-      activeSquare: props.activeSquare,
+      previousSquares: props.previousSquares,
     };
   }
 
@@ -31,27 +31,27 @@ class ActiveLayer extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { activeSquare } = this.state;
-    if (activeSquare !== prevState.activeSquare) {
+    const { previousSquares } = this.state;
+    if (previousSquares !== prevState.previousSquares) {
       this.draw();
     }
   }
 
   static getDerivedStateFromProps(props, state) {
-    return props.activeSquare === state.activeSquare
+    return props.previousSquares === state.previousSquares
       ? null
-      : { activeSquare: props.activeSquare };
+      : { previousSquares: props.previousSquares };
   }
 
   draw = () => {
-    const { ctx, activeSquare } = this.state;
+    const { ctx, previousSquares } = this.state;
     clearCanvas(ctx);
-    if (activeSquare) {
-      ctx.fillStyle = activeOverlay;
+    previousSquares.forEach((sq) => {
+      ctx.fillStyle = previousOverlay;
       ctx.globalAlpha = overlayOpacity;
-      ctx.fillRect(activeSquare.xPos, activeSquare.yPos, squareSize, squareSize);
+      ctx.fillRect(sq.xPos, sq.yPos, squareSize, squareSize);
       ctx.globalAlpha = 1.0;
-    }
+    });
   };
 
   render() {
@@ -60,4 +60,4 @@ class ActiveLayer extends React.Component {
   }
 }
 
-export default ActiveLayer;
+export default PreviousLayer;

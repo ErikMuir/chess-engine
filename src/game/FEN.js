@@ -2,10 +2,10 @@ import Piece from './Piece';
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
 import {
-  isDigit,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
 } from './utils';
+import { isDigit } from '../utils';
 
 class FEN {
   static load = (fen, game) => {

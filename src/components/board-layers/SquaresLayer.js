@@ -1,11 +1,11 @@
 import React from 'react';
-import { squareSize, boardSize } from '../../game/constants';
-import Logger from '../../utils/Logger';
+import { squareSize, boardSize } from '../../game/utils';
+import Logger from '../../Logger';
 
-const logger = new Logger('BoardLayer');
-const canvasId = 'board-layer';
+const logger = new Logger('SquaresLayer');
+const canvasId = 'squares-layer';
 
-class BoardLayer extends React.Component {
+class SquaresLayer extends React.Component {
   componentDidMount() {
     logger.trace('componentDidMount');
     const canvas = document.getElementById(canvasId);
@@ -21,8 +21,9 @@ class BoardLayer extends React.Component {
 
   render() {
     logger.trace('render');
-    return <canvas id={canvasId} />;
+    const style = { borderRadius: '3px' };
+    return <canvas id={canvasId} style={style} />;
   }
 }
 
-export default BoardLayer;
+export default SquaresLayer;

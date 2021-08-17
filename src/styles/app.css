@@ -16,11 +16,3 @@ body {
   bottom: 5px;
   text-align: center;
 }
-
-#board-canvas {
-  border-radius: 3px;
-}
-
-#promotion-canvas {
-  cursor: pointer;
-}

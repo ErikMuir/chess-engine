@@ -1,4 +1,4 @@
-import { lightColor, darkColor, squareSize } from './constants';
+import { lightColor, darkColor, squareSize } from './utils';
 
 export default class Square {
   constructor(file, rank) {

@@ -1,9 +1,8 @@
 import React from 'react';
 import Canvas from '../Canvas';
-import { proportion } from '../../game/utils';
-import { boardSize } from '../../game/constants';
-import { clearCanvas } from '../../utils/CanvasHelpers';
-import Logger from '../../utils/Logger';
+import { boardSize, proportion } from '../../game/utils';
+import { clearCanvas } from '../../utils';
+import Logger from '../../Logger';
 
 const logger = new Logger('DragLayer');
 const canvasId = 'drag-layer';

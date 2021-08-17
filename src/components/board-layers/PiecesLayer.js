@@ -1,8 +1,7 @@
 import React from 'react';
-import { proportion, sleep } from '../../game/utils';
-import { boardSize } from '../../game/constants';
-import { clearCanvas } from '../../utils/CanvasHelpers';
-import Logger from '../../utils/Logger';
+import { proportion, boardSize } from '../../game/utils';
+import { clearCanvas, sleep } from '../../utils';
+import Logger from '../../Logger';
 
 const logger = new Logger('PiecesLayer');
 const canvasId = 'pieces-layer';

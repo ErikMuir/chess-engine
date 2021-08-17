@@ -1,12 +1,14 @@
 import React from 'react';
-import BoardLayer from './canvas-layers/BoardLayer';
-import LabelsLayer from './canvas-layers/LabelsLayer';
-import PreviousLayer from './canvas-layers/PreviousLayer';
-import ActiveLayer from './canvas-layers/ActiveLayer';
-import PiecesLayer from './canvas-layers/PiecesLayer';
-import PossibleLayer from './canvas-layers/PossibleLayer';
-import DragLayer from './canvas-layers/DragLayer';
-import InteractiveLayer from './canvas-layers/InteractiveLayer';
+import {
+  ActiveLayer,
+  DragLayer,
+  InteractiveLayer,
+  LabelsLayer,
+  PiecesLayer,
+  PossibleLayer,
+  PreviousLayer,
+  SquaresLayer,
+} from './board-layers';
 import GameOverModal from './GameOverModal';
 import PawnPromotionModal from './PawnPromotionModal';
 import Game from '../game/Game';
@@ -18,8 +20,8 @@ import {
   boardSize,
   startPosition,
   // testFEN,
-} from '../game/constants';
-import Logger from '../utils/Logger';
+} from '../game/utils';
+import Logger from '../Logger';
 
 const logger = new Logger('Board');
 
@@ -253,8 +255,13 @@ class Board extends React.Component {
   getDragLayer = () => {
     const { dragPiece, hoverX, hoverY } = this.state;
     return dragPiece
-      ? <DragLayer dragPiece={dragPiece} hoverX={hoverX} hoverY={hoverY} />
-      : null;
+      ? (
+        <DragLayer
+          dragPiece={dragPiece}
+          hoverX={hoverX}
+          hoverY={hoverY}
+        />
+      ) : null;
   };
 
   getPromotionModal = () => {
@@ -265,8 +272,7 @@ class Board extends React.Component {
           activePlayer={this.game.activePlayer}
           onClick={this.onClickPawnPromotion}
         />
-      )
-      : null;
+      ) : null;
   };
 
   getGameOverModal = () => {
@@ -293,7 +299,7 @@ class Board extends React.Component {
     return (
       <>
         <div className="canvas-container" style={{ width, height }}>
-          <BoardLayer squares={squares} />
+          <SquaresLayer squares={squares} />
           <LabelsLayer squares={squares} />
           <PreviousLayer previousSquares={previousSquares} />
           <ActiveLayer activeSquare={activeSquare} />

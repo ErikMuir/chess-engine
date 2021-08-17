@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
 import PieceColor from '../game/PieceColor';
-import { squareSize } from '../game/constants';
+import { squareSize } from '../game/utils';
 
 class GameOverModal extends React.Component {
   getCheckmateMessage = () => {
