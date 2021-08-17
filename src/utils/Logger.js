@@ -33,6 +33,7 @@ module.exports = class Logger {
     if (loggers && !loggers.split(',').includes(this.name)) {
       return;
     }
-    console.log(this.name, ...data);
+    const time = new Date().toLocaleTimeString();
+    console.log(time, this.name, ...data);
   };
 };

@@ -290,7 +290,7 @@ export default class Game {
 
     // check attack left
     const attackLeftSquareIndex = fromIndex + directionOffsets[attackLeft];
-    const attackLeftSquarePiece = this.squares[attackLeftSquareIndex];
+    const attackLeftSquarePiece = Piece.fromPieceValue(this.squares[attackLeftSquareIndex]);
     const isAttackLeftOpponent = attackLeftSquarePiece
       && attackLeftSquarePiece.color !== piece.color;
     if (isAttackLeftOpponent) {
@@ -299,7 +299,7 @@ export default class Game {
 
     // check attack right
     const attackRightSquareIndex = fromIndex + directionOffsets[attackRight];
-    const attackRightSquarePiece = this.squares[attackRightSquareIndex];
+    const attackRightSquarePiece = Piece.fromPieceValue(this.squares[attackRightSquareIndex]);
     const isAttackRightOpponent = attackRightSquarePiece
       && attackRightSquarePiece.color !== piece.color;
     if (isAttackRightOpponent) {
