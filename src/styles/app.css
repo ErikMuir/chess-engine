@@ -4,15 +4,50 @@ body {
   background-color: #333333;
 }
 
-.container {
+.app-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
-.container footer {
-  margin-top: 2rem;
-  position: absolute;
-  bottom: 5px;
-  text-align: center;
+.app-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 60px;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.app-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  height: 60px;
+  margin-bottom: 1rem;
+  color: rgb(89, 89, 89);
+}
+
+.icon-button {
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  margin: 0;
+  border: none;
+  outline: none;
+  color: #eeeeee;
+  font-size: 2rem;
+  font-weight: bold;
 }

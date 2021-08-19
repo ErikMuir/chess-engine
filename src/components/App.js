@@ -7,11 +7,9 @@ import Footer from './Footer';
 Modal.setAppElement('#app');
 
 const App = () => (
-  <div className="container">
+  <div className="app-container">
     <Header />
-    <main>
-      <Board />
-    </main>
+    <Board />
     <Footer />
   </div>
 );

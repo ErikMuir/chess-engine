@@ -9,8 +9,8 @@ import {
   PreviousLayer,
   SquaresLayer,
 } from './board-layers';
-import GameOverModal from './GameOverModal';
-import PawnPromotionModal from './PawnPromotionModal';
+import GameOver from './GameOver';
+import PawnPromotion from './PawnPromotion';
 import Game from '../game/Game';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
@@ -268,7 +268,7 @@ class Board extends React.Component {
     const { promotionMove } = this.state;
     return promotionMove
       ? (
-        <PawnPromotionModal
+        <PawnPromotion
           activePlayer={this.game.activePlayer}
           onClick={this.onClickPawnPromotion}
         />
@@ -279,7 +279,7 @@ class Board extends React.Component {
     const { showGameOverModal } = this.state;
     return showGameOverModal
       ? (
-        <GameOverModal
+        <GameOver
           game={this.game}
           closeGameOverModal={this.closeGameOverModal}
         />
@@ -297,7 +297,7 @@ class Board extends React.Component {
     const height = boardSize;
 
     return (
-      <>
+      <main className="app-main">
         <div className="canvas-container" style={{ width, height }}>
           <SquaresLayer squares={squares} />
           <LabelsLayer squares={squares} />
@@ -315,7 +315,7 @@ class Board extends React.Component {
         </div>
         {this.getPromotionModal()}
         {this.getGameOverModal()}
-      </>
+      </main>
     );
   }
 }

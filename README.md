@@ -4,10 +4,12 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-- new game
-- save/load game
-- undo/redo move
-- hints
+- menu
+  - new
+  - load
+  - save
+- undo/redo
+- hint
 - analysis
 - play vs computer
 

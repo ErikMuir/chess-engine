@@ -2,8 +2,11 @@ import React from 'react';
 import Modal from 'react-modal';
 import PieceColor from '../game/PieceColor';
 import { squareSize } from '../game/utils';
+import Logger from '../Logger';
 
-class GameOverModal extends React.Component {
+const logger = new Logger('PawnPromotion');
+
+class GameOver extends React.Component {
   getCheckmateMessage = () => {
     const { game } = this.props;
     const { activePlayer, fullMoveNumber } = game;
@@ -51,17 +54,17 @@ class GameOverModal extends React.Component {
   });
 
   render() {
+    logger.trace('render');
     const { game, closeGameOverModal } = this.props;
     const title = game.isCheckmate ? 'Checkmate' : 'Stalemate';
     const message = game.isCheckmate ? this.getCheckmateMessage() : this.getStalemateMessage();
     const overlay = this.getOverlayStyle();
     const content = this.getContentStyle();
-    const style = { overlay, content };
     return (
       <Modal
         isOpen
         onRequestClose={closeGameOverModal}
-        style={style}
+        style={{ overlay, content }}
       >
         <header className="modal__header">
           <h2 className="modal__title">{title}</h2>
@@ -93,4 +96,4 @@ class GameOverModal extends React.Component {
   }
 }
 
-export default GameOverModal;
+export default GameOver;

@@ -3,13 +3,12 @@ import Modal from 'react-modal';
 import Piece from '../game/Piece';
 import PieceType from '../game/PieceType';
 import { squareSize, proportion } from '../game/utils';
-
 import Logger from '../Logger';
 
-const logger = new Logger('LabelsLayer');
+const logger = new Logger('PawnPromotion');
 const canvasId = 'promotion-canvas';
 
-class PawnPromotionModal extends React.Component {
+class PawnPromotion extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor', { props });
@@ -81,4 +80,4 @@ class PawnPromotionModal extends React.Component {
   }
 }
 
-export default PawnPromotionModal;
+export default PawnPromotion;
