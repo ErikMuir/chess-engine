@@ -11,16 +11,10 @@ import {
 } from './board-layers';
 import GameOver from './GameOver';
 import PawnPromotion from './PawnPromotion';
-import Game from '../game/Game';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
-import {
-  squareSize,
-  boardSize,
-  startPosition,
-  // testFEN,
-} from '../game/utils';
+import { squareSize, boardSize } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Board');
@@ -29,9 +23,10 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor');
-    this.game = new Game({ fen: startPosition });
-    const squares = this.initSquares();
+    const { game } = this.props;
+    const squares = this.initSquares(game);
     this.state = {
+      game,
       squares,
       activeSquare: null,
       possibleSquares: [],
@@ -51,6 +46,22 @@ class Board extends React.Component {
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    const { game } = this.state;
+    if (game !== prevState.game) {
+      this.clearActiveSquare();
+      this.clearPossibleSquares();
+      this.clearPreviousSquares();
+      this.syncSquares();
+    }
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    return props.game === state.game
+      ? null
+      : { game: props.game };
+  }
+
   getCanvasContext = (canvasId) => {
     logger.trace('getCanvasContext', { canvasId });
     const canvas = document.getElementById(canvasId);
@@ -59,14 +70,14 @@ class Board extends React.Component {
     return canvas.getContext('2d');
   };
 
-  initSquares = () => {
+  initSquares = (game) => {
     logger.trace('initSquares');
     const squares = new Array(64);
     for (let rank = 0; rank < 8; rank += 1) {
       for (let file = 0; file < 8; file += 1) {
         const index = rank * 8 + file;
         const square = new Square(file, rank);
-        const pieceValue = this.game.squares[index];
+        const pieceValue = game.squares[index];
         square.piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
         squares[index] = square;
       }
@@ -76,11 +87,12 @@ class Board extends React.Component {
 
   syncSquares = () => {
     logger.trace('syncSquares');
+    const { game } = this.state;
     this.clearPossibleSquares();
     const { squares } = this.state;
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
-      const pieceValue = this.game.squares[i];
+      const pieceValue = game.squares[i];
       newSquares[i].piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
     }
     this.setState({ squares: newSquares });
@@ -88,13 +100,14 @@ class Board extends React.Component {
 
   onMouseDown = (event) => {
     logger.trace('onMouseDown', { event });
-    if (this.game.isGameOver) return;
+    const { game } = this.state;
+    if (game.isGameOver) return;
     const { activeSquare } = this.state;
     const square = this.getEventSquare(event);
     if (square === activeSquare) {
       this.setState({ deselect: true });
     }
-    if (square.piece && square.piece.color === this.game.activePlayer) {
+    if (square.piece && square.piece.color === game.activePlayer) {
       const dragPiece = square.piece;
       this.initMove(square);
       this.initDrag(dragPiece);
@@ -186,9 +199,10 @@ class Board extends React.Component {
 
   doPawnPromotion = (move) => {
     logger.trace('doPawnPromotion', { move });
+    const { game } = this.state;
     // temporarily move pawn to new square
-    this.game.squares[move.fromIndex] = null;
-    this.game.squares[move.toIndex] = move.piece;
+    game.squares[move.fromIndex] = null;
+    game.squares[move.toIndex] = move.piece;
     this.syncSquares();
     // trigger the promotion modal
     this.setState({ promotionMove: move });
@@ -196,11 +210,12 @@ class Board extends React.Component {
 
   doMove = (move) => {
     logger.trace('doMove', { move });
-    this.game.doMove(move);
+    const { game } = this.state;
+    game.doMove(move);
     this.syncSquares();
-    this.game.postMoveActions(move);
+    game.postMoveActions(move);
     this.setPreviousSquares(move);
-    if (this.game.isGameOver) {
+    if (game.isGameOver) {
       this.setState({ showGameOverModal: true });
     }
   };
@@ -217,8 +232,8 @@ class Board extends React.Component {
 
   setPossibleSquares = (fromSquare) => {
     logger.trace('setPossibleSquares');
-    const { squares } = this.state;
-    const possibleSquares = this.game.legalMoves
+    const { game, squares } = this.state;
+    const possibleSquares = game.legalMoves
       .filter((move) => move.fromIndex === fromSquare.index)
       .map((move) => squares[move.toIndex]);
     this.setState({ possibleSquares });
@@ -246,8 +261,8 @@ class Board extends React.Component {
 
   getLegalMove = (toSquare) => {
     logger.trace('getLegalMove', { toSquare });
-    const { activeSquare } = this.state;
-    return this.game.legalMoves
+    const { activeSquare, game } = this.state;
+    return game.legalMoves
       .find((move) => move.fromIndex === activeSquare.index
         && move.toIndex === toSquare.index);
   };
@@ -265,22 +280,22 @@ class Board extends React.Component {
   };
 
   getPromotionModal = () => {
-    const { promotionMove } = this.state;
+    const { game, promotionMove } = this.state;
     return promotionMove
       ? (
         <PawnPromotion
-          activePlayer={this.game.activePlayer}
+          activePlayer={game.activePlayer}
           onClick={this.onClickPawnPromotion}
         />
       ) : null;
   };
 
   getGameOverModal = () => {
-    const { showGameOverModal } = this.state;
+    const { game, showGameOverModal } = this.state;
     return showGameOverModal
       ? (
         <GameOver
-          game={this.game}
+          game={game}
           closeGameOverModal={this.closeGameOverModal}
         />
       ) : null;

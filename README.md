@@ -5,13 +5,15 @@ A javascript chess engine with React chess GUI
 ## Upcoming Features
 
 - menu
-  - new
+  - ~~new~~
   - load
   - save
+- move list
 - undo/redo
 - hint
 - analysis
 - play vs computer
+- mobile support
 
 ## Tech Debt
 

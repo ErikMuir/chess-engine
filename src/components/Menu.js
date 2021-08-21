@@ -23,8 +23,26 @@ class Menu extends React.Component {
     }));
   };
 
-  // eslint-disable-next-line no-alert
-  notImplemented = () => alert('Not implemented');
+  handleNew = () => {
+    logger.trace('handleNew');
+    const { newGame } = this.props;
+    newGame();
+    this.toggleMenu();
+  };
+
+  handleLoad = () => {
+    logger.trace('handleLoad');
+    const { loadGame } = this.props;
+    loadGame();
+    this.toggleMenu();
+  };
+
+  handleSave = () => {
+    logger.trace('handleSave');
+    const { saveGame } = this.props;
+    saveGame();
+    this.toggleMenu();
+  };
 
   render() {
     logger.trace('render');
@@ -45,6 +63,7 @@ class Menu extends React.Component {
       content: {
         color: '#595959',
         backgroundColor: 'white',
+        borderRadius: 0,
         border: 0,
         padding: 0,
         height: '100vh',
@@ -79,9 +98,9 @@ class Menu extends React.Component {
               />
             </header>
             <ul className="menu__list">
-              <li onClick={this.notImplemented}>New</li>
-              <li onClick={this.notImplemented}>Load</li>
-              <li onClick={this.notImplemented}>Save</li>
+              <li onClick={this.handleNew}>New</li>
+              <li onClick={this.handleLoad}>Load</li>
+              <li onClick={this.handleSave}>Save</li>
             </ul>
           </Modal>
         </CSSTransition>
