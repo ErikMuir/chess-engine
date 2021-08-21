@@ -11,11 +11,11 @@ class DragLayer extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor');
-    const { hoverX, hoverY } = props;
+    const { dragX, dragY } = props;
     this.state = {
+      dragX,
+      dragY,
       ctx: null,
-      hoverX,
-      hoverY,
     };
     this.draw = this.draw.bind(this);
   }
@@ -34,19 +34,18 @@ class DragLayer extends React.Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    return props.hoverX === state.hoverX && props.hoverY === state.hoverY
-      ? null
-      : { hoverX: props.hoverX, hoverY: props.hoverY };
+    const { dragX, dragY } = props;
+    return dragX === state.dragX && dragY === state.dragY ? null : { dragX, dragY };
   }
 
   draw = () => {
-    const { ctx, hoverX, hoverY } = this.state;
+    const { ctx, dragX, dragY } = this.state;
     const { dragPiece } = this.props;
     if (ctx) {
       clearCanvas(ctx);
       const size = proportion(0.8);
-      const x = hoverX - (size / 2);
-      const y = hoverY - (size / 2);
+      const x = dragX - (size / 2);
+      const y = dragY - (size / 2);
       dragPiece.getImage()
         .then((img) => ctx.drawImage(img, x, y, size, size));
     }

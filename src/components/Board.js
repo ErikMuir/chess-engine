@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ActiveLayer,
-  DragLayer,
   InteractiveLayer,
   LabelsLayer,
   PiecesLayer,
@@ -32,15 +31,12 @@ class Board extends React.Component {
       possibleSquares: [],
       previousSquares: [],
       dragPiece: null,
-      hoverX: null,
-      hoverY: null,
       deselect: false,
       promotionMove: null,
       showGameOverModal: false,
     };
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
@@ -57,9 +53,8 @@ class Board extends React.Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    return props.game === state.game
-      ? null
-      : { game: props.game };
+    const { game } = props;
+    return game === state.game ? null : { game };
   }
 
   getCanvasContext = (canvasId) => {
@@ -137,13 +132,6 @@ class Board extends React.Component {
     } else {
       this.doMove(move);
     }
-  };
-
-  onMouseMove = (event) => {
-    this.setState({
-      hoverX: event.offsetX,
-      hoverY: event.offsetY,
-    });
   };
 
   onMouseOut = () => {
@@ -267,18 +255,6 @@ class Board extends React.Component {
         && move.toIndex === toSquare.index);
   };
 
-  getDragLayer = () => {
-    const { dragPiece, hoverX, hoverY } = this.state;
-    return dragPiece
-      ? (
-        <DragLayer
-          dragPiece={dragPiece}
-          hoverX={hoverX}
-          hoverY={hoverY}
-        />
-      ) : null;
-  };
-
   getPromotionModal = () => {
     const { game, promotionMove } = this.state;
     return promotionMove
@@ -302,11 +278,13 @@ class Board extends React.Component {
   };
 
   render() {
+    logger.trace('render');
     const {
       squares,
       previousSquares,
       activeSquare,
       possibleSquares,
+      dragPiece,
     } = this.state;
     const width = boardSize;
     const height = boardSize;
@@ -320,11 +298,10 @@ class Board extends React.Component {
           <ActiveLayer activeSquare={activeSquare} />
           <PiecesLayer squares={squares} />
           <PossibleLayer possibleSquares={possibleSquares} />
-          {this.getDragLayer()}
           <InteractiveLayer
+            dragPiece={dragPiece}
             onMouseDown={this.onMouseDown}
             onMouseUp={this.onMouseUp}
-            onMouseMove={this.onMouseMove}
             onMouseOut={this.onMouseOut}
           />
         </div>

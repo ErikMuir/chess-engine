@@ -38,9 +38,8 @@ class ActiveLayer extends React.Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    return props.activeSquare === state.activeSquare
-      ? null
-      : { activeSquare: props.activeSquare };
+    const { activeSquare } = props;
+    return activeSquare === state.activeSquare ? null : { activeSquare };
   }
 
   draw = () => {

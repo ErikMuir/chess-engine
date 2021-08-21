@@ -38,9 +38,8 @@ class PreviousLayer extends React.Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    return props.previousSquares === state.previousSquares
-      ? null
-      : { previousSquares: props.previousSquares };
+    const { previousSquares } = props;
+    return previousSquares === state.previousSquares ? null : { previousSquares };
   }
 
   draw = () => {
