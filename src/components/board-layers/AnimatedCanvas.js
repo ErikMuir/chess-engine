@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { clearCanvas } from '../utils';
+import { clearCanvas } from '../../utils';
 
 const predraw = (context) => {
   context.save();
@@ -37,10 +37,10 @@ const useCanvas = (draw) => {
   return canvasRef;
 };
 
-const Canvas = (props) => {
+const AnimatedCanvas = (props) => {
   const { draw, canvasId, ...rest } = props;
   const canvasRef = useCanvas(draw);
   return <canvas id={canvasId} ref={canvasRef} {...rest} />;
 };
 
-export default Canvas;
+export default AnimatedCanvas;

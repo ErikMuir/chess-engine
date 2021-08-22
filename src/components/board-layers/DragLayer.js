@@ -1,5 +1,5 @@
 import React from 'react';
-import Canvas from '../Canvas';
+import AnimatedCanvas from './AnimatedCanvas';
 import { boardSize, proportion } from '../../game/utils';
 import { clearCanvas } from '../../utils';
 import Logger from '../../Logger';
@@ -52,7 +52,7 @@ class DragLayer extends React.Component {
   };
 
   render() {
-    return <Canvas draw={this.draw} canvasId={canvasId} />;
+    return <AnimatedCanvas draw={this.draw} canvasId={canvasId} />;
   }
 }
 

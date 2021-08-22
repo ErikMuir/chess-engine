@@ -1,13 +1,11 @@
 import React from 'react';
-import {
-  ActiveLayer,
-  InteractiveLayer,
-  LabelsLayer,
-  PiecesLayer,
-  PossibleLayer,
-  PreviousLayer,
-  SquaresLayer,
-} from './board-layers';
+import ActiveLayer from './board-layers/ActiveLayer';
+import InteractiveLayer from './board-layers/InteractiveLayer';
+import LabelsLayer from './board-layers/LabelsLayer';
+import PiecesLayer from './board-layers/PiecesLayer';
+import PossibleLayer from './board-layers/PossibleLayer';
+import PreviousLayer from './board-layers/PreviousLayer';
+import SquaresLayer from './board-layers/SquaresLayer';
 import GameOver from './GameOver';
 import PawnPromotion from './PawnPromotion';
 import PieceType from '../game/PieceType';
@@ -56,14 +54,6 @@ class Board extends React.Component {
     const { game } = props;
     return game === state.game ? null : { game };
   }
-
-  getCanvasContext = (canvasId) => {
-    logger.trace('getCanvasContext', { canvasId });
-    const canvas = document.getElementById(canvasId);
-    canvas.width = boardSize;
-    canvas.height = boardSize;
-    return canvas.getContext('2d');
-  };
 
   initSquares = (game) => {
     logger.trace('initSquares');
@@ -124,7 +114,6 @@ class Board extends React.Component {
     }
 
     const move = this.getLegalMove(square);
-
     if (!move) return;
 
     if (move.isPawnPromotion) {
