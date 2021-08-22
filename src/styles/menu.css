@@ -28,19 +28,25 @@
 }
 
 .menu__list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
-.menu__list li {
-  padding: 1rem 1rem;
+.menu__list button {
+  padding: 1rem;
+  background-color: transparent;
+  color: #595959;
   font-size: 150%;
+  text-align: left;
   cursor: default;
+  outline: 0;
+  border: 0;
   border-bottom: 1px solid rgba(150, 150, 150, 0.5);
 }
 
-.menu__list li:hover, .menu__list li:active {
+.menu__list button:hover,
+.menu__list button:focus {
   background-color: #e3e4e3;
 }
 

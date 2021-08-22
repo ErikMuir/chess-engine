@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react';
 import { CSSTransition } from 'react-transition-group';
 import Modal from 'react-modal';
@@ -97,11 +95,11 @@ class Menu extends React.Component {
                 onClick={this.toggleMenu}
               />
             </header>
-            <ul className="menu__list">
-              <li onClick={this.handleNew}>New</li>
-              <li onClick={this.handleLoad}>Load</li>
-              <li onClick={this.handleSave}>Save</li>
-            </ul>
+            <div className="menu__list">
+              <button type="button" onClick={this.handleNew}>New</button>
+              <button type="button" onClick={this.handleLoad}>Load</button>
+              <button type="button" onClick={this.handleSave}>Save</button>
+            </div>
           </Modal>
         </CSSTransition>
       </>

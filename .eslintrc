@@ -18,20 +18,12 @@
     "react"
   ],
   "rules": {
-    "no-console": "off",
-    "react/jsx-filename-extension": [
-      1,
-      {
-        "extensions": [
-          ".js",
-          ".jsx"
-        ]
-      }
-    ],
-    "react/prop-types": "off",
     "no-bitwise": "off",
-    "react/jsx-props-no-spreading": "off",
+    "no-console": "off",
     "no-param-reassign": "off",
-    "import/prefer-default-export": "off"
+    "import/prefer-default-export": "off",
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/jsx-props-no-spreading": "off",
+    "react/prop-types": "off"
   }
 }
