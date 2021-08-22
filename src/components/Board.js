@@ -94,7 +94,7 @@ class Board extends React.Component {
   };
 
   onMouseDown = (event) => {
-    logger.trace('onMouseDown', { event });
+    logger.trace('onMouseDown');
     const { game } = this.state;
     if (game.isGameOver) return;
     const { activeSquare } = this.state;
@@ -110,7 +110,7 @@ class Board extends React.Component {
   };
 
   onMouseUp = (event) => {
-    logger.trace('onMouseUp', { event });
+    logger.trace('onMouseUp');
     const { activeSquare, dragPiece, deselect } = this.state;
     if (!activeSquare) return;
     if (dragPiece) this.cancelDrag();
@@ -136,6 +136,7 @@ class Board extends React.Component {
 
   onMouseOut = () => {
     if (this.dragPiece) {
+      logger.trace('onMouseOut');
       this.cancelDrag();
       this.clearActiveSquare();
       this.clearPossibleSquares();
@@ -143,7 +144,7 @@ class Board extends React.Component {
   };
 
   onClickPawnPromotion = (event) => {
-    logger.trace('onClickPawnPromotion', { event });
+    logger.trace('onClickPawnPromotion');
     const { promotionMove } = this.state;
     const index = Math.floor(event.offsetX / squareSize);
     promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
@@ -157,7 +158,7 @@ class Board extends React.Component {
   };
 
   getEventSquare = (event) => {
-    logger.trace('getEventSquare', { event });
+    logger.trace('getEventSquare');
     const { squares } = this.state;
     const rank = 7 - Math.floor(event.offsetY / squareSize);
     const file = Math.floor(event.offsetX / squareSize);
@@ -165,7 +166,7 @@ class Board extends React.Component {
   };
 
   initDrag = (dragPiece) => {
-    logger.trace('initDrag', { dragPiece });
+    logger.trace('initDrag');
     this.setState({ dragPiece });
   };
 
@@ -179,25 +180,25 @@ class Board extends React.Component {
   };
 
   initMove = (fromSquare) => {
-    logger.trace('initMove', { fromSquare });
+    logger.trace('initMove');
     fromSquare.piece = null;
     this.setPossibleSquares(fromSquare);
     this.setActiveSquare(fromSquare);
   };
 
   doPawnPromotion = (move) => {
-    logger.trace('doPawnPromotion', { move });
     const { game } = this.state;
     // temporarily move pawn to new square
     game.squares[move.fromIndex] = null;
     game.squares[move.toIndex] = move.piece;
     this.syncSquares();
     // trigger the promotion modal
+    logger.trace('doPawnPromotion');
     this.setState({ promotionMove: move });
   };
 
   doMove = (move) => {
-    logger.trace('doMove', { move });
+    logger.trace('doMove');
     const { game } = this.state;
     game.doMove(move);
     this.syncSquares();
@@ -233,7 +234,7 @@ class Board extends React.Component {
   };
 
   setPreviousSquares = (move) => {
-    logger.trace('setPreviousSquares', { move });
+    logger.trace('setPreviousSquares');
     const { squares } = this.state;
     const previousSquares = [
       squares[move.fromIndex],
@@ -248,7 +249,7 @@ class Board extends React.Component {
   };
 
   getLegalMove = (toSquare) => {
-    logger.trace('getLegalMove', { toSquare });
+    logger.trace('getLegalMove');
     const { activeSquare, game } = this.state;
     return game.legalMoves
       .find((move) => move.fromIndex === activeSquare.index

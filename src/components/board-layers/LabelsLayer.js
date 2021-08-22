@@ -38,7 +38,7 @@ class LabelsLayer extends React.Component {
   };
 
   render() {
-    logger.trace('redner');
+    logger.trace('render');
     return <canvas id={canvasId} />;
   }
 }

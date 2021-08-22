@@ -27,11 +27,11 @@ class App extends React.Component {
   };
 
   loadGame = () => {
-    logger.trace('loadGame');
+    logger.trace('loadGame - NOT IMPLEMENTED!');
   };
 
   saveGame = () => {
-    logger.trace('saveGame');
+    logger.trace('saveGame - NOT IMPLEMENTED!');
   };
 
   render() {

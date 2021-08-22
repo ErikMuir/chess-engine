@@ -18,7 +18,7 @@ const logger = new Logger('Game');
 
 export default class Game {
   constructor({ fen = startPosition, preventRecursion = false } = {}) {
-    if (!preventRecursion) logger.trace('ctor', { fen, preventRecursion });
+    if (!preventRecursion) logger.trace('ctor');
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
     this.activePlayer = null;
@@ -85,7 +85,7 @@ export default class Game {
   };
 
   doMove = (move) => {
-    if (!this.preventRecursion) logger.trace('doMove', { move });
+    if (!this.preventRecursion) logger.trace('doMove');
     this.squares[move.fromIndex] = null;
     this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
@@ -101,20 +101,20 @@ export default class Game {
   };
 
   getMovePiece = (move) => {
-    if (!this.preventRecursion) logger.trace('getMovePiece', { move });
+    if (!this.preventRecursion) logger.trace('getMovePiece');
     if (!move.isPawnPromotion) return move.piece;
     return this.activePlayer | move.pawnPromotionType;
   };
 
   handleEnPassant = (move) => {
-    if (!this.preventRecursion) logger.trace('handleEnPassant', { move });
+    if (!this.preventRecursion) logger.trace('handleEnPassant');
     const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     this.squares[captureSquareIndex] = null;
   };
 
   handleCastle = (move) => {
-    if (!this.preventRecursion) logger.trace('handleCastle', { move });
+    if (!this.preventRecursion) logger.trace('handleCastle');
     const isKingSide = getFile(move.toIndex) === 6;
     const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
@@ -126,7 +126,7 @@ export default class Game {
   };
 
   postMoveActions = (move) => {
-    if (!this.preventRecursion) logger.trace('postMoveActions', { move });
+    if (!this.preventRecursion) logger.trace('postMoveActions');
     const legalMoves = [...this.legalMoves];
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
@@ -142,7 +142,7 @@ export default class Game {
   };
 
   setEnPassantTargetSquare = (move) => {
-    if (!this.preventRecursion) logger.trace('setEnPassantTargetSquare', { move });
+    if (!this.preventRecursion) logger.trace('setEnPassantTargetSquare');
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     const distance = Math.abs(move.toIndex - move.fromIndex);
     const color = PieceColor.fromPieceValue(move.piece);
@@ -153,7 +153,7 @@ export default class Game {
   };
 
   updateCastlingAvailability = (move) => {
-    if (!this.preventRecursion) logger.trace('updateCastlingAvailability', { move });
+    if (!this.preventRecursion) logger.trace('updateCastlingAvailability');
     if (this.castlingAvailability.length === 0) return;
     const { color, type } = Piece.fromPieceValue(move.piece);
     const fromFile = getFile(move.fromIndex);
@@ -167,7 +167,7 @@ export default class Game {
   };
 
   setHalfMoveClock = (move) => {
-    if (!this.preventRecursion) logger.trace('setMoveClock', { move });
+    if (!this.preventRecursion) logger.trace('setMoveClock');
     const isCapture = !!move.capturePiece;
     const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
     this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
@@ -181,25 +181,25 @@ export default class Game {
   };
 
   updateFullMoveNumber = (move) => {
-    if (!this.preventRecursion) logger.trace('updateFullMoveNumber', { move });
+    if (!this.preventRecursion) logger.trace('updateFullMoveNumber');
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
   };
 
   updateMove = (move) => {
-    if (!this.preventRecursion) logger.trace('updateMove', { move });
+    if (!this.preventRecursion) logger.trace('updateMove');
     move.isCheck = this.isCheck;
     move.isCheckmate = this.isCheckmate;
   };
 
   archiveMove = (move) => {
-    if (!this.preventRecursion) logger.trace('archiveMove', { move });
+    if (!this.preventRecursion) logger.trace('archiveMove');
     this.moveHistory.push(move);
   }
 
   appendToPgn = (move, legalMoves) => {
-    if (!this.preventRecursion) logger.trace('appendToPgn', { move });
+    if (!this.preventRecursion) logger.trace('appendToPgn');
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
     }

@@ -14,7 +14,7 @@ const canvasId = 'active-layer';
 class ActiveLayer extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor', { props });
+    logger.trace('ctor');
     this.state = {
       ctx: null,
       activeSquare: props.activeSquare,

@@ -9,7 +9,7 @@ const canvasId = 'possible-layer';
 class PossibleLayer extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor', { props });
+    logger.trace('ctor');
     this.state = {
       ctx: null,
       possibleSquares: props.possibleSquares,

@@ -11,7 +11,7 @@ const canvasId = 'promotion-canvas';
 class PawnPromotion extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor', { props });
+    logger.trace('ctor');
     this.onAfterOpen = this.onAfterOpen.bind(this);
   }
 

@@ -14,7 +14,7 @@ const canvasId = 'previous-layer';
 class PreviousLayer extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor', { props });
+    logger.trace('ctor');
     this.state = {
       ctx: null,
       previousSquares: props.previousSquares,

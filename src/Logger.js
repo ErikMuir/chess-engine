@@ -33,7 +33,7 @@ module.exports = class Logger {
     if (loggers && loggers !== '*' && !loggers.split(',').includes(this.name)) {
       return;
     }
-    const time = new Date().toLocaleTimeString();
+    const time = new Date().toLocaleTimeString('en-GB');
     console.log(time, this.name, ...data);
   };
 };

@@ -9,7 +9,7 @@ const canvasId = 'pieces-layer';
 class PiecesLayer extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor', { props });
+    logger.trace('ctor');
     this.state = {
       ctx: null,
       piecesSquares: PiecesLayer.getPiecesSquares(props.squares),
