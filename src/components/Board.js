@@ -128,6 +128,7 @@ class Board extends React.Component {
     if (!move) return;
 
     if (move.isPawnPromotion) {
+      this.doTempMove(move);
       this.doPawnPromotion(move);
     } else {
       this.doMove(move);
@@ -186,13 +187,15 @@ class Board extends React.Component {
     this.setActiveSquare(fromSquare);
   };
 
-  doPawnPromotion = (move) => {
+  doTempMove = (move) => {
+    logger.trace('doTempMove');
     const { game } = this.state;
-    // temporarily move pawn to new square
     game.squares[move.fromIndex] = null;
     game.squares[move.toIndex] = move.piece;
     this.syncSquares();
-    // trigger the promotion modal
+  };
+
+  doPawnPromotion = (move) => {
     logger.trace('doPawnPromotion');
     this.setState({ promotionMove: move });
   };
