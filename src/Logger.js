@@ -30,7 +30,7 @@ module.exports = class Logger {
       return;
     }
     const loggers = process.env.LOGGERS;
-    if (loggers && loggers !== '*' && !loggers.split(',').includes(this.name)) {
+    if (loggers && !loggers.split(',').includes(this.name)) {
       return;
     }
     const time = new Date().toLocaleTimeString('en-GB');

@@ -4,11 +4,8 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-- menu
-  - ~~new~~
-  - load
-  - save
-- move list
+- load game
+- save game
 - undo/redo
 - hint
 - analysis
@@ -18,10 +15,12 @@ A javascript chess engine with React chess GUI
 ## Tech Debt
 
 - unit tests
+- convert game over modal to use new white/black pgn arrays
+- consider redux or some other state management system?
 
 ## Known Bugs
 
-- _none_
+- drag piece initially drawn in wrong place until mouse moves
 
 ## Attributions
 

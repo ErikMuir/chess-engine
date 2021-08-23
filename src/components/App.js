@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
 import Header from './Header';
-import Board from './Board';
+import Main from './Main';
 import Footer from './Footer';
 import Logger from '../Logger';
 import Game from '../game/Game';
@@ -19,6 +19,7 @@ class App extends React.Component {
     this.newGame = this.newGame.bind(this);
     this.loadGame = this.loadGame.bind(this);
     this.saveGame = this.saveGame.bind(this);
+    this.updateGame = this.updateGame.bind(this);
   }
 
   newGame = () => {
@@ -34,6 +35,11 @@ class App extends React.Component {
     logger.trace('saveGame - NOT IMPLEMENTED!');
   };
 
+  updateGame = (game) => {
+    logger.trace('updateGame');
+    this.setState({ game });
+  };
+
   render() {
     logger.trace('render');
     const { game } = this.state;
@@ -44,7 +50,10 @@ class App extends React.Component {
           loadGame={this.loadGame}
           saveGame={this.saveGame}
         />
-        <Board game={game} />
+        <Main
+          game={game}
+          updateGame={this.updateGame}
+        />
         <Footer />
       </div>
     );

@@ -192,9 +192,11 @@ class Board extends React.Component {
   doMove = (move) => {
     logger.trace('doMove');
     const { game } = this.state;
+    const { updateGame } = this.props;
     game.doMove(move);
     this.syncSquares();
     game.postMoveActions(move);
+    updateGame(game);
     this.setPreviousSquares(move);
     if (game.isGameOver) {
       this.setState({ showGameOverModal: true });
@@ -281,10 +283,11 @@ class Board extends React.Component {
     } = this.state;
     const width = boardSize;
     const height = boardSize;
+    const flexBasis = boardSize;
 
     return (
-      <main className="app-main">
-        <div className="canvas-container" style={{ width, height }}>
+      <>
+        <div className="board canvas-container" style={{ width, height, flexBasis }}>
           <SquaresLayer squares={squares} />
           <LabelsLayer squares={squares} />
           <PreviousLayer previousSquares={previousSquares} />
@@ -300,7 +303,7 @@ class Board extends React.Component {
         </div>
         {this.getPromotionModal()}
         {this.getGameOverModal()}
-      </main>
+      </>
     );
   }
 }

@@ -31,6 +31,8 @@ export default class Game {
     this.legalMoves = [];
     this.moveHistory = [];
     this.pgnParts = [];
+    this.pgnWhite = [];
+    this.pgnBlack = [];
     this.preventRecursion = preventRecursion;
 
     FEN.load(fen, this);
@@ -200,10 +202,14 @@ export default class Game {
 
   appendToPgn = (move, legalMoves) => {
     if (!this.preventRecursion) logger.trace('appendToPgn');
+    const pgn = PGN.get(move, legalMoves);
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
       this.pgnParts.push(`${this.fullMoveNumber}.`);
+      this.pgnWhite.push(pgn);
+    } else {
+      this.pgnBlack.push(pgn);
     }
-    this.pgnParts.push(PGN.get(move, legalMoves));
+    this.pgnParts.push(pgn);
   };
 
   generateMoves = () => {
