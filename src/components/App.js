@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
+import FileSaver from 'file-saver';
 import Header from './Header';
 import Main from './Main';
 import Footer from './Footer';
@@ -32,7 +33,11 @@ class App extends React.Component {
   };
 
   saveGame = () => {
-    logger.trace('saveGame - NOT IMPLEMENTED!');
+    logger.trace('saveGame');
+    const { game } = this.state;
+    const fileName = `chess-${new Date().toISOString()}.json`;
+    const blob = new Blob([game.json], { type: 'application/json' });
+    FileSaver.saveAs(blob, fileName, { autoBom: true });
   };
 
   updateGame = (game) => {

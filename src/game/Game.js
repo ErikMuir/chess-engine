@@ -17,7 +17,12 @@ import Logger from '../Logger';
 const logger = new Logger('Game');
 
 export default class Game {
-  constructor({ fen = startPosition, preventRecursion = false } = {}) {
+  constructor({
+    fen = startPosition,
+    preventRecursion = false,
+    pgnWhite = [],
+    pgnBlack = [],
+  } = {}) {
     if (!preventRecursion) logger.trace('ctor');
     this.squares = new Array(64);
     this.numSquaresToEdge = new Array(64);
@@ -30,9 +35,9 @@ export default class Game {
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
-    this.pgnParts = [];
-    this.pgnWhite = [];
-    this.pgnBlack = [];
+    this.pgnParts = []; // deprecated
+    this.pgnWhite = pgnWhite;
+    this.pgnBlack = pgnBlack;
     this.preventRecursion = preventRecursion;
 
     FEN.load(fen, this);
@@ -59,6 +64,17 @@ export default class Game {
   get pgn() {
     if (!this.preventRecursion) logger.trace('pgn');
     return this.pgnParts.join(' ');
+  }
+
+  get json() {
+    if (!this.preventRecursion) logger.trace('json');
+    return JSON.stringify({
+      fen: FEN.get(this),
+      pgn: {
+        white: this.pgnWhite,
+        black: this.pgnBlack,
+      },
+    }, null, 2);
   }
 
   init = () => {

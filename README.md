@@ -5,7 +5,6 @@ A javascript chess engine with React chess GUI
 ## Upcoming Features
 
 - load game
-- save game
 - undo/redo
 - hint
 - analysis
