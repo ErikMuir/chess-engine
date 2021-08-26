@@ -5,12 +5,19 @@ import Logger from '../Logger';
 import '../styles/menu.css';
 
 const logger = new Logger('Menu');
+const loadGameInputId = 'load-game-input';
 
 class Menu extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor');
+
     this.state = { isOpen: false };
+
+    this.fileReader = new FileReader();
+    this.fileReader.onerror = () => logger.error(this.fileReader.error);
+    this.fileReader.onload = () => this.handleLoad(this.fileReader.result);
+
     this.toggleMenu = this.toggleMenu.bind(this);
   }
 
@@ -21,6 +28,32 @@ class Menu extends React.Component {
     }));
   };
 
+  chooseFile = () => {
+    logger.trace('chooseFile');
+    const loadGameInput = document.getElementById(loadGameInputId);
+    loadGameInput.click();
+  };
+
+  readFile = () => {
+    logger.trace('readFile');
+    const loadGameInput = document.getElementById(loadGameInputId);
+    const file = loadGameInput.files[0];
+    this.fileReader.readAsText(file);
+  };
+
+  validateGameJson = (gameJson) => {
+    logger.trace('validateGameJson');
+    if (
+      !gameJson
+      || !gameJson.fen
+      || !gameJson.pgn
+      || !gameJson.pgn.white
+      || !gameJson.pgn.black
+    ) {
+      throw new Error('Invalid game json');
+    }
+  };
+
   handleNew = () => {
     logger.trace('handleNew');
     const { newGame } = this.props;
@@ -28,11 +61,18 @@ class Menu extends React.Component {
     this.toggleMenu();
   };
 
-  handleLoad = () => {
+  handleLoad = (readerResult) => {
     logger.trace('handleLoad');
-    const { loadGame } = this.props;
-    loadGame();
-    this.toggleMenu();
+    try {
+      const gameJson = JSON.parse(readerResult);
+      this.validateGameJson(gameJson);
+      const { loadGame } = this.props;
+      loadGame(gameJson);
+      this.toggleMenu();
+    } catch (err) {
+      logger.error('Error loading game', err);
+      // TODO : inform user
+    }
   };
 
   handleSave = () => {
@@ -97,9 +137,15 @@ class Menu extends React.Component {
             </header>
             <div className="menu__list">
               <button type="button" onClick={this.handleNew}>New</button>
-              <button type="button" onClick={this.handleLoad}>Load</button>
+              <button type="button" onClick={this.chooseFile}>Load</button>
               <button type="button" onClick={this.handleSave}>Save</button>
             </div>
+            <input
+              type="file"
+              id={loadGameInputId}
+              onChange={this.readFile}
+              accept="application/json"
+            />
           </Modal>
         </CSSTransition>
       </>

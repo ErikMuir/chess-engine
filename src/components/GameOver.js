@@ -78,7 +78,7 @@ class GameOver extends React.Component {
         <main className="modal__content-container">
           <div className="modal__content">
             <p>{message}</p>
-            <p>{game.pgn}</p>
+            <p>{game.DEPRECATED_pgn}</p>
           </div>
           <footer className="modal__footer">
             <button

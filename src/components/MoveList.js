@@ -18,15 +18,15 @@ class MoveList extends React.Component {
   }
 
   getMoves = () => {
-    const { game: { pgnWhite, pgnBlack } } = this.state;
-    return pgnWhite.map((white, i) => {
+    const { game: { pgn: { white, black } } } = this.state;
+    return white.map((whiteMove, i) => {
       const number = `${i + 1}.`;
-      const black = pgnBlack[i];
+      const blackMove = black[i];
       return (
         <div className="move" key={`${i + 1}`}>
           <span className="move-number">{number}</span>
-          <span className="move-white">{white}</span>
-          <span className="move-black">{black}</span>
+          <span className="move-white">{whiteMove}</span>
+          <span className="move-black">{blackMove}</span>
         </div>
       );
     });

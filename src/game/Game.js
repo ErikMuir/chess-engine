@@ -15,13 +15,13 @@ import {
 import Logger from '../Logger';
 
 const logger = new Logger('Game');
+const schema = '0.0.1';
 
 export default class Game {
   constructor({
     fen = startPosition,
+    pgn = { white: [], black: [] },
     preventRecursion = false,
-    pgnWhite = [],
-    pgnBlack = [],
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
     this.squares = new Array(64);
@@ -35,9 +35,8 @@ export default class Game {
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
-    this.pgnParts = []; // deprecated
-    this.pgnWhite = pgnWhite;
-    this.pgnBlack = pgnBlack;
+    this.DEPRECATED_pgnParts = [];
+    this.pgn = pgn;
     this.preventRecursion = preventRecursion;
 
     FEN.load(fen, this);
@@ -61,19 +60,18 @@ export default class Game {
     return this.isGameOver && this.isCheck;
   }
 
-  get pgn() {
+  // eslint-disable-next-line camelcase
+  get DEPRECATED_pgn() {
     if (!this.preventRecursion) logger.trace('pgn');
-    return this.pgnParts.join(' ');
+    return this.DEPRECATED_pgnParts.join(' ');
   }
 
   get json() {
     if (!this.preventRecursion) logger.trace('json');
     return JSON.stringify({
+      schema,
       fen: FEN.get(this),
-      pgn: {
-        white: this.pgnWhite,
-        black: this.pgnBlack,
-      },
+      pgn: this.pgn,
     }, null, 2);
   }
 
@@ -220,12 +218,12 @@ export default class Game {
     if (!this.preventRecursion) logger.trace('appendToPgn');
     const pgn = PGN.get(move, legalMoves);
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
-      this.pgnParts.push(`${this.fullMoveNumber}.`);
-      this.pgnWhite.push(pgn);
+      this.DEPRECATED_pgnParts.push(`${this.fullMoveNumber}.`);
+      this.pgn.white.push(pgn);
     } else {
-      this.pgnBlack.push(pgn);
+      this.pgn.black.push(pgn);
     }
-    this.pgnParts.push(pgn);
+    this.DEPRECATED_pgnParts.push(pgn);
   };
 
   generateMoves = () => {

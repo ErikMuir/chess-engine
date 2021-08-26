@@ -6,7 +6,6 @@ import Main from './Main';
 import Footer from './Footer';
 import Logger from '../Logger';
 import Game from '../game/Game';
-import { startPosition } from '../game/utils';
 
 Modal.setAppElement('#app');
 const logger = new Logger('App');
@@ -14,9 +13,7 @@ const logger = new Logger('App');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      game: new Game({ fen: startPosition }),
-    };
+    this.state = { game: new Game() };
     this.newGame = this.newGame.bind(this);
     this.loadGame = this.loadGame.bind(this);
     this.saveGame = this.saveGame.bind(this);
@@ -25,11 +22,13 @@ class App extends React.Component {
 
   newGame = () => {
     logger.trace('newGame');
-    this.setState({ game: new Game({ fen: startPosition }) });
+    this.setState({ game: new Game() });
   };
 
-  loadGame = () => {
-    logger.trace('loadGame - NOT IMPLEMENTED!');
+  loadGame = (gameJson) => {
+    logger.trace('loadGame');
+    const game = new Game(gameJson);
+    this.setState({ game });
   };
 
   saveGame = () => {

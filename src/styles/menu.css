@@ -50,6 +50,11 @@
   background-color: #e3e4e3;
 }
 
+#load-game-input {
+  position: fixed;
+  top: -100rem;
+}
+
 .ReactModal__Overlay {
   /* opacity: 0; */
   transform: translateX(-25vw);
