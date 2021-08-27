@@ -18,15 +18,11 @@ class InteractiveLayer extends React.Component {
 
   componentDidMount() {
     logger.trace('componentDidMount');
-    const {
-      onMouseDown,
-      onMouseUp,
-      onMouseOut,
-    } = this.props;
+    const { onMouseUp, onMouseOut } = this.props;
     const canvas = document.getElementById(canvasId);
     canvas.width = boardSize;
     canvas.height = boardSize;
-    canvas.onmousedown = onMouseDown;
+    canvas.onmousedown = this.onMouseDownWrapper;
     canvas.onmouseup = onMouseUp;
     canvas.onmouseout = onMouseOut;
     canvas.onmousemove = this.onMouseMove;
@@ -36,6 +32,15 @@ class InteractiveLayer extends React.Component {
     const { dragPiece } = props;
     return dragPiece === state.dragPiece ? null : { dragPiece };
   }
+
+  onMouseDownWrapper = (event) => {
+    const { onMouseDown } = this.props;
+    this.setState({
+      dragX: event.offsetX,
+      dragY: event.offsetY,
+    });
+    onMouseDown(event);
+  };
 
   onMouseMove = (event) => {
     const { dragPiece } = this.state;

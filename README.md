@@ -17,7 +17,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- drag piece initially drawn in wrong place until mouse moves
+- _none_
 
 ## Attributions
 
