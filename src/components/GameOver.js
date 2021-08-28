@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
+import { getMoves } from './MoveList';
 import PieceColor from '../game/PieceColor';
 import { squareSize } from '../game/utils';
 import Logger from '../Logger';
@@ -25,8 +26,8 @@ class GameOver extends React.Component {
   getOverlayStyle = () => ({
     position: 'fixed',
     top: 0,
-    left: 0,
-    right: 0,
+    left: -1000,
+    right: -1000,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     display: 'flex',
@@ -78,7 +79,7 @@ class GameOver extends React.Component {
         <main className="modal__content-container">
           <div className="modal__content">
             <p>{message}</p>
-            <p>{game.DEPRECATED_pgn}</p>
+            {getMoves(game)}
           </div>
           <footer className="modal__footer">
             <button

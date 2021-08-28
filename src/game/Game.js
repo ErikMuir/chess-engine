@@ -35,7 +35,6 @@ export default class Game {
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
-    this.DEPRECATED_pgnParts = [];
     this.pgn = pgn;
     this.preventRecursion = preventRecursion;
 
@@ -58,12 +57,6 @@ export default class Game {
   get isCheckmate() {
     if (!this.preventRecursion) logger.trace('isCheckmate');
     return this.isGameOver && this.isCheck;
-  }
-
-  // eslint-disable-next-line camelcase
-  get DEPRECATED_pgn() {
-    if (!this.preventRecursion) logger.trace('pgn');
-    return this.DEPRECATED_pgnParts.join(' ');
   }
 
   get json() {
@@ -218,12 +211,10 @@ export default class Game {
     if (!this.preventRecursion) logger.trace('appendToPgn');
     const pgn = PGN.get(move, legalMoves);
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
-      this.DEPRECATED_pgnParts.push(`${this.fullMoveNumber}.`);
       this.pgn.white.push(pgn);
     } else {
       this.pgn.black.push(pgn);
     }
-    this.DEPRECATED_pgnParts.push(pgn);
   };
 
   generateMoves = () => {

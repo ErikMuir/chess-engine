@@ -45,25 +45,23 @@ body {
 
 .move-list {
   padding-left: 2rem;
+  overflow-x: hidden;
   overflow-y: auto;
   font-size: 125%;
   line-height: 150%;
 }
 
 .move {
-  display: flex;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.move > span {
+  margin-right: 0.5rem;
 }
 
 .move-number {
   color: #999999;
-}
-
-.move-white {
-  margin-left: 1rem;
-}
-
-.move-black {
-  margin-left: 0.75rem;
 }
 
 .icon-button {

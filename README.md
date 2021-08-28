@@ -12,7 +12,6 @@ A javascript chess engine with React chess GUI
 ## Tech Debt
 
 - unit tests
-- convert game over modal to use new white/black pgn arrays
 - consider redux or some other state management system?
 
 ## Known Bugs
