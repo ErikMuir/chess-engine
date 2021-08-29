@@ -4,6 +4,7 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
+- navigate move list
 - analysis
 - hint
 - play vs computer
