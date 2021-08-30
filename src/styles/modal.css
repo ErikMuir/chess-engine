@@ -1,25 +1,14 @@
-.modal__overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
+.ReactModal__Overlay {
+  transform: translateX(-25vw);
+  transition: all 500ms ease-in-out;
 }
 
-.modal__container {
-  background-color: transparent;
-  padding: 0px;
-  max-width: 740px;
-  height: 75vh;
-  width: 50%;
-  border-radius: 0px;
-  overflow: hidden;
-  box-sizing: border-box;
+.ReactModal__Overlay--after-open {
+  transform: translateX(0px);
+}
+
+.ReactModal__Overlay--before-close {
+  transform: translateX(-25vw);
 }
 
 .modal__header {
@@ -135,17 +124,4 @@
 .modal__btn-primary {
   background-color: #00449e;
   color: #fff;
-}
-
-.ReactModal__Overlay {
-  transform: translateX(-25vw);
-  transition: all 500ms ease-in-out;
-}
-
-.ReactModal__Overlay--after-open {
-  transform: translateX(0px);
-}
-
-.ReactModal__Overlay--before-close {
-  transform: translateX(-25vw);
 }

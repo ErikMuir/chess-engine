@@ -114,7 +114,12 @@ class Menu extends React.Component {
     };
     return (
       <>
-        <button type="button" className="icon-button" onClick={this.toggleMenu}>☰</button>
+        <button
+          type="button"
+          className="menu__open"
+          aria-label="Open menu"
+          onClick={this.toggleMenu}
+        />
         <CSSTransition
           in={isOpen}
           timeout={300}

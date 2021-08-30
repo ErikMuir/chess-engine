@@ -56,22 +56,10 @@ body {
   margin-right: 0.5rem;
 }
 
-.move > span {
+.move>span {
   margin-right: 0.5rem;
 }
 
 .move-number {
   color: #999999;
-}
-
-.icon-button {
-  background: transparent;
-  cursor: pointer;
-  padding: 0 0.5rem;
-  margin: 0;
-  border: none;
-  outline: none;
-  color: #eeeeee;
-  font-size: 2rem;
-  font-weight: bold;
 }

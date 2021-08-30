@@ -1,3 +1,19 @@
+.menu__open {
+  background: transparent;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  margin: 0;
+  border: none;
+  outline: none;
+  color: #eeeeee;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.menu__open:before {
+  content: "\2630";
+}
+
 .menu__header {
   display: flex;
   justify-content: space-between;
@@ -45,8 +61,7 @@
   border-bottom: 1px solid rgba(150, 150, 150, 0.5);
 }
 
-.menu__list button:hover,
-.menu__list button:focus {
+.menu__list button:hover, .menu__list button:focus {
   background-color: #e3e4e3;
 }
 
