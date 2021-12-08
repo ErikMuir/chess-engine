@@ -18,12 +18,19 @@
     "react"
   ],
   "rules": {
+    "import/prefer-default-export": "off",
+    "react/function-component-definition": "off",
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/jsx-props-no-spreading": "off",
+    "react/no-arrow-function-lifecycle": "off",
+    "react/no-invalid-html-attribute": "off",
+    "react/no-namespace": "off",
+    "react/no-unused-class-component-methods": "off",
+    "react/prefer-exact-props": "off",
+    "react/prop-types": "off",
     "no-bitwise": "off",
     "no-console": "off",
     "no-param-reassign": "off",
-    "import/prefer-default-export": "off",
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
-    "react/jsx-props-no-spreading": "off",
-    "react/prop-types": "off"
+    "no-promise-executor-return": "off"
   }
 }

@@ -6,6 +6,9 @@ import Main from './Main';
 import Footer from './Footer';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import '../styles/app.css';
+import '../styles/canvas.css';
+import '../styles/modal.css';
 
 Modal.setAppElement('#app');
 const logger = new Logger('App');

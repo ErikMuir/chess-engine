@@ -23,6 +23,14 @@ const testFEN = {
   checkmate: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
   disambiguation: 'q5qk//q1q////PPPPPPPP/RNBQKBNR b - - 0 0',
 };
+const checkmateGameJson = {
+  schema: '0.0.1',
+  fen: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
+  pgn: {
+    white: ['f4', 'g4'],
+    black: ['e5'],
+  },
+};
 
 const proportion = (ratio) => Math.floor(squareSize * ratio);
 const getFile = (index) => index % 8;
@@ -51,6 +59,7 @@ export {
   directionIndex,
   startPosition,
   testFEN,
+  checkmateGameJson,
   proportion,
   getFile,
   getRank,
