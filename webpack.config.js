@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = (env) => {
   console.log(env);
+  const { LOG_LEVEL = 'info' } = env;
   return {
     entry: './src/index.js',
     output: {
@@ -21,7 +22,7 @@ module.exports = (env) => {
     mode: 'development',
     plugins: [
       new webpack.EnvironmentPlugin({
-        LOG_LEVEL: env.LOG_LEVEL || 'info',
+        LOG_LEVEL,
         LOGGERS: process.env.npm_config_loggers || null, // npm run start:trace --loggers=Game,Board
       }),
       new HtmlWebpackPlugin({ template: './public/index.html' }),

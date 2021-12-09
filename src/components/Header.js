@@ -6,7 +6,9 @@ const logger = new Logger('Header');
 
 const Header = (props) => {
   logger.trace('render');
-  const { newGame, loadGame, saveGame } = props;
+  const {
+    newGame, loadGame, saveGame, resign,
+  } = props;
   return (
     <header className="app-header">
       <div>
@@ -14,6 +16,7 @@ const Header = (props) => {
           newGame={newGame}
           loadGame={loadGame}
           saveGame={saveGame}
+          resign={resign}
         />
       </div>
     </header>

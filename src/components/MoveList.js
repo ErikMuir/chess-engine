@@ -4,20 +4,20 @@ import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
 
+const getMoveNumber = (whiteMove, moveNumber) => (whiteMove.includes('resign') ? null : `${moveNumber}.`);
+
+const getMove = (whiteMove, blackMove, moveNumber) => (
+  <div className="move" key={moveNumber}>
+    <span className="move-number">{getMoveNumber(whiteMove, moveNumber)}</span>
+    <span>{whiteMove}</span>
+    <span>{blackMove}</span>
+  </div>
+);
+
 export const getMoves = ({ pgn }) => {
   logger.trace('getMoves');
   const { white, black } = pgn;
-  return white.map((whiteMove, i) => {
-    const number = `${i + 1}.`;
-    const blackMove = black[i];
-    return (
-      <div className="move" key={`${i + 1}`}>
-        <span className="move-number">{number}</span>
-        <span>{whiteMove}</span>
-        <span>{blackMove}</span>
-      </div>
-    );
-  });
+  return white.map((whiteMove, i) => getMove(whiteMove, black[i], (i + 1)));
 };
 
 class MoveList extends React.Component {
@@ -37,11 +37,8 @@ class MoveList extends React.Component {
     logger.trace('render');
     const { game } = this.state;
     const height = boardSize;
-    return (
-      <div className="aside move-list" style={{ height }}>
-        {getMoves(game)}
-      </div>
-    );
+    const moves = getMoves(game);
+    return <div className="aside move-list" style={{ height }}>{moves}</div>;
   }
 }
 

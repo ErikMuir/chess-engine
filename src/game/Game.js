@@ -93,6 +93,16 @@ export default class Game {
     }
   };
 
+  resign = () => {
+    if (!this.preventRecursion) logger.trace('resign');
+    this.legalMoves = [];
+    if (this.activePlayer === PieceColor.white) {
+      this.pgn.white.push('0-1 (white resigns)');
+    } else {
+      this.pgn.black.push('1-0 (black resigns)');
+    }
+  };
+
   doMove = (move) => {
     if (!this.preventRecursion) logger.trace('doMove');
     this.squares[move.fromIndex] = null;
@@ -205,7 +215,7 @@ export default class Game {
   archiveMove = (move) => {
     if (!this.preventRecursion) logger.trace('archiveMove');
     this.moveHistory.push(move);
-  }
+  };
 
   appendToPgn = (move, legalMoves) => {
     if (!this.preventRecursion) logger.trace('appendToPgn');

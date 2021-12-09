@@ -18,19 +18,6 @@ const directionIndex = {
   get southWest() { return 7; },
 };
 const startPosition = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-const testFEN = {
-  promotion: 'k/7P//////K w - - 0 0',
-  checkmate: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
-  disambiguation: 'q5qk//q1q////PPPPPPPP/RNBQKBNR b - - 0 0',
-};
-const checkmateGameJson = {
-  schema: '0.0.1',
-  fen: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
-  pgn: {
-    white: ['f4', 'g4'],
-    black: ['e5'],
-  },
-};
 
 const proportion = (ratio) => Math.floor(squareSize * ratio);
 const getFile = (index) => index % 8;
@@ -46,6 +33,33 @@ const getCoordinatesFromSquareIndex = (index) => {
   return `${'abcdefgh'[file]}${rank + 1}`;
 };
 
+const testGames = {
+  checkmate: {
+    schema: '0.0.1',
+    fen: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
+    pgn: {
+      white: ['f4', 'g4'],
+      black: ['e5'],
+    },
+  },
+  disambiguation: {
+    schema: '0.0.1',
+    fen: 'q5qk//q1q///P/1PPPPPPP/RNBQKBNR b - - 0 0',
+    pgn: {
+      white: ['a3'],
+      black: [],
+    },
+  },
+  promotion: {
+    schema: '0.0.1',
+    fen: 'k/7P//////K w - - 0 0',
+    pgn: {
+      white: [],
+      black: [],
+    },
+  },
+};
+
 export {
   squareSize,
   boardSize,
@@ -58,8 +72,7 @@ export {
   directionOffsets,
   directionIndex,
   startPosition,
-  testFEN,
-  checkmateGameJson,
+  testGames,
   proportion,
   getFile,
   getRank,

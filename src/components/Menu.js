@@ -82,6 +82,13 @@ class Menu extends React.Component {
     this.toggleMenu();
   };
 
+  handleResign = () => {
+    logger.trace('handleResign');
+    const { resign } = this.props;
+    resign();
+    this.toggleMenu();
+  };
+
   render() {
     logger.trace('render');
     const { isOpen } = this.state;
@@ -144,6 +151,7 @@ class Menu extends React.Component {
               <button type="button" onClick={this.handleNew}>New</button>
               <button type="button" onClick={this.chooseFile}>Load</button>
               <button type="button" onClick={this.handleSave}>Save</button>
+              <button type="button" onClick={this.handleResign}>Resign</button>
             </div>
             <input
               type="file"

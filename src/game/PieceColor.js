@@ -13,11 +13,11 @@ class PieceColor {
 
   static fromFEN = (val) => (val === val.toUpperCase()
     ? PieceColor.white
-    : PieceColor.black)
+    : PieceColor.black);
 
   static updateCasing = (symbol, color) => (color === PieceColor.white
     ? symbol.toUpperCase()
-    : symbol.toLowerCase())
+    : symbol.toLowerCase());
 
   static opposite = (val) => {
     switch (val) {

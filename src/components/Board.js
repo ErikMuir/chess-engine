@@ -43,6 +43,7 @@ class Board extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const { game } = this.state;
     if (game !== prevState.game) {
+      // needed for new game or load game
       this.clearActiveSquare();
       this.clearPossibleSquares();
       this.clearPreviousSquares();
@@ -198,6 +199,12 @@ class Board extends React.Component {
     game.postMoveActions(move);
     updateGame(game);
     this.setPreviousSquares(move);
+    this.checkGameOver();
+  };
+
+  checkGameOver = () => {
+    logger.trace('checkGameOver');
+    const { game } = this.state;
     if (game.isGameOver) {
       this.setState({ showGameOverModal: true });
     }

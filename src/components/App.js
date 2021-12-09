@@ -20,6 +20,7 @@ class App extends React.Component {
     this.newGame = this.newGame.bind(this);
     this.loadGame = this.loadGame.bind(this);
     this.saveGame = this.saveGame.bind(this);
+    this.resign = this.resign.bind(this);
     this.updateGame = this.updateGame.bind(this);
   }
 
@@ -42,6 +43,13 @@ class App extends React.Component {
     FileSaver.saveAs(blob, fileName, { autoBom: true });
   };
 
+  resign = () => {
+    logger.trace('resign');
+    const { game } = this.state;
+    game.resign();
+    this.updateGame(game);
+  };
+
   updateGame = (game) => {
     logger.trace('updateGame');
     this.setState({ game });
@@ -56,6 +64,7 @@ class App extends React.Component {
           newGame={this.newGame}
           loadGame={this.loadGame}
           saveGame={this.saveGame}
+          resign={this.resign}
         />
         <Main
           game={game}
