@@ -37,6 +37,7 @@ export default class Game {
     this.moveHistory = [];
     this.pgn = pgn;
     this.preventRecursion = preventRecursion;
+    this.isResignation = false;
 
     FEN.load(fen, this);
     this.init();
@@ -95,6 +96,7 @@ export default class Game {
 
   resign = () => {
     if (!this.preventRecursion) logger.trace('resign');
+    this.isResignation = true;
     this.legalMoves = [];
     if (this.activePlayer === PieceColor.white) {
       this.pgn.white.push('0-1 (white resigns)');

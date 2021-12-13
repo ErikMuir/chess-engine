@@ -6,7 +6,6 @@ import PiecesLayer from './board-layers/PiecesLayer';
 import PossibleLayer from './board-layers/PossibleLayer';
 import PreviousLayer from './board-layers/PreviousLayer';
 import SquaresLayer from './board-layers/SquaresLayer';
-import GameOver from './GameOver';
 import PawnPromotion from './PawnPromotion';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
@@ -31,13 +30,11 @@ class Board extends React.Component {
       dragPiece: null,
       deselect: false,
       promotionMove: null,
-      showGameOverModal: false,
     };
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
-    this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -143,11 +140,6 @@ class Board extends React.Component {
     this.setState({ promotionMove: null });
   };
 
-  closeGameOverModal = () => {
-    logger.trace('closeGameOverModal');
-    this.setState({ showGameOverModal: false });
-  };
-
   getEventSquare = (event) => {
     logger.trace('getEventSquare');
     const { squares } = this.state;
@@ -199,15 +191,6 @@ class Board extends React.Component {
     game.postMoveActions(move);
     updateGame(game);
     this.setPreviousSquares(move);
-    this.checkGameOver();
-  };
-
-  checkGameOver = () => {
-    logger.trace('checkGameOver');
-    const { game } = this.state;
-    if (game.isGameOver) {
-      this.setState({ showGameOverModal: true });
-    }
   };
 
   setActiveSquare = (activeSquare) => {
@@ -268,17 +251,6 @@ class Board extends React.Component {
       ) : null;
   };
 
-  getGameOverModal = () => {
-    const { game, showGameOverModal } = this.state;
-    return showGameOverModal
-      ? (
-        <GameOver
-          game={game}
-          closeGameOverModal={this.closeGameOverModal}
-        />
-      ) : null;
-  };
-
   render() {
     logger.trace('render');
     const {
@@ -309,7 +281,6 @@ class Board extends React.Component {
           />
         </div>
         {this.getPromotionModal()}
-        {this.getGameOverModal()}
       </>
     );
   }

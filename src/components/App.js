@@ -4,6 +4,7 @@ import FileSaver from 'file-saver';
 import Header from './Header';
 import Main from './Main';
 import Footer from './Footer';
+import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
 import '../styles/app.css';
@@ -16,13 +17,30 @@ const logger = new Logger('App');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { game: new Game() };
+    this.state = {
+      game: new Game(),
+      showGameOverModal: false,
+    };
     this.newGame = this.newGame.bind(this);
     this.loadGame = this.loadGame.bind(this);
     this.saveGame = this.saveGame.bind(this);
     this.resign = this.resign.bind(this);
     this.updateGame = this.updateGame.bind(this);
+    this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
+
+  checkGameOver = () => {
+    logger.trace('checkGameOver');
+    const { game } = this.state;
+    if (game.isGameOver) {
+      this.setState({ showGameOverModal: true });
+    }
+  };
+
+  closeGameOverModal = () => {
+    logger.trace('closeGameOverModal');
+    this.setState({ showGameOverModal: false });
+  };
 
   newGame = () => {
     logger.trace('newGame');
@@ -53,6 +71,18 @@ class App extends React.Component {
   updateGame = (game) => {
     logger.trace('updateGame');
     this.setState({ game });
+    this.checkGameOver();
+  };
+
+  getGameOverModal = () => {
+    const { game, showGameOverModal } = this.state;
+    return showGameOverModal
+      ? (
+        <GameOver
+          game={game}
+          closeGameOverModal={this.closeGameOverModal}
+        />
+      ) : null;
   };
 
   render() {
@@ -71,6 +101,7 @@ class App extends React.Component {
           updateGame={this.updateGame}
         />
         <Footer />
+        {this.getGameOverModal()}
       </div>
     );
   }

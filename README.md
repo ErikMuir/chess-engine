@@ -4,7 +4,6 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-- resignation
 - navigate move list
 - analysis
 - hint
