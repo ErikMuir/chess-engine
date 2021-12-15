@@ -20,30 +20,15 @@ export const getMoves = ({ pgn }) => {
   return white.map((whiteMove, i) => getMove(whiteMove, black[i], (i + 1)));
 };
 
-class MoveList extends React.Component {
-  constructor(props) {
-    super(props);
-    logger.trace('ctor');
-    const { game } = props;
-    this.state = { game };
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    const { game } = props;
-    return game === state.game ? null : { game };
-  }
-
-  render() {
-    logger.trace('render');
-    const { game } = this.state;
-    const height = boardSize;
-    const moves = getMoves(game);
-    return (
-      <div className="aside move-list" style={{ height }}>
-        {moves}
-      </div>
-    );
-  }
-}
+const MoveList = ({ game }) => {
+  logger.trace('render');
+  const height = boardSize;
+  const moves = getMoves(game);
+  return (
+    <div className="aside move-list" style={{ height }}>
+      {moves}
+    </div>
+  );
+};
 
 export default MoveList;

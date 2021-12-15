@@ -1,9 +1,9 @@
 import React from 'react';
 import Modal from 'react-modal';
 import FileSaver from 'file-saver';
-import Header from './Header';
-import Main from './Main';
-import Footer from './Footer';
+import Controls from './Controls';
+import Board from './Board';
+import MoveList from './MoveList';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
@@ -28,14 +28,6 @@ class App extends React.Component {
     this.updateApp = this.updateApp.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
-
-  checkGameOver = () => {
-    logger.trace('checkGameOver');
-    const { game } = this.state;
-    if (game.isGameOver) {
-      this.setState({ showGameOverModal: true });
-    }
-  };
 
   closeGameOverModal = () => {
     logger.trace('closeGameOverModal');
@@ -72,8 +64,7 @@ class App extends React.Component {
 
   updateApp = (game) => {
     logger.trace('updateApp');
-    this.setState({ game });
-    this.checkGameOver();
+    this.setState({ game, showGameOverModal: game.isGameOver });
   };
 
   getGameOverModal = () => {
@@ -92,16 +83,20 @@ class App extends React.Component {
     const { game } = this.state;
     return (
       <div className="app-container">
-        <Header />
-        <Main
-          game={game}
-          updateApp={this.updateApp}
-          newGame={this.newGame}
-          importGame={this.importGame}
-          exportGame={this.exportGame}
-          resign={this.resign}
-        />
-        <Footer />
+        <header className="app-header" />
+        <main className="app-main">
+          <Controls
+            newGame={this.newGame}
+            importGame={this.importGame}
+            exportGame={this.exportGame}
+            resign={this.resign}
+          />
+          <Board game={game} updateApp={this.updateApp} />
+          <MoveList game={game} />
+        </main>
+        <footer className="app-footer">
+          <span>{`© ${new Date().getFullYear()} MuirDev`}</span>
+        </footer>
         {this.getGameOverModal()}
       </div>
     );

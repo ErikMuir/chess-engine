@@ -1,7 +1,10 @@
 import React from 'react';
 import Icon from '@mdi/react';
 import {
-  mdiFlag, mdiNewBox, mdiImport, mdiTrayArrowDown,
+  mdiFlag,
+  mdiNewBox,
+  mdiImport,
+  mdiTrayArrowDown,
 } from '@mdi/js';
 import { boardSize } from '../game/utils';
 import Logger from '../Logger';
@@ -54,29 +57,28 @@ class Controls extends React.Component {
 
   handleNew = (e) => {
     logger.trace('handleNew');
-    e.target.blur();
+    e.currentTarget.blur();
     const { newGame } = this.props;
     newGame();
   };
 
   handleImport = (e) => {
     logger.trace('handleImport');
-    console.log(e);
-    e.target.blur();
+    e.currentTarget.blur();
     const loadGameInput = document.getElementById(loadGameInputId);
     loadGameInput.click();
   };
 
   handleExport = (e) => {
     logger.trace('handleExport');
-    e.target.blur();
+    e.currentTarget.blur();
     const { exportGame } = this.props;
     exportGame();
   };
 
   handleResign = (e) => {
     logger.trace('handleResign');
-    e.target.blur();
+    e.currentTarget.blur();
     const { resign } = this.props;
     resign();
   };

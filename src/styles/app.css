@@ -87,7 +87,7 @@ body {
 }
 
 .move div {
-  padding: 4px;
+  padding: 2px 4px;
 }
 
 .move:nth-child(even) {
@@ -95,12 +95,10 @@ body {
 }
 
 .move-number {
-  padding: 4px;
   width: 1.5rem;
   color: #999999;
 }
 
 .move-symbol {
-  padding: 4px;
-  width: 4rem;
+  min-width: 4rem;
 }

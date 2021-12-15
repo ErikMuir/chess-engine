@@ -1,17 +1,10 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { getMoves } from './MoveList';
 import PieceColor from '../game/PieceColor';
 import { squareSize } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('GameOver');
-
-const getTitle = ({ isResignation, isCheckmate }) => {
-  if (isResignation) return 'Resignation';
-  if (isCheckmate) return 'Checkmate';
-  return 'Stalemate';
-};
 
 const getMessage = ({
   isResignation, isCheckmate, activePlayer, fullMoveNumber,
@@ -39,9 +32,8 @@ const getOverlayStyle = () => ({
 const getContentStyle = () => ({
   backgroundColor: 'transparent',
   padding: 0,
-  maxWidth: '740px',
   height: '75vh',
-  width: '50%',
+  maxWidth: '500px',
   borderRadius: 0,
   overflow: 'hidden',
   boxSizing: 'border-box',
@@ -63,7 +55,7 @@ const GameOver = ({ game, closeGameOverModal }) => {
       style={{ overlay: getOverlayStyle(), content: getContentStyle() }}
     >
       <header className="modal__header">
-        <h2 className="modal__title">{getTitle(game)}</h2>
+        <h2 className="modal__title">Game Over</h2>
         <button
           type="button"
           className="modal__close"
@@ -72,20 +64,7 @@ const GameOver = ({ game, closeGameOverModal }) => {
         />
       </header>
       <main className="modal__content-container">
-        <div className="modal__content">
-          <p>{getMessage(game)}</p>
-          {getMoves(game)}
-        </div>
-        <footer className="modal__footer">
-          <button
-            type="button"
-            className="modal__btn"
-            aria-label="Close modal"
-            onClick={closeGameOverModal}
-          >
-            Close
-          </button>
-        </footer>
+        <div className="modal__content">{getMessage(game)}</div>
       </main>
     </Modal>
   );
