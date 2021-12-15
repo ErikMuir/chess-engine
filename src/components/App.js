@@ -22,10 +22,10 @@ class App extends React.Component {
       showGameOverModal: false,
     };
     this.newGame = this.newGame.bind(this);
-    this.loadGame = this.loadGame.bind(this);
-    this.saveGame = this.saveGame.bind(this);
+    this.importGame = this.importGame.bind(this);
+    this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
-    this.updateGame = this.updateGame.bind(this);
+    this.updateApp = this.updateApp.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
@@ -47,14 +47,14 @@ class App extends React.Component {
     this.setState({ game: new Game() });
   };
 
-  loadGame = (gameJson) => {
-    logger.trace('loadGame');
+  importGame = (gameJson) => {
+    logger.trace('importGame');
     const game = new Game(gameJson);
     this.setState({ game });
   };
 
-  saveGame = () => {
-    logger.trace('saveGame');
+  exportGame = () => {
+    logger.trace('exportGame');
     const { game } = this.state;
     const fileName = `chess-${new Date().toISOString()}.json`;
     const blob = new Blob([game.json], { type: 'application/json' });
@@ -64,12 +64,14 @@ class App extends React.Component {
   resign = () => {
     logger.trace('resign');
     const { game } = this.state;
-    game.resign();
-    this.updateGame(game);
+    if (!game.isGameOver) {
+      game.resign();
+      this.updateApp(game);
+    }
   };
 
-  updateGame = (game) => {
-    logger.trace('updateGame');
+  updateApp = (game) => {
+    logger.trace('updateApp');
     this.setState({ game });
     this.checkGameOver();
   };
@@ -90,15 +92,14 @@ class App extends React.Component {
     const { game } = this.state;
     return (
       <div className="app-container">
-        <Header
-          newGame={this.newGame}
-          loadGame={this.loadGame}
-          saveGame={this.saveGame}
-          resign={this.resign}
-        />
+        <Header />
         <Main
           game={game}
-          updateGame={this.updateGame}
+          updateApp={this.updateApp}
+          newGame={this.newGame}
+          importGame={this.importGame}
+          exportGame={this.exportGame}
+          resign={this.resign}
         />
         <Footer />
         {this.getGameOverModal()}

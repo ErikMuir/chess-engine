@@ -185,11 +185,11 @@ class Board extends React.Component {
   doMove = (move) => {
     logger.trace('doMove');
     const { game } = this.state;
-    const { updateGame } = this.props;
+    const { updateApp } = this.props;
     game.doMove(move);
     this.syncSquares();
     game.postMoveActions(move);
-    updateGame(game);
+    updateApp(game);
     this.setPreviousSquares(move);
   };
 

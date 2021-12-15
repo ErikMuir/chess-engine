@@ -43,6 +43,30 @@ body {
   padding: 0 1rem;
 }
 
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.controls button {
+  background-color: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #eeeeee;
+  font-size: 125%;
+  padding: 1rem 1rem;
+}
+
+.controls button:hover, .controls button:focus {
+  background-color: rgb(89, 89, 89);
+}
+
+.controls button svg {
+  vertical-align: bottom;
+  /* margin-right: 0.5rem; */
+}
+
 .move-list {
   padding-left: 2rem;
   overflow-x: hidden;
@@ -62,4 +86,9 @@ body {
 
 .move-number {
   color: #999999;
+}
+
+#load-game-input {
+  position: fixed;
+  top: -100rem;
 }
