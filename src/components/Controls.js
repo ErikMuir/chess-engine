@@ -30,13 +30,46 @@ class Controls extends React.Component {
 
   validateGameJson = (gameJson) => {
     logger.trace('validateGameJson');
-    // TODO : implement schema validation
+    if (!gameJson || !gameJson.schema) {
+      throw new Error('Invalid game json');
+    }
+    switch (gameJson.schema) {
+      case '0.0.1': validateSchema_0_0_1(gameJson); break;
+      default: validateSchema_1_0_0(gameJons); break;
+    }
+    if (
+      !gameJson
+      || !gameJson.fen
+      || !gameJson.pgn2
+      || !gameJson.pgn2.white
+      || !gameJson.pgn2.black
+    ) {
+      throw new Error('Invalid game json');
+    }
+  };
+
+  validateSchema_0_0_1 = (gameJson) => {
+    logger.trace('validateSchema_0_0_1');
     if (
       !gameJson
       || !gameJson.fen
       || !gameJson.pgn
       || !gameJson.pgn.white
       || !gameJson.pgn.black
+    ) {
+      throw new Error('Invalid game json');
+    }
+  };
+
+  validateSchema_1_0_0 = (gameJson) => {
+    logger.trace('validateSchema_1_0_0');
+    if (
+      !gameJson
+      || !gameJson.fen
+      || !gameJson.pgn
+      || !Array.isArray(gameJson.pgn)
+      || gameJson.pgn.some((move) => !move.white)
+      || gameJson.pgn.filter((move) => !move.black).length > 1
     ) {
       throw new Error('Invalid game json');
     }

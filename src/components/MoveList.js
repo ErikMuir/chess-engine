@@ -14,9 +14,9 @@ const getMove = (whiteMove, blackMove, moveNumber) => (
   </div>
 );
 
-export const getMoves = ({ pgn }) => {
+export const getMoves = ({ pgn2 }) => {
   logger.trace('getMoves');
-  const { white, black } = pgn;
+  const { white, black } = pgn2;
   return white.map((whiteMove, i) => getMove(whiteMove, black[i], (i + 1)));
 };
 

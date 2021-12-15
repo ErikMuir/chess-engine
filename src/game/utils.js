@@ -37,7 +37,7 @@ const testGames = {
   checkmate: {
     schema: '0.0.1',
     fen: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
-    pgn: {
+    pgn2: {
       white: ['f4', 'g4'],
       black: ['e5'],
     },
@@ -45,7 +45,7 @@ const testGames = {
   disambiguation: {
     schema: '0.0.1',
     fen: 'q5qk//q1q///P/1PPPPPPP/RNBQKBNR b - - 0 0',
-    pgn: {
+    pgn2: {
       white: ['a3'],
       black: [],
     },
@@ -53,7 +53,7 @@ const testGames = {
   promotion: {
     schema: '0.0.1',
     fen: 'k/7P//////K w - - 0 0',
-    pgn: {
+    pgn2: {
       white: [],
       black: [],
     },
