@@ -67,28 +67,40 @@ body {
   /* margin-right: 0.5rem; */
 }
 
+#load-game-input {
+  position: fixed;
+  top: -100rem;
+}
+
 .move-list {
   padding-left: 2rem;
   overflow-x: hidden;
   overflow-y: auto;
-  font-size: 125%;
-  line-height: 150%;
+  font-size: 90%;
+  line-height: 120%;
 }
 
 .move {
-  display: inline-block;
-  margin-right: 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 8px;
 }
 
-.move>span {
-  margin-right: 0.5rem;
+.move div {
+  padding: 4px;
+}
+
+.move:nth-child(even) {
+  background-color: rgba(200, 200, 200, 0.1);
 }
 
 .move-number {
+  padding: 4px;
+  width: 1.5rem;
   color: #999999;
 }
 
-#load-game-input {
-  position: fixed;
-  top: -100rem;
+.move-symbol {
+  padding: 4px;
+  width: 4rem;
 }

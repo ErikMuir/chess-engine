@@ -8,9 +8,9 @@ const getMoveNumber = (whiteMove, moveNumber) => (whiteMove.includes('resign') ?
 
 const getMove = (whiteMove, blackMove, moveNumber) => (
   <div className="move" key={moveNumber}>
-    <span className="move-number">{getMoveNumber(whiteMove, moveNumber)}</span>
-    <span>{whiteMove}</span>
-    <span>{blackMove}</span>
+    <div className="move-number">{getMoveNumber(whiteMove, moveNumber)}</div>
+    <div className="move-symbol">{whiteMove}</div>
+    <div className="move-symbol">{blackMove}</div>
   </div>
 );
 
@@ -38,7 +38,11 @@ class MoveList extends React.Component {
     const { game } = this.state;
     const height = boardSize;
     const moves = getMoves(game);
-    return <div className="aside move-list" style={{ height }}>{moves}</div>;
+    return (
+      <div className="aside move-list" style={{ height }}>
+        {moves}
+      </div>
+    );
   }
 }
 
