@@ -32,26 +32,39 @@ const validateSchema_1_0_0 = ({ fen, pgn }) => {
   return true;
 };
 
-const validateGameJson = (gameJson = {}) => {
-  logger.trace('validateGameJson');
-  const { schema } = gameJson;
-  let isValid;
-  switch (schema) {
-    case '0.0.1':
-      isValid = validateSchema_0_0_1(gameJson);
-      break;
-    case '1.0.0':
-      isValid = validateSchema_1_0_0(gameJson);
-      break;
-    default:
-      isValid = false;
-      break;
-  }
+const standardizeSchema_0_0_1 = (gameJson = {}) => {
+  logger.trace('standardize schema 0.0.1');
+  const isValid = validateSchema_0_0_1(gameJson);
   if (!isValid) {
     throw new Error('Invalid game json');
   }
+  const pgn = gameJson.pgn.white.map((whiteMove, i) => ({
+    white: whiteMove,
+    black: gameJson.pgn.black[i],
+  }));
+  return { ...gameJson, pgn };
 };
 
-export {
-  validateGameJson,
+const standardizeSchema_1_0_0 = (gameJson = {}) => {
+  logger.trace('standardize schema 1.0.0');
+  const isValid = validateSchema_1_0_0(gameJson);
+  if (!isValid) {
+    throw new Error('Invalid game json');
+  }
+  return gameJson;
 };
+
+const standardizeGameJson = (gameJson = {}) => {
+  logger.trace('standardizeGameJson');
+  const { schema } = gameJson;
+  switch (schema) {
+    case '0.0.1':
+      return standardizeSchema_0_0_1(gameJson);
+    case '1.0.0':
+      return standardizeSchema_1_0_0(gameJson);
+    default:
+      throw new Error('Invalid game json');
+  }
+};
+
+export { standardizeGameJson };

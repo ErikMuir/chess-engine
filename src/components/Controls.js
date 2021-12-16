@@ -6,7 +6,7 @@ import {
   mdiImport,
   mdiTrayArrowDown,
 } from '@mdi/js';
-import { validateGameJson } from '../game/schemaHelpers';
+import { standardizeGameJson } from '../game/schemaHelpers';
 import { boardSize } from '../game/utils';
 import Logger from '../Logger';
 
@@ -33,9 +33,9 @@ class Controls extends React.Component {
     logger.trace('fileReaderOnLoad');
     try {
       const gameJson = JSON.parse(readerResult);
-      validateGameJson(gameJson);
+      const standardizedGameJson = standardizeGameJson(gameJson);
       const { importGame } = this.props;
-      importGame(gameJson);
+      importGame(standardizedGameJson);
     } catch (err) {
       logger.error('Error loading game', err);
       // TODO : inform user
