@@ -6,27 +6,21 @@ const logger = new Logger('MoveList');
 
 const getMoveNumber = (whiteMove, moveNumber) => (whiteMove.includes('resign') ? null : `${moveNumber}.`);
 
-const getMove = (whiteMove, blackMove, moveNumber) => (
+const getMove = (move, moveNumber) => (
   <div className="move" key={moveNumber}>
-    <div className="move-number">{getMoveNumber(whiteMove, moveNumber)}</div>
-    <div className="move-symbol">{whiteMove}</div>
-    <div className="move-symbol">{blackMove}</div>
+    <div className="move-number">{getMoveNumber(move.white, moveNumber)}</div>
+    <div className="move-symbol">{move.white}</div>
+    <div className="move-symbol">{move.black}</div>
   </div>
 );
 
-export const getMoves = ({ pgn2 }) => {
-  logger.trace('getMoves');
-  const { white, black } = pgn2;
-  return white.map((whiteMove, i) => getMove(whiteMove, black[i], (i + 1)));
-};
+export const getMoves = ({ pgn }) => pgn.map((move, i) => getMove(move, (i + 1)));
 
 const MoveList = ({ game }) => {
   logger.trace('render');
-  const height = boardSize;
-  const moves = getMoves(game);
   return (
-    <div className="aside move-list" style={{ height }}>
-      {moves}
+    <div className="aside move-list" style={{ height: boardSize }}>
+      {getMoves(game)}
     </div>
   );
 };
