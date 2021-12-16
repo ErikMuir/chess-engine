@@ -15,12 +15,12 @@ import {
 import Logger from '../Logger';
 
 const logger = new Logger('Game');
-const schema = '0.0.1';
+const schema = '1.0.0';
 
 export default class Game {
   constructor({
     fen = startPosition,
-    pgn2 = { white: [], black: [] },
+    pgn = [],
     preventRecursion = false,
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
@@ -35,7 +35,7 @@ export default class Game {
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
-    this.pgn2 = pgn2;
+    this.pgn = pgn;
     this.preventRecursion = preventRecursion;
     this.isResignation = false;
 
@@ -65,7 +65,7 @@ export default class Game {
     return JSON.stringify({
       schema,
       fen: FEN.get(this),
-      pgn: this.pgn2,
+      pgn: this.pgn,
     }, null, 2);
   }
 
@@ -99,9 +99,9 @@ export default class Game {
     this.isResignation = true;
     this.legalMoves = [];
     if (this.activePlayer === PieceColor.white) {
-      this.pgn2.white.push('0-1 (white resigns)');
+      this.pgn.push({ white: '0-1 (white resigns)' });
     } else {
-      this.pgn2.black.push('1-0 (black resigns)');
+      this.pgn[this.pgn.length - 1].black = '1-0 (black resigns)';
     }
   };
 
@@ -223,9 +223,9 @@ export default class Game {
     if (!this.preventRecursion) logger.trace('appendToPgn');
     const pgn = PGN.get(move, legalMoves);
     if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
-      this.pgn2.white.push(pgn);
+      this.pgn.push({ white: pgn });
     } else {
-      this.pgn2.black.push(pgn);
+      this.pgn[this.pgn.length - 1].black = pgn;
     }
   };
 
