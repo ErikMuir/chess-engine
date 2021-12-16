@@ -6,6 +6,7 @@ import {
   mdiImport,
   mdiTrayArrowDown,
 } from '@mdi/js';
+import { validateGameJson } from '../game/schemaHelpers';
 import { boardSize } from '../game/utils';
 import Logger from '../Logger';
 
@@ -18,7 +19,7 @@ class Controls extends React.Component {
     logger.trace('ctor');
     this.fileReader = new FileReader();
     this.fileReader.onerror = () => logger.error(this.fileReader.error);
-    this.fileReader.onload = () => this.handleLoad(this.fileReader.result);
+    this.fileReader.onload = () => this.fileReaderOnLoad(this.fileReader.result);
   }
 
   readFile = () => {
@@ -28,58 +29,11 @@ class Controls extends React.Component {
     this.fileReader.readAsText(file);
   };
 
-  validateGameJson = (gameJson) => {
-    logger.trace('validateGameJson');
-    if (!gameJson || !gameJson.schema) {
-      throw new Error('Invalid game json');
-    }
-    switch (gameJson.schema) {
-      case '0.0.1': validateSchema_0_0_1(gameJson); break;
-      default: validateSchema_1_0_0(gameJons); break;
-    }
-    if (
-      !gameJson
-      || !gameJson.fen
-      || !gameJson.pgn2
-      || !gameJson.pgn2.white
-      || !gameJson.pgn2.black
-    ) {
-      throw new Error('Invalid game json');
-    }
-  };
-
-  validateSchema_0_0_1 = (gameJson) => {
-    logger.trace('validateSchema_0_0_1');
-    if (
-      !gameJson
-      || !gameJson.fen
-      || !gameJson.pgn
-      || !gameJson.pgn.white
-      || !gameJson.pgn.black
-    ) {
-      throw new Error('Invalid game json');
-    }
-  };
-
-  validateSchema_1_0_0 = (gameJson) => {
-    logger.trace('validateSchema_1_0_0');
-    if (
-      !gameJson
-      || !gameJson.fen
-      || !gameJson.pgn
-      || !Array.isArray(gameJson.pgn)
-      || gameJson.pgn.some((move) => !move.white)
-      || gameJson.pgn.filter((move) => !move.black).length > 1
-    ) {
-      throw new Error('Invalid game json');
-    }
-  };
-
-  handleLoad = (readerResult) => {
-    logger.trace('handleLoad');
+  fileReaderOnLoad = (readerResult) => {
+    logger.trace('fileReaderOnLoad');
     try {
       const gameJson = JSON.parse(readerResult);
-      this.validateGameJson(gameJson);
+      validateGameJson(gameJson);
       const { importGame } = this.props;
       importGame(gameJson);
     } catch (err) {
@@ -90,30 +44,30 @@ class Controls extends React.Component {
 
   handleNew = (e) => {
     logger.trace('handleNew');
-    e.currentTarget.blur();
     const { newGame } = this.props;
     newGame();
+    e.currentTarget.blur();
   };
 
   handleImport = (e) => {
     logger.trace('handleImport');
-    e.currentTarget.blur();
     const loadGameInput = document.getElementById(loadGameInputId);
     loadGameInput.click();
+    e.currentTarget.blur();
   };
 
   handleExport = (e) => {
     logger.trace('handleExport');
-    e.currentTarget.blur();
     const { exportGame } = this.props;
     exportGame();
+    e.currentTarget.blur();
   };
 
   handleResign = (e) => {
     logger.trace('handleResign');
-    e.currentTarget.blur();
     const { resign } = this.props;
     resign();
+    e.currentTarget.blur();
   };
 
   render() {

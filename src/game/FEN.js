@@ -113,19 +113,19 @@ class FEN {
 
   static getEnPassantTargetSquare = (game) => (game.enPassantTargetSquare === -1
     ? '-'
-    : getCoordinatesFromSquareIndex(game.enPassantTargetSquare))
+    : getCoordinatesFromSquareIndex(game.enPassantTargetSquare));
 
   static parseHalfMoveClock = (val, game) => {
     game.halfMoveClock = parseInt(val, 10) || 0;
   };
 
-  static getHalfMoveClock = (game) => `${game.halfMoveClock}`
+  static getHalfMoveClock = (game) => `${game.halfMoveClock}`;
 
   static parseFullMoveNumber = (val, game) => {
     game.fullMoveNumber = parseInt(val, 10) || 1;
   };
 
-  static getFullMoveNumber = (game) => `${game.fullMoveNumber}`
+  static getFullMoveNumber = (game) => `${game.fullMoveNumber}`;
 }
 
 export default FEN;
