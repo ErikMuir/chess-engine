@@ -43,13 +43,13 @@ body {
   padding: 0 1rem;
 }
 
-.controls {
+.game-controls {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
 }
 
-.controls button {
+.game-controls button {
   background-color: transparent;
   border: none;
   border-radius: 5px;
@@ -58,13 +58,12 @@ body {
   padding: 1rem 1rem;
 }
 
-.controls button:hover, .controls button:focus {
+.game-controls button:hover, .game-controls button:focus {
   background-color: rgb(89, 89, 89);
 }
 
-.controls button svg {
+.game-controls button svg {
   vertical-align: bottom;
-  /* margin-right: 0.5rem; */
 }
 
 #load-game-input {
@@ -72,42 +71,71 @@ body {
   top: -100rem;
 }
 
+.move-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.move-navigation {
+  display: flex;
+  justify-content: center;
+}
+
+.move-navigation button {
+  background-color: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #eeeeee;
+  font-size: 125%;
+  padding: 1rem 1rem;
+}
+
+.move-navigation button:hover, .move-navigation button:focus {
+  background-color: rgb(89, 89, 89);
+}
+
+.move-navigation button svg {
+  vertical-align: bottom;
+}
+
 .move-list {
-  padding-left: 2rem;
   overflow-x: hidden;
   overflow-y: auto;
   font-size: 90%;
   line-height: 120%;
+  height: 100%;
+  margin-bottom: 1rem;
 }
 
-.move {
+.move-list .move {
   display: flex;
   justify-content: flex-start;
   padding: 0 8px;
 }
 
-.move div {
+.move-list .move div {
   padding: 2px 4px;
 }
 
-.move:nth-child(even) {
+.move-list .move:nth-child(even) {
   background-color: rgba(200, 200, 200, 0.1);
 }
 
-.move-number {
+.move-list .move .move-number {
   width: 1.5rem;
   color: #999999;
 }
 
-.move-symbol {
+.move-list .move .move-symbol {
   min-width: 4rem;
 }
 
-.move-symbol span {
+.move-list .move .move-symbol span {
   padding: 2px 8px;
 }
 
-.current-move{
+.move-list .move .move-symbol span.current-move{
   background-color: rgba(255, 255, 255, 0.2);
   border-bottom: 2px solid rgba(255, 255, 255, 0.4)
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import Modal from 'react-modal';
 import FileSaver from 'file-saver';
-import Controls from './Controls';
+import GameControls from './GameControls';
 import Board from './Board';
-import MoveList from './MoveList';
+import MoveControls from './MoveControls';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
@@ -85,14 +85,14 @@ class App extends React.Component {
       <div className="app-container">
         <header className="app-header" />
         <main className="app-main">
-          <Controls
+          <GameControls
             newGame={this.newGame}
             importGame={this.importGame}
             exportGame={this.exportGame}
             resign={this.resign}
           />
           <Board game={game} updateApp={this.updateApp} />
-          <MoveList game={game} />
+          <MoveControls game={game} />
         </main>
         <footer className="app-footer">
           <span>{`© ${new Date().getFullYear()} MuirDev`}</span>

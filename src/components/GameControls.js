@@ -13,7 +13,7 @@ import Logger from '../Logger';
 const logger = new Logger('Controls');
 const loadGameInputId = 'load-game-input';
 
-class Controls extends React.Component {
+class GameControls extends React.Component {
   constructor(props) {
     super(props);
     logger.trace('ctor');
@@ -73,7 +73,7 @@ class Controls extends React.Component {
   render() {
     logger.trace('render');
     return (
-      <div className="aside controls" style={{ height: boardSize }}>
+      <div className="aside game-controls" style={{ height: boardSize }}>
         <div>
           <button type="button" onClick={this.handleNew} title="New Game">
             <Icon path={mdiNewBox} size={1.5} color="#eeeeee" />
@@ -100,4 +100,4 @@ class Controls extends React.Component {
   }
 }
 
-export default Controls;
+export default GameControls;
