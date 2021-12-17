@@ -86,13 +86,16 @@ body {
   background-color: transparent;
   border: none;
   border-radius: 5px;
-  color: #eeeeee;
   font-size: 125%;
   padding: 1rem 1rem;
 }
 
 .move-navigation button:hover, .move-navigation button:focus {
   background-color: rgb(89, 89, 89);
+}
+
+.move-navigation button:disabled {
+  background-color: transparent;
 }
 
 .move-navigation button svg {

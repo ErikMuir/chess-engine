@@ -13,6 +13,7 @@ import {
   directionOffsets,
 } from './utils';
 import Logger from '../Logger';
+import CurrentMove from './CurrentMove';
 
 const logger = new Logger('Game');
 const schema = '1.0.0';
@@ -73,8 +74,10 @@ export default class Game {
   init = () => {
     if (!this.preventRecursion) logger.trace('init');
 
-    const fullMoveNumberOffset = this.activePlayer === PieceColor.black ? 0.5 : 0;
-    this.currentMove = this.fullMoveNumber + fullMoveNumberOffset;
+    this.currentMove = new CurrentMove(
+      this.pgn.length,
+      PieceColor.opposite(this.activePlayer),
+    );
 
     for (let file = 0; file < 8; file += 1) {
       for (let rank = 0; rank < 8; rank += 1) {
@@ -208,10 +211,12 @@ export default class Game {
 
   updateFullMoveNumber = (move) => {
     if (!this.preventRecursion) logger.trace('updateFullMoveNumber');
-    const isBlackMove = PieceColor.fromPieceValue(move.piece) === PieceColor.black;
-    const offset = isBlackMove ? 0.5 : 0;
-    this.currentMove = this.fullMoveNumber + offset;
-    if (isBlackMove) {
+    const movePieceColor = PieceColor.fromPieceValue(move.piece);
+    this.currentMove = new CurrentMove(
+      Math.floor(this.fullMoveNumber),
+      movePieceColor,
+    );
+    if (movePieceColor === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
   };
@@ -236,6 +241,8 @@ export default class Game {
       this.pgn[this.pgn.length - 1].black = pgn;
     }
   };
+
+  // TODO : extract move generation to helper file
 
   generateMoves = () => {
     this.pseudoLegalMoves = this.generatePseudoLegalMoves();
@@ -463,5 +470,25 @@ export default class Game {
   testForCheck = (color = this.activePlayer) => {
     const king = color | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
+  };
+
+  moveBack = () => {
+    logger.trace('moveBack');
+    const { moveNumber, pieceColor } = this.currentMove;
+    const newMoveNumber = pieceColor === PieceColor.white ? moveNumber - 1 : moveNumber;
+    const newPieceColor = PieceColor.opposite(pieceColor);
+    if (newMoveNumber < 0) return;
+    this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
+  };
+
+  moveForward = () => {
+    logger.trace('moveForward');
+    const { moveNumber, pieceColor } = this.currentMove;
+    const newMoveNumber = pieceColor === PieceColor.white ? moveNumber : moveNumber + 1;
+    const newPieceColor = pieceColor === PieceColor.none
+      ? PieceColor.white
+      : PieceColor.opposite(pieceColor);
+    if (newMoveNumber > this.pgn.length) return;
+    this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
   };
 }

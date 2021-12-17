@@ -5,9 +5,15 @@ A javascript chess engine with React chess GUI
 ## Upcoming Features
 
 - navigate move list
+- new game - choose white or black
 - analysis
 - hint
 - play vs computer
+  - start with computer moves chosen at random
+  - add 1 level of depth
+  - add basic strategy
+  - add multiple levels of depth
+  - add advanced strategy
 - responsive design for mobile support
 
 ## Tech Debt

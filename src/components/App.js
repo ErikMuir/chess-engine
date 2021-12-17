@@ -92,7 +92,7 @@ class App extends React.Component {
             resign={this.resign}
           />
           <Board game={game} updateApp={this.updateApp} />
-          <MoveControls game={game} />
+          <MoveControls game={game} updateApp={this.updateApp} />
         </main>
         <footer className="app-footer">
           <span>{`© ${new Date().getFullYear()} MuirDev`}</span>

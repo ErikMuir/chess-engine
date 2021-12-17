@@ -3,8 +3,9 @@ import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import { boardSize } from '../game/utils';
 import Logger from '../Logger';
+import PieceColor from '../game/PieceColor';
 
-const logger = new Logger('MoveList');
+const logger = new Logger('MoveControls');
 
 class MoveControls extends React.Component {
   constructor(props) {
@@ -14,23 +15,32 @@ class MoveControls extends React.Component {
 
   handleBack = (e) => {
     logger.trace('handleBack');
-    const { moveBack } = this.props; // TODO : implement in Game
+    const { game, updateApp } = this.props;
+    const { moveBack } = game;
     moveBack();
     e.currentTarget.blur();
+    updateApp(game);
   };
 
   handleForward = (e) => {
     logger.trace('handleForward');
-    const { moveForward } = this.props; // TODO : implement in Game
+    const { game, updateApp } = this.props;
+    const { moveForward } = game;
     moveForward();
     e.currentTarget.blur();
+    updateApp(game);
   };
 
-  getMove = (move, moveNumber, currentMove = 0) => {
+  getMoveStyle = (currentMove, moveNumber, pieceColor) => (
+    currentMove.moveNumber === moveNumber && currentMove.pieceColor === pieceColor
+      ? 'current-move'
+      : null
+  );
+
+  getMove = (move, moveNumber, currentMove) => {
     const moveNumberText = move.white.includes('resign') ? null : `${moveNumber}.`;
-    const moveDiff = currentMove - moveNumber;
-    const whiteMoveStyle = moveDiff === 0 ? 'current-move' : null;
-    const blackMoveStyle = moveDiff === 0.5 ? 'current-move' : null;
+    const whiteMoveStyle = this.getMoveStyle(currentMove, moveNumber, PieceColor.white);
+    const blackMoveStyle = this.getMoveStyle(currentMove, moveNumber, PieceColor.black);
     return (
       <div className="move" key={moveNumber}>
         <div className="move-number">{moveNumberText}</div>
@@ -47,8 +57,15 @@ class MoveControls extends React.Component {
   render() {
     logger.trace('render');
     const { game } = this.props;
-    const { pgn, currentMove } = game;
-    // TODO : handle navigation button enabled state
+    const { pgn, activePlayer, currentMove } = game;
+    const { moveNumber, pieceColor } = currentMove;
+    const backDisabled = moveNumber === 0;
+    const forwardDisabled = moveNumber === pgn.length && pieceColor !== activePlayer;
+    const backColor = backDisabled ? '#444444' : '#eeeeee';
+    const forwardColor = forwardDisabled ? '#444444' : '#eeeeee';
+    logger.trace({
+      moveNumber, pieceColor, backDisabled, forwardDisabled, pgn, activePlayer,
+    });
     return (
       <div className="aside move-controls" style={{ height: boardSize }}>
         <div className="move-list">
@@ -56,13 +73,13 @@ class MoveControls extends React.Component {
         </div>
         <div className="move-navigation">
           <div>
-            <button type="button" onClick={this.handleBack} title="Go back">
-              <Icon path={mdiChevronLeft} size={1.5} color="#eeeeee" />
+            <button type="button" onClick={this.handleBack} title="Go back" disabled={backDisabled}>
+              <Icon path={mdiChevronLeft} size={1.5} color={backColor} />
             </button>
           </div>
           <div>
-            <button type="button" onClick={this.handleForward} title="Go forward">
-              <Icon path={mdiChevronRight} size={1.5} color="#eeeeee" />
+            <button type="button" onClick={this.handleForward} title="Go forward" disabled={forwardDisabled}>
+              <Icon path={mdiChevronRight} size={1.5} color={forwardColor} />
             </button>
           </div>
         </div>
