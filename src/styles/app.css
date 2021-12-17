@@ -102,3 +102,12 @@ body {
 .move-symbol {
   min-width: 4rem;
 }
+
+.move-symbol span {
+  padding: 2px 8px;
+}
+
+.current-move{
+  background-color: rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4)
+}

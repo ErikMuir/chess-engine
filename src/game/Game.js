@@ -32,6 +32,7 @@ export default class Game {
     this.castlingAvailability = [];
     this.halfMoveClock = null;
     this.fullMoveNumber = null;
+    this.currentMove = null;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
@@ -71,6 +72,10 @@ export default class Game {
 
   init = () => {
     if (!this.preventRecursion) logger.trace('init');
+
+    const fullMoveNumberOffset = this.activePlayer === PieceColor.black ? 0.5 : 0;
+    this.currentMove = this.fullMoveNumber + fullMoveNumberOffset;
+
     for (let file = 0; file < 8; file += 1) {
       for (let rank = 0; rank < 8; rank += 1) {
         const numNorth = 7 - rank;
@@ -203,7 +208,10 @@ export default class Game {
 
   updateFullMoveNumber = (move) => {
     if (!this.preventRecursion) logger.trace('updateFullMoveNumber');
-    if (PieceColor.fromPieceValue(move.piece) === PieceColor.black) {
+    const isBlackMove = PieceColor.fromPieceValue(move.piece) === PieceColor.black;
+    const offset = isBlackMove ? 0.5 : 0;
+    this.currentMove = this.fullMoveNumber + offset;
+    if (isBlackMove) {
       this.fullMoveNumber += 1;
     }
   };
