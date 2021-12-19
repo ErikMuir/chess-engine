@@ -63,9 +63,6 @@ class MoveControls extends React.Component {
     const forwardDisabled = moveNumber === pgn.length && pieceColor !== activePlayer;
     const backColor = backDisabled ? '#444444' : '#eeeeee';
     const forwardColor = forwardDisabled ? '#444444' : '#eeeeee';
-    logger.trace({
-      moveNumber, pieceColor, backDisabled, forwardDisabled, pgn, activePlayer,
-    });
     return (
       <div className="aside move-controls" style={{ height: boardSize }}>
         <div className="move-list">

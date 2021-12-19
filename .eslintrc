@@ -20,6 +20,11 @@
   "rules": {
     "class-methods-use-this": "off",
     "import/prefer-default-export": "off",
+    "max-len": [ "error", { "code": 120 } ],
+    "no-bitwise": "off",
+    "no-console": "off",
+    "no-param-reassign": "off",
+    "no-promise-executor-return": "off",
     "react/function-component-definition": "off",
     "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
     "react/jsx-props-no-spreading": "off",
@@ -28,10 +33,6 @@
     "react/no-namespace": "off",
     "react/no-unused-class-component-methods": "off",
     "react/prefer-exact-props": "off",
-    "react/prop-types": "off",
-    "no-bitwise": "off",
-    "no-console": "off",
-    "no-param-reassign": "off",
-    "no-promise-executor-return": "off"
+    "react/prop-types": "off"
   }
 }
