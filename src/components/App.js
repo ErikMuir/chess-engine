@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import FileSaver from 'file-saver';
 import GameControls from './GameControls';
 import Board from './Board';
-import MoveControls from './MoveControls';
+import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
@@ -92,7 +92,7 @@ class App extends React.Component {
             resign={this.resign}
           />
           <Board game={game} updateApp={this.updateApp} />
-          <MoveControls game={game} updateApp={this.updateApp} />
+          <GameDetails game={game} updateApp={this.updateApp} />
         </main>
         <footer className="app-footer">
           <span>{`© ${new Date().getFullYear()} MuirDev`}</span>

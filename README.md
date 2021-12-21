@@ -23,8 +23,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- move list should auto scroll to bottom
-<!-- - _none_ -->
+- _none_
 
 ## Attributions
 

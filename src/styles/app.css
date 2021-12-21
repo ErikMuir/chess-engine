@@ -71,35 +71,10 @@ body {
   top: -100rem;
 }
 
-.move-controls {
+.game-details {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-}
-
-.move-navigation {
-  display: flex;
-  justify-content: center;
-}
-
-.move-navigation button {
-  background-color: transparent;
-  border: none;
-  border-radius: 5px;
-  font-size: 125%;
-  padding: 1rem 1rem;
-}
-
-.move-navigation button:hover, .move-navigation button:focus {
-  background-color: rgb(89, 89, 89);
-}
-
-.move-navigation button:disabled {
-  background-color: transparent;
-}
-
-.move-navigation button svg {
-  vertical-align: bottom;
 }
 
 .move-list {
@@ -108,7 +83,10 @@ body {
   font-size: 90%;
   line-height: 120%;
   height: 100%;
-  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  background-color: #444444;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 
 .move-list .move {
@@ -138,7 +116,36 @@ body {
   padding: 2px 8px;
 }
 
-.move-list .move .move-symbol span.current-move{
+.move-list .move .move-symbol span.current-move {
   background-color: rgba(255, 255, 255, 0.2);
   border-bottom: 2px solid rgba(255, 255, 255, 0.4)
+}
+
+.move-controls {
+  display: flex;
+  justify-content: center;
+  background-color: #2d2d2d;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.move-controls button {
+  background-color: #444444;
+  border: none;
+  border-radius: 5px;
+  font-size: 125%;
+  padding: 1rem 1rem;
+  margin: 1rem 0.15rem;
+}
+
+.move-controls button:hover, .move-controls button:focus {
+  background-color: rgb(89, 89, 89);
+}
+
+.move-controls button:disabled {
+  background-color: transparent;
+}
+
+.move-controls button svg {
+  vertical-align: bottom;
 }
