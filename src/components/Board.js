@@ -40,6 +40,7 @@ class Board extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const { game } = this.state;
     const { forceBoardRefresh } = this.props;
+    const { moveHistory } = game;
     const isNewGame = game !== prevState.game;
     const isForceRefresh = forceBoardRefresh !== prevProps.forceBoardRefresh;
     if (isNewGame || isForceRefresh) {
@@ -49,7 +50,7 @@ class Board extends React.Component {
       this.clearPreviousSquares();
       this.syncSquares();
     }
-    if (isForceRefresh) {
+    if (isForceRefresh && moveHistory && moveHistory.length) {
       const previousMove = game.moveHistory[game.moveHistory.length - 1];
       this.setPreviousSquares(previousMove);
     }
