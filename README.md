@@ -23,8 +23,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-<!-- - _none_ -->
-- when waiting for move confirmation, all pieces should be locked
+- _none_
 
 ## Attributions
 
