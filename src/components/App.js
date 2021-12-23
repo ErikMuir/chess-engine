@@ -20,11 +20,16 @@ class App extends React.Component {
     this.state = {
       game: new Game(),
       showGameOverModal: false,
+      forceBoardRefresh: 0,
     };
     this.newGame = this.newGame.bind(this);
     this.importGame = this.importGame.bind(this);
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
+    this.moveBackward = this.moveBackward.bind(this);
+    this.moveForward = this.moveForward.bind(this);
+    this.confirmMove = this.confirmMove.bind(this);
+    this.cancelMove = this.cancelMove.bind(this);
     this.updateApp = this.updateApp.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
@@ -62,6 +67,37 @@ class App extends React.Component {
     }
   };
 
+  moveBackward = () => {
+    logger.trace('moveBackward');
+    const { game } = this.state;
+    game.moveBackward();
+    this.updateApp(game);
+  };
+
+  moveForward = () => {
+    logger.trace('moveForward');
+    const { game } = this.state;
+    game.moveForward();
+    this.updateApp(game);
+  };
+
+  confirmMove = () => {
+    logger.trace('confirmMove');
+    const { game } = this.state;
+    game.confirmMove();
+    this.updateApp(game);
+  };
+
+  cancelMove = () => {
+    logger.trace('cancelMove');
+    const { game } = this.state;
+    game.cancelMove();
+    this.updateApp(game);
+    const { forceBoardRefresh } = this.state;
+    const newForceBoardRefresh = forceBoardRefresh + 1;
+    this.setState({ forceBoardRefresh: newForceBoardRefresh });
+  };
+
   updateApp = (game) => {
     logger.trace('updateApp');
     this.setState({ game, showGameOverModal: game.isGameOver });
@@ -80,7 +116,7 @@ class App extends React.Component {
 
   render() {
     logger.trace('render');
-    const { game } = this.state;
+    const { game, forceBoardRefresh } = this.state;
     return (
       <div className="app-container">
         <header className="app-header" />
@@ -91,8 +127,18 @@ class App extends React.Component {
             exportGame={this.exportGame}
             resign={this.resign}
           />
-          <Board game={game} updateApp={this.updateApp} />
-          <GameDetails game={game} updateApp={this.updateApp} />
+          <Board
+            game={game}
+            forceBoardRefresh={forceBoardRefresh}
+            updateApp={this.updateApp}
+          />
+          <GameDetails
+            game={game}
+            moveBackward={this.moveBackward}
+            moveForward={this.moveForward}
+            confirmMove={this.confirmMove}
+            cancelMove={this.cancelMove}
+          />
         </main>
         <footer className="app-footer">
           <span>{`© ${new Date().getFullYear()} MuirDev`}</span>

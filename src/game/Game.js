@@ -34,6 +34,7 @@ export default class Game {
     this.pgn = pgn;
     this.preventRecursion = preventRecursion;
     this.isResignation = false;
+    this.tempMove = null;
 
     FEN.load(fen, this);
     this.init();
@@ -271,8 +272,8 @@ export default class Game {
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
   };
 
-  moveBack = () => {
-    this.trace('moveBack');
+  moveBackward = () => {
+    this.trace('moveBackward');
     const { moveNumber, pieceColor } = this.currentMove;
     const newMoveNumber = pieceColor === PieceColor.white ? moveNumber - 1 : moveNumber;
     const newPieceColor = PieceColor.opposite(pieceColor);
@@ -289,5 +290,20 @@ export default class Game {
       : PieceColor.opposite(pieceColor);
     if (newMoveNumber > this.pgn.length) return;
     this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
+  };
+
+  confirmMove = () => {
+    this.trace('confirmMove');
+    const move = { ...this.tempMove };
+    if (move) {
+      this.tempMove = null;
+      this.doMove(move);
+      this.postMoveActions(move);
+    }
+  };
+
+  cancelMove = () => {
+    this.trace('cancelMove');
+    this.tempMove = null;
   };
 }

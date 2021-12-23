@@ -1,4 +1,4 @@
-const squareSize = 80;
+const squareSize = 98;
 const boardSize = squareSize * 8;
 const lightColor = '#f1d9c0';
 const darkColor = '#a97a65';

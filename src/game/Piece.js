@@ -9,7 +9,7 @@ class Piece {
     this.value = color | type;
   }
 
-  getImage = async () => getPieceImage(this)
+  getImage = async () => getPieceImage(this);
 
   static fromPieceValue = (val) => {
     if (!val) return null;

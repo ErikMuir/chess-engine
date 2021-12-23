@@ -39,12 +39,19 @@ class Board extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { game } = this.state;
-    if (game !== prevState.game) {
-      // needed for new game or load game
+    const { forceBoardRefresh } = this.props;
+    const isNewGame = game !== prevState.game;
+    const isForceRefresh = forceBoardRefresh !== prevProps.forceBoardRefresh;
+    if (isNewGame || isForceRefresh) {
+      logger.trace('componentDidUpdate');
       this.clearActiveSquare();
       this.clearPossibleSquares();
       this.clearPreviousSquares();
       this.syncSquares();
+    }
+    if (isForceRefresh) {
+      const previousMove = game.moveHistory[game.moveHistory.length - 1];
+      this.setPreviousSquares(previousMove);
     }
   }
 
@@ -114,11 +121,15 @@ class Board extends React.Component {
     const move = this.getLegalMove(square);
     if (!move) return;
 
+    this.doTempMove(move);
+
+    const { updateApp } = this.props;
+    const { game } = this.state;
+    updateApp(game);
+
     if (move.isPawnPromotion) {
-      this.doTempMove(move);
+      game.tempMove = null;
       this.doPawnPromotion(move);
-    } else {
-      this.doMove(move);
     }
   };
 
@@ -171,10 +182,15 @@ class Board extends React.Component {
 
   doTempMove = (move) => {
     logger.trace('doTempMove');
-    const { game } = this.state;
-    game.squares[move.fromIndex] = null;
-    game.squares[move.toIndex] = move.piece;
-    this.syncSquares();
+    const { game, squares } = this.state;
+    const newSquares = [...squares];
+    newSquares[move.fromIndex].piece = null;
+    newSquares[move.toIndex].piece = Piece.fromPieceValue(move.piece);
+    this.setState({ squares: newSquares });
+    game.tempMove = move;
+    this.clearPossibleSquares();
+    this.clearActiveSquare();
+    this.setPreviousSquares(move);
   };
 
   doPawnPromotion = (move) => {

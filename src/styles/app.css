@@ -122,26 +122,34 @@ body {
 
 .move-controls {
   display: flex;
-  justify-content: center;
   background-color: #2d2d2d;
   border-radius: 0 0 4px 4px;
+  padding: 1rem 0.5rem;
+}
+
+.move-controls div {
+  flex-grow: 1;
+  margin: 0 0.5rem;
 }
 
 .move-controls button {
   background-color: #444444;
   border: none;
   border-radius: 5px;
-  font-size: 125%;
-  padding: 1rem 1rem;
-  margin: 1rem 0.15rem;
+  padding: 1rem;
+  width: 100%;
 }
 
 .move-controls button:hover, .move-controls button:focus {
   background-color: rgb(89, 89, 89);
 }
 
-.move-controls button:disabled {
-  background-color: transparent;
+.move-controls button.confirm-move {
+  background-color: #119933;
+}
+
+.move-controls button.confirm-move:hover, .move-controls button.confirm-move:focus {
+  background-color: #11aa33;
 }
 
 .move-controls button svg {
