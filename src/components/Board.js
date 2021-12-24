@@ -124,13 +124,17 @@ class Board extends React.Component {
 
     this.doTempMove(move);
 
-    const { updateApp } = this.props;
+    const { updateApp, updateGameOver } = this.props;
     const { game } = this.state;
     updateApp(game);
 
     if (move.isPawnPromotion) {
       game.tempMove = null;
       this.doPawnPromotion(move);
+    } else if (game.confirmationDisabled) {
+      game.confirmMove();
+      updateApp(game);
+      updateGameOver();
     }
   };
 

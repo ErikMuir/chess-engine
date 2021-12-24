@@ -35,6 +35,7 @@ export default class Game {
     this.preventRecursion = preventRecursion;
     this.isResignation = false;
     this.tempMove = null;
+    this.confirmationDisabled = false;
 
     FEN.load(fen, this);
     this.init();

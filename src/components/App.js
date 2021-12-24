@@ -26,6 +26,7 @@ class App extends React.Component {
     this.importGame = this.importGame.bind(this);
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
+    this.toggleConfirmation = this.toggleConfirmation.bind(this);
     this.moveBackward = this.moveBackward.bind(this);
     this.moveForward = this.moveForward.bind(this);
     this.confirmMove = this.confirmMove.bind(this);
@@ -67,6 +68,13 @@ class App extends React.Component {
       this.updateApp(game);
       this.updateGameOver();
     }
+  };
+
+  toggleConfirmation = () => {
+    logger.trace('toggleConfirmation');
+    const { game } = this.state;
+    game.confirmationDisabled = !game.confirmationDisabled;
+    this.updateApp(game);
   };
 
   moveBackward = () => {
@@ -135,6 +143,8 @@ class App extends React.Component {
             importGame={this.importGame}
             exportGame={this.exportGame}
             resign={this.resign}
+            toggleConfirmation={this.toggleConfirmation}
+            confirmationDisabled={game.confirmationDisabled}
           />
           <Board
             game={game}

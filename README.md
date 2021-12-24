@@ -4,7 +4,6 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-- toggle move confirmation
 - navigate move list
 - new game - choose white or black
 - analysis

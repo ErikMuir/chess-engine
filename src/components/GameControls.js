@@ -5,9 +5,11 @@ import {
   mdiNewBox,
   mdiImport,
   mdiTrayArrowDown,
+  mdiCheckCircle,
+  mdiCheckCircleOutline,
 } from '@mdi/js';
 import { getStandardizedGameJson } from '../schemas/schemaHelpers';
-import { boardSize } from '../game/utils';
+import { boardSize, iconColor } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Controls');
@@ -21,6 +23,8 @@ const GameControls = (props) => {
     newGame,
     exportGame,
     resign,
+    toggleConfirmation,
+    confirmationDisabled,
   } = props;
 
   const fileReader = new FileReader();
@@ -36,6 +40,9 @@ const GameControls = (props) => {
       // TODO : inform user
     }
   };
+
+  const toggleConfirmationIcon = confirmationDisabled ? mdiCheckCircleOutline : mdiCheckCircle;
+  const toggleConfirmationText = confirmationDisabled ? 'Enable move confirmation' : 'Disable move confirmation';
 
   const readFile = () => {
     logger.trace('readFile');
@@ -69,10 +76,16 @@ const GameControls = (props) => {
     e.currentTarget.blur();
   };
 
+  const handleToggleConfirmation = (e) => {
+    logger.trace('handleToggleConfirmation');
+    toggleConfirmation();
+    e.currentTarget.blur();
+  };
+
   return (
     <div className="aside game-controls" style={{ height: boardSize }}>
       <div>
-        <button type="button" onClick={handleNew} title="New Game">
+        <button type="button" onClick={handleNew} title="New game">
           <Icon path={mdiNewBox} size={1.5} color="#eeeeee" />
         </button>
       </div>
@@ -89,6 +102,11 @@ const GameControls = (props) => {
       <div>
         <button type="button" onClick={handleResign} title="Resign">
           <Icon path={mdiFlag} size={1.5} color="#eeeeee" />
+        </button>
+      </div>
+      <div>
+        <button type="button" onClick={handleToggleConfirmation} title={toggleConfirmationText}>
+          <Icon path={toggleConfirmationIcon} size={1.5} color={iconColor} />
         </button>
       </div>
       <input type="file" id={loadGameInputId} onChange={readFile} accept="application/json" />
