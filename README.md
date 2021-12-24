@@ -4,6 +4,7 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
+- toggle move confirmation
 - navigate move list
 - new game - choose white or black
 - analysis
@@ -23,8 +24,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-<!-- - _none_ -->
-- capture moves don't show moving piece in move list
+- _none_
 
 ## Attributions
 

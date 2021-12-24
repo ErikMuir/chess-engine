@@ -300,10 +300,9 @@ export default class Game {
 
   confirmMove = () => {
     this.trace('confirmMove');
-    const move = { ...this.tempMove };
-    if (move) {
+    if (this.tempMove) {
+      this.doMove(this.tempMove);
       this.tempMove = null;
-      this.doMove(move);
     }
   };
 
