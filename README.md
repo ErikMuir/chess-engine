@@ -24,7 +24,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- resignations shouldnot be navigatable
+- capture moves don't show moving piece in move list
 
 ## Attributions
 

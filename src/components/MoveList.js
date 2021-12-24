@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
 import PieceColor from '../game/PieceColor';
 import Logger from '../Logger';
@@ -19,9 +20,12 @@ const MoveList = ({ pgn, currentMove }) => {
   }, [pgn, currentMove]);
 
   const getMove = (move, moveNumber) => {
-    const getMoveNumber = () => (move.white.includes('resign') ? null : `${moveNumber}.`);
+    const { white, black, score } = move;
+    const getMoveNumber = () => (white ? `${moveNumber}.` : null);
     const getPlayerMove = (pieceColor) => {
-      const pgnMove = pieceColor === PieceColor.white ? move.white : move.black;
+      const pgnMove = pieceColor === PieceColor.white
+        ? white || score : white
+          ? black || score : null;
       return currentMove.moveNumber === moveNumber && currentMove.pieceColor === pieceColor
         ? <span className="current-move" ref={currentMoveRef}>{pgnMove}</span>
         : <span>{pgnMove}</span>;

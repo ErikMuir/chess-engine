@@ -107,9 +107,9 @@ export default class Game {
     this.isResignation = true;
     this.legalMoves = [];
     if (this.activePlayer === PieceColor.white) {
-      this.pgn.push({ white: '0-1 (white resigns)' });
+      this.pgn.push({ score: '0-1 (white resigns)' });
     } else {
-      this.pgn[this.pgn.length - 1].black = '1-0 (black resigns)';
+      this.pgn[this.pgn.length - 1].score = '1-0 (black resigns)';
     }
   };
 
@@ -213,10 +213,12 @@ export default class Game {
   updateFullMoveNumber = (move) => {
     this.trace('updateFullMoveNumber');
     const movePieceColor = PieceColor.fromPieceValue(move.piece);
-    this.currentMove = new CurrentMove(
-      Math.floor(this.fullMoveNumber),
-      movePieceColor,
-    );
+    if (!this.isResignation) {
+      this.currentMove = new CurrentMove(
+        Math.floor(this.fullMoveNumber),
+        movePieceColor,
+      );
+    }
     if (!this.isGameOver && movePieceColor === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
@@ -290,6 +292,9 @@ export default class Game {
       ? PieceColor.white
       : PieceColor.opposite(pieceColor);
     if (newMoveNumber > this.pgn.length) return;
+    const newMove = this.pgn[newMoveNumber - 1];
+    if (newMove.score && newPieceColor === PieceColor.white && !newMove.white) return;
+    if (newMove.score && newPieceColor === PieceColor.black && !newMove.black) return;
     this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
   };
 
