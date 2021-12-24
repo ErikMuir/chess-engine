@@ -7,6 +7,7 @@ import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import { testGames } from '../game/utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
 import '../styles/modal.css';
@@ -18,7 +19,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      game: new Game(),
+      game: new Game(testGames.promotion),
       showGameOverModal: false,
       forceBoardRefresh: 0,
     };
@@ -31,6 +32,7 @@ class App extends React.Component {
     this.confirmMove = this.confirmMove.bind(this);
     this.cancelMove = this.cancelMove.bind(this);
     this.updateApp = this.updateApp.bind(this);
+    this.updateGameOver = this.updateGameOver.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
@@ -64,6 +66,7 @@ class App extends React.Component {
     if (!game.isGameOver) {
       game.resign();
       this.updateApp(game);
+      this.updateGameOver();
     }
   };
 
@@ -86,6 +89,7 @@ class App extends React.Component {
     const { game } = this.state;
     game.confirmMove();
     this.updateApp(game);
+    this.updateGameOver();
   };
 
   cancelMove = () => {
@@ -100,7 +104,13 @@ class App extends React.Component {
 
   updateApp = (game) => {
     logger.trace('updateApp');
-    this.setState({ game, showGameOverModal: game.isGameOver });
+    this.setState({ game });
+  };
+
+  updateGameOver = () => {
+    logger.trace('updateGameOver');
+    const { game } = this.state;
+    this.setState({ showGameOverModal: game.isGameOver });
   };
 
   getGameOverModal = () => {
@@ -131,6 +141,7 @@ class App extends React.Component {
             game={game}
             forceBoardRefresh={forceBoardRefresh}
             updateApp={this.updateApp}
+            updateGameOver={this.updateGameOver}
           />
           <GameDetails
             game={game}

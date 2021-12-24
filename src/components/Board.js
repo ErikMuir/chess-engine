@@ -145,10 +145,14 @@ class Board extends React.Component {
 
   onClickPawnPromotion = (event) => {
     logger.trace('onClickPawnPromotion');
-    const { promotionMove } = this.state;
+    const { game, promotionMove } = this.state;
+    const { updateGameOver } = this.props;
     const index = Math.floor(event.offsetX / squareSize);
     promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
-    this.doMove(promotionMove);
+    game.doMove(promotionMove);
+    this.syncSquares();
+    // updateApp(game); // is this needed?
+    updateGameOver();
     this.setState({ promotionMove: null });
   };
 
@@ -197,17 +201,6 @@ class Board extends React.Component {
   doPawnPromotion = (move) => {
     logger.trace('doPawnPromotion');
     this.setState({ promotionMove: move });
-  };
-
-  doMove = (move) => {
-    logger.trace('doMove');
-    const { game } = this.state;
-    const { updateApp } = this.props;
-    game.doMove(move);
-    this.syncSquares();
-    game.postMoveActions(move);
-    updateApp(game);
-    this.setPreviousSquares(move);
   };
 
   setActiveSquare = (activeSquare) => {

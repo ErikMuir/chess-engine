@@ -127,6 +127,9 @@ export default class Game {
       default:
         break;
     }
+    if (!this.preventRecursion) {
+      this.postMoveActions(move);
+    }
   };
 
   getMovePiece = (move) => {
@@ -162,9 +165,7 @@ export default class Game {
     this.setHalfMoveClock(move);
     this.togglePlayerTurn();
     this.generateMoves();
-    if (!this.isGameOver) {
-      this.updateFullMoveNumber(move);
-    }
+    this.updateFullMoveNumber(move);
     this.updateMove(move);
     this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
@@ -216,7 +217,7 @@ export default class Game {
       Math.floor(this.fullMoveNumber),
       movePieceColor,
     );
-    if (movePieceColor === PieceColor.black) {
+    if (!this.isGameOver && movePieceColor === PieceColor.black) {
       this.fullMoveNumber += 1;
     }
   };
@@ -298,7 +299,6 @@ export default class Game {
     if (move) {
       this.tempMove = null;
       this.doMove(move);
-      this.postMoveActions(move);
     }
   };
 

@@ -1,11 +1,18 @@
 import React from 'react';
 import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
+import { iconColor } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('MoveNavigation');
 
-const MoveNavigation = ({ game, moveBackward, moveForward }) => {
+const MoveNavigation = ({
+  pgn,
+  activePlayer,
+  currentMove,
+  moveBackward,
+  moveForward,
+}) => {
   logger.trace('render');
 
   const handleBackward = (e) => {
@@ -20,11 +27,9 @@ const MoveNavigation = ({ game, moveBackward, moveForward }) => {
     e.currentTarget.blur();
   };
 
-  const { pgn, activePlayer, currentMove } = game;
   const { moveNumber, pieceColor } = currentMove;
   const backDisabled = moveNumber === 0;
   const forwardDisabled = moveNumber === pgn.length && pieceColor !== activePlayer;
-  const iconColor = '#eeeeee';
   return (
     <>
       <div>

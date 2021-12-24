@@ -23,7 +23,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+<!-- - _none_ -->
+- resignations shouldnot be navigatable
 
 ## Attributions
 

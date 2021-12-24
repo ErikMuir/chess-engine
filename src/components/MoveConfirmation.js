@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from '@mdi/react';
 import { mdiCheck, mdiClose } from '@mdi/js';
+import { iconColor } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('MoveConfirmation');
@@ -20,7 +21,6 @@ const MoveConfirmation = ({ confirmMove, cancelMove }) => {
     e.currentTarget.blur();
   };
 
-  const iconColor = '#eeeeee';
   return (
     <>
       <div>

@@ -4,10 +4,8 @@ import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
 
-const MoveList = ({ game }) => {
+const MoveList = ({ pgn, currentMove }) => {
   logger.trace('render');
-
-  const { pgn, currentMove } = game;
 
   const currentMoveRef = useRef(null);
 

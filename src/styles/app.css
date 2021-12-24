@@ -38,7 +38,6 @@ body {
 }
 
 .aside {
-  /* flex: 1 1 0; */
   margin: 0 1rem;
 }
 
@@ -133,7 +132,7 @@ body {
 }
 
 .move-controls button {
-  background-color: #444444;
+  background-color: #404040;
   border: none;
   border-radius: 5px;
   padding: 1rem;
@@ -145,11 +144,11 @@ body {
 }
 
 .move-controls button.confirm-move {
-  background-color: #119933;
+  background-color: #7fa650;
 }
 
 .move-controls button.confirm-move:hover, .move-controls button.confirm-move:focus {
-  background-color: #11aa33;
+  background-color: #95bb4a;
 }
 
 .move-controls button svg {

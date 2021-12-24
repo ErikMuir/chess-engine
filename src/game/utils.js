@@ -5,6 +5,7 @@ const darkColor = '#a97a65';
 const activeOverlay = '#cccc00';
 const previousOverlay = '#cccc00';
 const possibleOverlay = '#333333';
+const iconColor = '#eeeeee';
 const overlayOpacity = 0.4;
 const directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
 const directionIndex = {
@@ -35,28 +36,24 @@ const getCoordinatesFromSquareIndex = (index) => {
 
 const testGames = {
   checkmate: {
-    schema: '0.0.1',
+    schema: '1.0.0',
     fen: 'rnbqkbnr/pppp1ppp//4p/5PP//PPPPP2P/RNBQKBNR b KQkq g3 0 2',
-    pgn2: {
-      white: ['f4', 'g4'],
-      black: ['e5'],
-    },
+    pgn: [
+      { white: 'f4', black: 'e5' },
+      { white: 'g4' },
+    ],
   },
   disambiguation: {
-    schema: '0.0.1',
+    schema: '1.0.0',
     fen: 'q5qk//q1q///P/1PPPPPPP/RNBQKBNR b - - 0 0',
-    pgn2: {
-      white: ['a3'],
-      black: [],
-    },
+    pgn: [
+      { white: 'a3' },
+    ],
   },
   promotion: {
-    schema: '0.0.1',
+    schema: '1.0.0',
     fen: 'k/7P//////K w - - 0 0',
-    pgn2: {
-      white: [],
-      black: [],
-    },
+    pgn: [],
   },
 };
 
@@ -69,6 +66,7 @@ export {
   previousOverlay,
   possibleOverlay,
   overlayOpacity,
+  iconColor,
   directionOffsets,
   directionIndex,
   startPosition,
