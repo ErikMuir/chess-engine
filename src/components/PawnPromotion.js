@@ -2,11 +2,12 @@ import React from 'react';
 import Modal from 'react-modal';
 import Piece from '../game/Piece';
 import PieceType from '../game/PieceType';
-import { squareSize, proportion } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('PawnPromotion');
 const canvasId = 'promotion-canvas';
+const pieceSize = 80;
+const proportion = (ratio) => Math.floor(pieceSize * ratio);
 
 class PawnPromotion extends React.Component {
   constructor(props) {
@@ -24,7 +25,7 @@ class PawnPromotion extends React.Component {
     const offset = proportion(0.1);
     const size = proportion(0.8);
     PieceType.promotionTypes.forEach((type, index) => {
-      const x = squareSize * index;
+      const x = pieceSize * index;
       const y = offset;
       const piece = new Piece(activePlayer, type);
       piece.getImage().then((img) => ctx.drawImage(img, x, y, size, size * 2));
@@ -34,8 +35,8 @@ class PawnPromotion extends React.Component {
   getOverlayStyle = () => ({
     position: 'fixed',
     top: 0,
-    left: 0,
-    right: 0,
+    left: -1000,
+    right: -1000,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
   });
@@ -50,7 +51,7 @@ class PawnPromotion extends React.Component {
     boxSizing: 'border-box',
     position: 'relative',
     inset: 0,
-    marginTop: `${squareSize * 4}px`,
+    marginTop: `${pieceSize * 4}px`,
     marginLeft: 'auto',
     marginRight: 'auto',
     border: 'none',
@@ -59,8 +60,8 @@ class PawnPromotion extends React.Component {
 
   render() {
     logger.trace('render');
-    const height = squareSize;
-    const width = squareSize * PieceType.promotionTypes.length;
+    const height = pieceSize;
+    const width = pieceSize * PieceType.promotionTypes.length;
     const overlay = this.getOverlayStyle();
     const content = this.getContentStyle(width, height);
     const cursor = 'pointer';

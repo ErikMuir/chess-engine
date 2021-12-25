@@ -7,6 +7,7 @@ import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import { testGames } from '../game/utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
 import '../styles/modal.css';
@@ -18,7 +19,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      game: new Game(),
+      game: new Game(testGames.promotion),
       showGameOverModal: false,
       forceBoardRefresh: 0,
     };

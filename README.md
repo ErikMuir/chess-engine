@@ -22,8 +22,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-<!-- - _none_ -->
-- pawn promotion modal is missing knightand just looks weird
+- _none_
+
 ## Attributions
 
 - Chess Pieces: `en:User:Cburnett, CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>, via Wikimedia Commons`
