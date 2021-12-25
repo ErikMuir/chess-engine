@@ -82,6 +82,7 @@ class App extends React.Component {
     const { game } = this.state;
     game.moveBackward();
     this.updateApp(game);
+    this.forceRefresh();
   };
 
   moveForward = () => {
@@ -89,6 +90,7 @@ class App extends React.Component {
     const { game } = this.state;
     game.moveForward();
     this.updateApp(game);
+    this.forceRefresh();
   };
 
   confirmMove = () => {
@@ -104,9 +106,7 @@ class App extends React.Component {
     const { game } = this.state;
     game.cancelMove();
     this.updateApp(game);
-    const { forceBoardRefresh } = this.state;
-    const newForceBoardRefresh = forceBoardRefresh + 1;
-    this.setState({ forceBoardRefresh: newForceBoardRefresh });
+    this.forceRefresh();
   };
 
   updateApp = (game) => {
@@ -118,6 +118,13 @@ class App extends React.Component {
     logger.trace('updateGameOver');
     const { game } = this.state;
     this.setState({ showGameOverModal: game.isGameOver });
+  };
+
+  forceRefresh = () => {
+    logger.trace('forceRefresh');
+    const { forceBoardRefresh } = this.state;
+    const newForceBoardRefresh = forceBoardRefresh + 1;
+    this.setState({ forceBoardRefresh: newForceBoardRefresh });
   };
 
   getGameOverModal = () => {

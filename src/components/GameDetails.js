@@ -15,8 +15,8 @@ const GameDetails = ({
   game: {
     tempMove,
     pgn,
-    activePlayer,
-    currentMove,
+    currentMoveIndex,
+    moveHistory,
   },
 }) => {
   logger.trace('render');
@@ -25,9 +25,8 @@ const GameDetails = ({
     ? <MoveConfirmation confirmMove={confirmMove} cancelMove={cancelMove} />
     : (
       <MoveNavigation
-        pgn={pgn}
-        activePlayer={activePlayer}
-        currentMove={currentMove}
+        currentMoveIndex={currentMoveIndex}
+        moveHistory={moveHistory}
         moveBackward={moveBackward}
         moveForward={moveForward}
       />
@@ -35,7 +34,7 @@ const GameDetails = ({
 
   return (
     <div className="aside game-details" style={{ height: boardSize }}>
-      <MoveList pgn={pgn} currentMove={currentMove} />
+      <MoveList pgn={pgn} currentMoveIndex={currentMoveIndex} />
       <div className="move-controls">{controls}</div>
     </div>
   );

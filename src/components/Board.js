@@ -7,6 +7,7 @@ import PossibleLayer from './board-layers/PossibleLayer';
 import PreviousLayer from './board-layers/PreviousLayer';
 import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
+import Game from '../game/Game';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
@@ -40,7 +41,7 @@ class Board extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const { game } = this.state;
     const { forceBoardRefresh } = this.props;
-    const { moveHistory } = game;
+    const { currentMoveIndex } = game;
     const isNewGame = game !== prevState.game;
     const isForceRefresh = forceBoardRefresh !== prevProps.forceBoardRefresh;
     if (isNewGame || isForceRefresh) {
@@ -50,8 +51,8 @@ class Board extends React.Component {
       this.clearPreviousSquares();
       this.syncSquares();
     }
-    if (isForceRefresh && moveHistory && moveHistory.length) {
-      const previousMove = game.moveHistory[game.moveHistory.length - 1];
+    if (isForceRefresh && currentMoveIndex > 0) {
+      const previousMove = game.moveHistory[currentMoveIndex - 1];
       this.setPreviousSquares(previousMove);
     }
   }
@@ -79,11 +80,13 @@ class Board extends React.Component {
   syncSquares = () => {
     logger.trace('syncSquares');
     const { game } = this.state;
+    const { currentMoveIndex, gameHistory } = game;
+    const currentGame = new Game(gameHistory[currentMoveIndex]);
     this.clearPossibleSquares();
     const { squares } = this.state;
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
-      const pieceValue = game.squares[i];
+      const pieceValue = currentGame.squares[i];
       newSquares[i].piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
     }
     this.setState({ squares: newSquares });

@@ -5,7 +5,7 @@ import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
 
-const MoveList = ({ pgn, currentMove }) => {
+const MoveList = ({ pgn, currentMoveIndex }) => {
   logger.trace('render');
 
   const currentMoveRef = useRef(null);
@@ -17,7 +17,7 @@ const MoveList = ({ pgn, currentMove }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [pgn, currentMove]);
+  }, [pgn, currentMoveIndex]);
 
   const getMove = (move, moveNumber) => {
     const { white, black, score } = move;
@@ -26,7 +26,10 @@ const MoveList = ({ pgn, currentMove }) => {
       const pgnMove = pieceColor === PieceColor.white
         ? white || score : white
           ? black || score : null;
-      return currentMove.moveNumber === moveNumber && currentMove.pieceColor === pieceColor
+      const moveIndex = pieceColor === PieceColor.white
+        ? (moveNumber * 2) - 1
+        : moveNumber * 2;
+      return moveIndex === currentMoveIndex
         ? <span className="current-move" ref={currentMoveRef}>{pgnMove}</span>
         : <span>{pgnMove}</span>;
     };

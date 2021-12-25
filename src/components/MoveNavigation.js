@@ -7,9 +7,8 @@ import Logger from '../Logger';
 const logger = new Logger('MoveNavigation');
 
 const MoveNavigation = ({
-  pgn,
-  activePlayer,
-  currentMove,
+  currentMoveIndex,
+  moveHistory,
   moveBackward,
   moveForward,
 }) => {
@@ -27,13 +26,12 @@ const MoveNavigation = ({
     e.currentTarget.blur();
   };
 
-  const { moveNumber, pieceColor } = currentMove;
-  const backDisabled = moveNumber === 0;
-  const forwardDisabled = moveNumber === pgn.length && pieceColor !== activePlayer;
+  const backwardDisabled = currentMoveIndex === 0;
+  const forwardDisabled = currentMoveIndex === moveHistory.length;
   return (
     <>
       <div>
-        <button type="button" onClick={handleBackward} title="Go back" disabled={backDisabled}>
+        <button type="button" onClick={handleBackward} title="Go back" disabled={backwardDisabled}>
           <Icon path={mdiChevronLeft} size={1.5} color={iconColor} />
         </button>
       </div>

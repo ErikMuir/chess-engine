@@ -1,4 +1,3 @@
-import CurrentMove from './CurrentMove';
 import FEN from './FEN';
 import MoveType from './MoveType';
 import PGN from './PGN';
@@ -27,10 +26,11 @@ export default class Game {
     this.castlingAvailability = [];
     this.halfMoveClock = null;
     this.fullMoveNumber = null;
-    this.currentMove = null;
+    this.currentMoveIndex = 0;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
+    this.gameHistory = [];
     this.pgn = pgn;
     this.preventRecursion = preventRecursion;
     this.isResignation = false;
@@ -39,6 +39,7 @@ export default class Game {
 
     FEN.load(fen, this);
     this.init();
+    this.archiveGame();
     this.generateMoves();
   }
 
@@ -63,22 +64,22 @@ export default class Game {
     return this.isGameOver && this.isCheck;
   }
 
-  get json() {
-    this.trace('json');
-    return JSON.stringify({
+  get game() {
+    this.trace('game');
+    return {
       schema,
       fen: FEN.get(this),
       pgn: this.pgn,
-    }, null, 2);
+    };
+  }
+
+  get json() {
+    this.trace('json');
+    return JSON.stringify(this.game, null, 2);
   }
 
   init = () => {
     this.trace('init');
-
-    this.currentMove = new CurrentMove(
-      this.pgn.length,
-      PieceColor.opposite(this.activePlayer),
-    );
 
     for (let file = 0; file < 8; file += 1) {
       for (let rank = 0; rank < 8; rank += 1) {
@@ -114,25 +115,6 @@ export default class Game {
     }
   };
 
-  doMove = (move) => {
-    this.trace('doMove');
-    this.squares[move.fromIndex] = null;
-    this.squares[move.toIndex] = this.getMovePiece(move);
-    switch (move.type) {
-      case MoveType.enPassant:
-        this.handleEnPassant(move);
-        break;
-      case MoveType.castle:
-        this.handleCastle(move);
-        break;
-      default:
-        break;
-    }
-    if (!this.preventRecursion) {
-      this.postMoveActions(move);
-    }
-  };
-
   getMovePiece = (move) => {
     this.trace('getMovePiece');
     if (!move.isPawnPromotion) return move.piece;
@@ -158,6 +140,25 @@ export default class Game {
     this.squares[fromIndex] = null;
   };
 
+  doMove = (move) => {
+    this.trace('doMove');
+    this.squares[move.fromIndex] = null;
+    this.squares[move.toIndex] = this.getMovePiece(move);
+    switch (move.type) {
+      case MoveType.enPassant:
+        this.handleEnPassant(move);
+        break;
+      case MoveType.castle:
+        this.handleCastle(move);
+        break;
+      default:
+        break;
+    }
+    if (!this.preventRecursion) {
+      this.postMoveActions(move);
+    }
+  };
+
   postMoveActions = (move) => {
     this.trace('postMoveActions');
     const legalMoves = [...this.legalMoves];
@@ -170,6 +171,7 @@ export default class Game {
     this.updateMove(move);
     this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
+    this.archiveGame();
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -215,10 +217,7 @@ export default class Game {
     this.trace('updateFullMoveNumber');
     const movePieceColor = PieceColor.fromPieceValue(move.piece);
     if (!this.isResignation) {
-      this.currentMove = new CurrentMove(
-        Math.floor(this.fullMoveNumber),
-        movePieceColor,
-      );
+      this.currentMoveIndex += 1;
     }
     if (!this.isGameOver && movePieceColor === PieceColor.black) {
       this.fullMoveNumber += 1;
@@ -234,6 +233,11 @@ export default class Game {
   archiveMove = (move) => {
     this.trace('archiveMove');
     this.moveHistory.push(move);
+  };
+
+  archiveGame = () => {
+    this.trace('archiveGame');
+    this.gameHistory.push(this.game);
   };
 
   appendToPgn = (move, legalMoves) => {
@@ -278,25 +282,12 @@ export default class Game {
 
   moveBackward = () => {
     this.trace('moveBackward');
-    const { moveNumber, pieceColor } = this.currentMove;
-    const newMoveNumber = pieceColor === PieceColor.white ? moveNumber - 1 : moveNumber;
-    const newPieceColor = PieceColor.opposite(pieceColor);
-    if (newMoveNumber < 0) return;
-    this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
+    if (this.currentMoveIndex > 0) { this.currentMoveIndex -= 1; }
   };
 
   moveForward = () => {
     this.trace('moveForward');
-    const { moveNumber, pieceColor } = this.currentMove;
-    const newMoveNumber = pieceColor === PieceColor.white ? moveNumber : moveNumber + 1;
-    const newPieceColor = pieceColor === PieceColor.none
-      ? PieceColor.white
-      : PieceColor.opposite(pieceColor);
-    if (newMoveNumber > this.pgn.length) return;
-    const newMove = this.pgn[newMoveNumber - 1];
-    if (newMove.score && newPieceColor === PieceColor.white && !newMove.white) return;
-    if (newMove.score && newPieceColor === PieceColor.black && !newMove.black) return;
-    this.currentMove = new CurrentMove(newMoveNumber, newPieceColor);
+    if (this.currentMoveIndex < this.gameHistory.length - 1) this.currentMoveIndex += 1;
   };
 
   confirmMove = () => {
