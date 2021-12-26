@@ -134,8 +134,16 @@ class Board extends React.Component {
     if (move.isPawnPromotion) {
       game.tempMove = null;
       this.doPawnPromotion(move);
-    } else if (game.confirmationDisabled) {
-      game.confirmMove();
+    } else if (!game.confirmationDisabled) {
+      return;
+    }
+
+    game.confirmMove();
+    updateApp(game);
+    updateGameOver();
+
+    if (!game.isGameOver) {
+      this.computerMove();
       updateApp(game);
       updateGameOver();
     }
@@ -247,6 +255,19 @@ class Board extends React.Component {
   clearPreviousSquares = () => {
     logger.trace('clearPreviousSquares');
     this.setState({ previousSquares: [] });
+  };
+
+  computerMove = () => {
+    logger.trace('computerMove');
+    const { game } = this.state;
+    const { updateGameOver } = this.props;
+    const move = game.legalMoves[Math.floor(Math.random() * game.legalMoves.length)];
+    // TODO : add a sleep to simulate the computer "thinking"
+    // sleep(1000).then(() => this.doMove(move));
+    game.doMove(move);
+    this.syncSquares();
+    // updateApp(game); // is this needed?
+    updateGameOver();
   };
 
   getLegalMove = (toSquare) => {
