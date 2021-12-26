@@ -22,7 +22,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+<!-- - _none_ -->
+- castling is broken with temp move confirmation
 
 ## Attributions
 
