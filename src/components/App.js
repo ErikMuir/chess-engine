@@ -96,9 +96,14 @@ class App extends React.Component {
   confirmMove = () => {
     logger.trace('confirmMove');
     const { game } = this.state;
+
     game.confirmMove();
     this.updateApp(game);
     this.updateGameOver();
+
+    if (!game.isGameOver) {
+      this.computerMove();
+    }
   };
 
   cancelMove = () => {
@@ -126,6 +131,15 @@ class App extends React.Component {
     const newForceRefresh = forceRefresh + 1;
     this.setState({ forceRefresh: newForceRefresh });
   };
+
+  computerMove = () => {
+    logger.trace('computerMove');
+    const { game } = this.state;
+    const move = game.legalMoves[Math.floor(Math.random() * game.legalMoves.length)];
+    game.doMove(move);
+    this.updateApp(game);
+    this.updateGameOver();
+    this.forceRefresh();
   };
 
   getGameOverModal = () => {

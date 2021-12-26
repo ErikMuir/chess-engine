@@ -95,7 +95,7 @@ class Board extends React.Component {
   onMouseDown = (event) => {
     logger.trace('onMouseDown');
     const { game } = this.state;
-    if (game.isGameOver || game.tempMove) return;
+    if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
     const { activeSquare } = this.state;
     const square = this.getEventSquare(event);
     if (square === activeSquare) {
