@@ -209,17 +209,6 @@ class Board extends React.Component {
     });
   };
 
-  computerMove = () => {
-    logger.trace('computerMove');
-    const { game } = this.state;
-    const { updateGameOver } = this.props;
-    const move = game.legalMoves[Math.floor(Math.random() * game.legalMoves.length)];
-    // TODO : add a sleep to simulate the computer "thinking"
-    game.doMove(move);
-    this.syncSquares();
-    updateGameOver();
-  };
-
   getLegalMove = (toSquare) => {
     logger.trace('getLegalMove');
     const { activeSquare, game } = this.state;

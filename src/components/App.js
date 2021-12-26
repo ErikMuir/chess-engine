@@ -7,6 +7,7 @@ import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
 import '../styles/modal.css';
@@ -138,10 +139,13 @@ class App extends React.Component {
     logger.trace('computerMove');
     const { game } = this.state;
     const move = game.legalMoves[Math.floor(Math.random() * game.legalMoves.length)];
-    game.doMove(move);
-    this.updateApp(game);
-    this.updateGameOver();
-    this.forceRefresh();
+    // wait 1 second to simulate the computer "thinking"
+    sleep(1000).then(() => {
+      game.doMove(move);
+      this.updateApp(game);
+      this.updateGameOver();
+      this.forceRefresh();
+    });
   };
 
   getGameOverModal = () => {
