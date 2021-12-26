@@ -1,3 +1,4 @@
+/* eslint-disable react/no-did-update-set-state */
 import React from 'react';
 import ActiveLayer from './board-layers/ActiveLayer';
 import InteractiveLayer from './board-layers/InteractiveLayer';
@@ -39,21 +40,23 @@ class Board extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { game } = this.state;
+    const { game, squares } = this.state;
     const { forceRefresh } = this.props;
-    const { currentMoveIndex } = game;
-    const isNewGame = game !== prevState.game;
     const isForceRefresh = forceRefresh !== prevProps.forceRefresh;
-    if (isNewGame || isForceRefresh) {
-      logger.trace('componentDidUpdate');
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
-      this.clearPreviousSquares();
+    if (isForceRefresh) {
+      const { currentMoveIndex, moveHistory } = game;
+      const previousSquares = [];
+      if (currentMoveIndex > 0) {
+        const previousMove = moveHistory[currentMoveIndex - 1];
+        previousSquares.push(squares[previousMove.fromIndex]);
+        previousSquares.push(squares[previousMove.toIndex]);
+      }
+      this.setState({
+        activeSquare: null,
+        possibleSquares: [],
+        previousSquares,
+      });
       this.syncSquares();
-    }
-    if (isForceRefresh && currentMoveIndex > 0) {
-      const previousMove = game.moveHistory[currentMoveIndex - 1];
-      this.setPreviousSquares(previousMove);
     }
   }
 
@@ -79,46 +82,61 @@ class Board extends React.Component {
 
   syncSquares = () => {
     logger.trace('syncSquares');
-    const { game } = this.state;
+    const { game, squares } = this.state;
     const { currentMoveIndex, gameHistory } = game;
     const currentGame = new Game(gameHistory[currentMoveIndex]);
-    this.clearPossibleSquares();
-    const { squares } = this.state;
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
       const pieceValue = currentGame.squares[i];
       newSquares[i].piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
     }
-    this.setState({ squares: newSquares });
+    this.setState({ squares: newSquares, possibleSquares: [] });
   };
 
   onMouseDown = (event) => {
     logger.trace('onMouseDown');
-    const { game } = this.state;
+    const { game, squares } = this.state;
     if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
     const { activeSquare } = this.state;
     const square = this.getEventSquare(event);
+    const newState = {};
     if (square === activeSquare) {
-      this.setState({ deselect: true });
+      newState.deselect = true;
     }
     if (square.piece && square.piece.color === game.activePlayer) {
-      const dragPiece = square.piece;
-      this.initMove(square);
-      this.initDrag(dragPiece);
+      newState.activeSquare = square;
+      newState.dragPiece = square.piece;
+      newState.possibleSquares = game.legalMoves
+        .filter((move) => move.fromIndex === square.index)
+        .map((move) => squares[move.toIndex]);
+      square.piece = null;
     }
+    this.setState(newState);
   };
 
   onMouseUp = (event) => {
     logger.trace('onMouseUp');
-    const { activeSquare, dragPiece, deselect } = this.state;
+    const { updateApp, updateGameOver } = this.props;
+    const {
+      game,
+      activeSquare,
+      dragPiece,
+      deselect,
+    } = this.state;
     if (!activeSquare) return;
-    if (dragPiece) this.cancelDrag();
+
+    if (dragPiece) {
+      activeSquare.piece = dragPiece; // setState did not work as expected here
+      this.setState({ dragPiece: null });
+    }
 
     const square = this.getEventSquare(event);
     if (square === activeSquare && deselect) {
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
-      this.setState({ deselect: false });
+      this.setState({
+        activeSquare: null,
+        possibleSquares: [],
+        deselect: false,
+      });
       return;
     }
 
@@ -126,14 +144,11 @@ class Board extends React.Component {
     if (!move) return;
 
     this.doTempMove(move);
-
-    const { updateApp, updateGameOver } = this.props;
-    const { game } = this.state;
     updateApp(game);
 
     if (move.isPawnPromotion) {
       game.tempMove = null;
-      this.doPawnPromotion(move);
+      this.setState({ promotionMove: move });
     } else if (!game.confirmationDisabled) {
       return;
     }
@@ -142,19 +157,25 @@ class Board extends React.Component {
     updateApp(game);
     updateGameOver();
 
-    if (!game.isGameOver) {
-      this.computerMove();
-      updateApp(game);
-      updateGameOver();
-    }
+    if (game.isGameOver) return;
+
+    this.computerMove();
+    updateApp(game);
+    updateGameOver();
   };
 
   onMouseOut = () => {
-    if (this.dragPiece) {
+    const { activeSquare, dragPiece } = this.state;
+    if (dragPiece) {
       logger.trace('onMouseOut');
-      this.cancelDrag();
-      this.clearActiveSquare();
-      this.clearPossibleSquares();
+      if (activeSquare) {
+        activeSquare.piece = dragPiece; // setState did not work as expected here
+      }
+      this.setState({
+        activeSquare: null,
+        possibleSquares: [],
+        dragPiece: null,
+      });
     }
   };
 
@@ -166,7 +187,6 @@ class Board extends React.Component {
     promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
     game.doMove(promotionMove);
     this.syncSquares();
-    // updateApp(game); // is this needed?
     updateGameOver();
     this.setState({ promotionMove: null });
   };
@@ -179,82 +199,22 @@ class Board extends React.Component {
     return squares[rank * 8 + file];
   };
 
-  initDrag = (dragPiece) => {
-    logger.trace('initDrag');
-    this.setState({ dragPiece });
-  };
-
-  cancelDrag = () => {
-    logger.trace('cancelDrag');
-    const { activeSquare, dragPiece } = this.state;
-    if (activeSquare) {
-      activeSquare.piece = dragPiece; // setState did not work as expected here
-    }
-    this.setState({ dragPiece: null });
-  };
-
-  initMove = (fromSquare) => {
-    logger.trace('initMove');
-    fromSquare.piece = null;
-    this.setPossibleSquares(fromSquare);
-    this.setActiveSquare(fromSquare);
-  };
-
   doTempMove = (move) => {
     logger.trace('doTempMove');
     const { game, squares } = this.state;
+    game.tempMove = move;
     const newSquares = [...squares];
     newSquares[move.fromIndex].piece = null;
     newSquares[move.toIndex].piece = Piece.fromPieceValue(move.piece);
-    this.setState({ squares: newSquares });
-    game.tempMove = move;
-    this.clearPossibleSquares();
-    this.clearActiveSquare();
-    this.setPreviousSquares(move);
-  };
-
-  doPawnPromotion = (move) => {
-    logger.trace('doPawnPromotion');
-    this.setState({ promotionMove: move });
-  };
-
-  setActiveSquare = (activeSquare) => {
-    logger.trace('setActiveSquare');
-    this.setState({ activeSquare });
-  };
-
-  clearActiveSquare = () => {
-    logger.trace('clearActiveSquare');
-    this.setState({ activeSquare: null });
-  };
-
-  setPossibleSquares = (fromSquare) => {
-    logger.trace('setPossibleSquares');
-    const { game, squares } = this.state;
-    const possibleSquares = game.legalMoves
-      .filter((move) => move.fromIndex === fromSquare.index)
-      .map((move) => squares[move.toIndex]);
-    this.setState({ possibleSquares });
-  };
-
-  clearPossibleSquares = () => {
-    logger.trace('clearPossibleSquares');
-    this.setState({ possibleSquares: [] });
-  };
-
-  setPreviousSquares = (move) => {
-    logger.trace('setPreviousSquares');
-    const { squares } = this.state;
-    const previousSquares = [
-      squares[move.fromIndex],
-      squares[move.toIndex],
-    ];
-    this.setState({ previousSquares });
-  };
-
-  clearPreviousSquares = () => {
-    logger.trace('clearPreviousSquares');
-    this.setState({ previousSquares: [] });
+    this.setState({
+      squares: newSquares,
+      activeSquare: null,
+      possibleSquares: [],
+      previousSquares: [
+        squares[move.fromIndex],
+        squares[move.toIndex],
+      ],
+    });
   };
 
   computerMove = () => {
@@ -263,10 +223,8 @@ class Board extends React.Component {
     const { updateGameOver } = this.props;
     const move = game.legalMoves[Math.floor(Math.random() * game.legalMoves.length)];
     // TODO : add a sleep to simulate the computer "thinking"
-    // sleep(1000).then(() => this.doMove(move));
     game.doMove(move);
     this.syncSquares();
-    // updateApp(game); // is this needed?
     updateGameOver();
   };
 
