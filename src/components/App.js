@@ -44,12 +44,14 @@ class App extends React.Component {
   newGame = () => {
     logger.trace('newGame');
     this.setState({ game: new Game() });
+    this.forceRefresh();
   };
 
   importGame = (gameJson) => {
     logger.trace('importGame');
     const game = new Game(gameJson);
     this.setState({ game });
+    this.forceRefresh();
   };
 
   exportGame = () => {
