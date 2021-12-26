@@ -175,6 +175,7 @@ class App extends React.Component {
             forceRefresh={forceRefresh}
             updateApp={this.updateApp}
             updateGameOver={this.updateGameOver}
+            confirmMove={this.confirmMove}
           />
           <GameDetails
             game={game}

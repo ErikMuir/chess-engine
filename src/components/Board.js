@@ -39,7 +39,7 @@ class Board extends React.Component {
     this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     const { game, squares } = this.state;
     const { forceRefresh } = this.props;
     const isForceRefresh = forceRefresh !== prevProps.forceRefresh;
@@ -116,7 +116,7 @@ class Board extends React.Component {
 
   onMouseUp = (event) => {
     logger.trace('onMouseUp');
-    const { updateApp, updateGameOver } = this.props;
+    const { updateApp, confirmMove } = this.props;
     const {
       game,
       activeSquare,
@@ -153,15 +153,7 @@ class Board extends React.Component {
       return;
     }
 
-    game.confirmMove();
-    updateApp(game);
-    updateGameOver();
-
-    if (game.isGameOver) return;
-
-    this.computerMove();
-    updateApp(game);
-    updateGameOver();
+    confirmMove();
   };
 
   onMouseOut = () => {

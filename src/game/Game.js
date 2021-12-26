@@ -263,7 +263,6 @@ export default class Game {
     this.trace('generateLegalMoves');
     const activePlayerMoves = this.pseudoLegalMoves
       .filter((move) => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
-    if (this.preventRecursion) return activePlayerMoves;
     const fen = FEN.get(this);
     const moves = [];
     activePlayerMoves.forEach((move) => {
