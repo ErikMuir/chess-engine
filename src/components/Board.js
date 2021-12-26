@@ -40,10 +40,10 @@ class Board extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { game } = this.state;
-    const { forceBoardRefresh } = this.props;
+    const { forceRefresh } = this.props;
     const { currentMoveIndex } = game;
     const isNewGame = game !== prevState.game;
-    const isForceRefresh = forceBoardRefresh !== prevProps.forceBoardRefresh;
+    const isForceRefresh = forceRefresh !== prevProps.forceRefresh;
     if (isNewGame || isForceRefresh) {
       logger.trace('componentDidUpdate');
       this.clearActiveSquare();

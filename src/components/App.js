@@ -20,7 +20,7 @@ class App extends React.Component {
     this.state = {
       game: new Game(),
       showGameOverModal: false,
-      forceBoardRefresh: 0,
+      forceRefresh: 0,
     };
     this.newGame = this.newGame.bind(this);
     this.importGame = this.importGame.bind(this);
@@ -122,9 +122,10 @@ class App extends React.Component {
 
   forceRefresh = () => {
     logger.trace('forceRefresh');
-    const { forceBoardRefresh } = this.state;
-    const newForceBoardRefresh = forceBoardRefresh + 1;
-    this.setState({ forceBoardRefresh: newForceBoardRefresh });
+    const { forceRefresh } = this.state;
+    const newForceRefresh = forceRefresh + 1;
+    this.setState({ forceRefresh: newForceRefresh });
+  };
   };
 
   getGameOverModal = () => {
@@ -140,7 +141,7 @@ class App extends React.Component {
 
   render() {
     logger.trace('render');
-    const { game, forceBoardRefresh } = this.state;
+    const { game, forceRefresh } = this.state;
     return (
       <div className="app-container">
         <header className="app-header" />
@@ -155,7 +156,7 @@ class App extends React.Component {
           />
           <Board
             game={game}
-            forceBoardRefresh={forceBoardRefresh}
+            forceRefresh={forceRefresh}
             updateApp={this.updateApp}
             updateGameOver={this.updateGameOver}
           />
