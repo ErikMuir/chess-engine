@@ -150,7 +150,8 @@ export default class Game {
       case MoveType.enPassant:
         this.handleEnPassant(move);
         break;
-      case MoveType.castle:
+      case MoveType.kingSideCastle:
+      case MoveType.queenSideCastle:
         this.handleCastle(move);
         break;
       default:

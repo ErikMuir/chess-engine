@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable react/no-did-update-set-state */
 import React from 'react';
 import ActiveLayer from './board-layers/ActiveLayer';
@@ -9,10 +10,12 @@ import PreviousLayer from './board-layers/PreviousLayer';
 import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
 import Game from '../game/Game';
+import MoveType from '../game/MoveType';
+import PieceColor from '../game/PieceColor';
 import PieceType from '../game/PieceType';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
-import { squareSize, boardSize } from '../game/utils';
+import { squareSize, boardSize, getFile } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Board');
@@ -191,6 +194,23 @@ class Board extends React.Component {
     return squares[rank * 8 + file];
   };
 
+  handleEnPassant = (move, newSquares) => {
+    const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
+    const captureSquareIndex = move.toIndex + offset;
+    newSquares[captureSquareIndex].piece = null;
+  };
+
+  handleCastle = (move, newSquares) => {
+    const isKingSide = getFile(move.toIndex) === 6;
+    const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
+    const rookFile = isKingSide ? 7 : 0;
+    const targetFile = isKingSide ? 5 : 3;
+    const fromIndex = rookRank * 8 + rookFile;
+    const toIndex = rookRank * 8 + targetFile;
+    newSquares[toIndex].piece = newSquares[fromIndex].piece;
+    newSquares[fromIndex].piece = null;
+  };
+
   doTempMove = (move) => {
     logger.trace('doTempMove');
     const { game, squares } = this.state;
@@ -198,6 +218,17 @@ class Board extends React.Component {
     const newSquares = [...squares];
     newSquares[move.fromIndex].piece = null;
     newSquares[move.toIndex].piece = Piece.fromPieceValue(move.piece);
+    switch (move.type) {
+      case MoveType.enPassant:
+        this.handleEnPassant(move, newSquares);
+        break;
+      case MoveType.kingSideCastle:
+      case MoveType.queenSideCastle:
+        this.handleCastle(move, newSquares);
+        break;
+      default:
+        break;
+    }
     this.setState({
       squares: newSquares,
       activeSquare: null,

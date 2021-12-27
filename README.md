@@ -4,11 +4,12 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
+- move navigation by click
+- move list indicates when game ends in draw
 - new game - choose white or black
 - analysis
 - hint
 - play vs computer
-  - start with computer moves chosen at random
   - add 1 level of depth
   - add basic strategy
   - add multiple levels of depth
@@ -23,7 +24,8 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- castling is broken with temp move confirmation
+- imported games don't allow move navigation
+- pawn promotion with auto-confirm results in opposite color
 
 ## Attributions
 
