@@ -48,7 +48,7 @@ const GameControls = (props) => {
     logger.trace('readFile');
     const loadGameInput = document.getElementById(loadGameInputId);
     const file = loadGameInput.files[0];
-    fileReader.readAsText(file);
+    if (file) fileReader.readAsText(file);
   };
 
   const handleNew = (e) => {
