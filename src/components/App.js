@@ -34,6 +34,7 @@ class App extends React.Component {
     this.cancelMove = this.cancelMove.bind(this);
     this.updateApp = this.updateApp.bind(this);
     this.updateGameOver = this.updateGameOver.bind(this);
+    this.computerMove = this.computerMove.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
@@ -180,6 +181,7 @@ class App extends React.Component {
             updateApp={this.updateApp}
             updateGameOver={this.updateGameOver}
             confirmMove={this.confirmMove}
+            computerMove={this.computerMove}
           />
           <GameDetails
             game={game}

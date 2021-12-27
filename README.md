@@ -25,7 +25,6 @@ A javascript chess engine with React chess GUI
 
 <!-- - _none_ -->
 - imported games don't allow move navigation
-- pawn promotion with auto-confirm results in opposite color
 
 ## Attributions
 

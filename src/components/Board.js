@@ -150,13 +150,10 @@ class Board extends React.Component {
     updateApp(game);
 
     if (move.isPawnPromotion) {
-      game.tempMove = null;
       this.setState({ promotionMove: move });
-    } else if (!game.confirmationDisabled) {
-      return;
+    } else if (game.confirmationDisabled) {
+      confirmMove();
     }
-
-    confirmMove();
   };
 
   onMouseOut = () => {
@@ -177,13 +174,16 @@ class Board extends React.Component {
   onClickPawnPromotion = (event) => {
     logger.trace('onClickPawnPromotion');
     const { game, promotionMove } = this.state;
-    const { updateGameOver } = this.props;
+    const { updateGameOver, computerMove } = this.props;
     const index = Math.floor(event.offsetX / squareSize);
     promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
-    game.doMove(promotionMove);
+    this.setState({ promotionMove: null });
+    game.confirmMove();
     this.syncSquares();
     updateGameOver();
-    this.setState({ promotionMove: null });
+    if (!game.isGameOver) {
+      computerMove();
+    }
   };
 
   getEventSquare = (event) => {
