@@ -284,12 +284,17 @@ export default class Game {
 
   moveBackward = () => {
     this.trace('moveBackward');
-    if (this.currentMoveIndex > 0) { this.currentMoveIndex -= 1; }
+    if (this.currentMoveIndex > 0) this.currentMoveIndex -= 1;
   };
 
   moveForward = () => {
     this.trace('moveForward');
     if (this.currentMoveIndex < this.gameHistory.length - 1) this.currentMoveIndex += 1;
+  };
+
+  moveJump = (moveIndex) => {
+    this.trace('moveJump');
+    this.currentMoveIndex = moveIndex;
   };
 
   confirmMove = () => {

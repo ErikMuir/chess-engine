@@ -10,6 +10,7 @@ const logger = new Logger('GameDetails');
 const GameDetails = ({
   moveBackward,
   moveForward,
+  moveJump,
   confirmMove,
   cancelMove,
   game: {
@@ -34,7 +35,7 @@ const GameDetails = ({
 
   return (
     <div className="aside game-details" style={{ height: boardSize }}>
-      <MoveList pgn={pgn} currentMoveIndex={currentMoveIndex} />
+      <MoveList pgn={pgn} currentMoveIndex={currentMoveIndex} moveJump={moveJump} />
       <div className="move-controls">{controls}</div>
     </div>
   );

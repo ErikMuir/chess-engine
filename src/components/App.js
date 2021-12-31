@@ -30,6 +30,7 @@ class App extends React.Component {
     this.toggleConfirmation = this.toggleConfirmation.bind(this);
     this.moveBackward = this.moveBackward.bind(this);
     this.moveForward = this.moveForward.bind(this);
+    this.moveJump = this.moveJump.bind(this);
     this.confirmMove = this.confirmMove.bind(this);
     this.cancelMove = this.cancelMove.bind(this);
     this.updateApp = this.updateApp.bind(this);
@@ -93,6 +94,14 @@ class App extends React.Component {
     logger.trace('moveForward');
     const { game } = this.state;
     game.moveForward();
+    this.updateApp(game);
+    this.forceRefresh();
+  };
+
+  moveJump = (moveIndex) => {
+    logger.trace('moveJump');
+    const { game } = this.state;
+    game.moveJump(moveIndex);
     this.updateApp(game);
     this.forceRefresh();
   };
@@ -187,6 +196,7 @@ class App extends React.Component {
             game={game}
             moveBackward={this.moveBackward}
             moveForward={this.moveForward}
+            moveJump={this.moveJump}
             confirmMove={this.confirmMove}
             cancelMove={this.cancelMove}
           />

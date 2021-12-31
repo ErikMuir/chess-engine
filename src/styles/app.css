@@ -110,11 +110,14 @@ body {
   min-width: 4rem;
 }
 
-.move-list .move .move-symbol span {
+.move-list .move .move-symbol button {
   padding: 2px 8px;
+  border: none;
+  background-color: transparent;
+  color: #eeeeee;
 }
 
-.move-list .move .move-symbol span.current-move {
+.move-list .move .move-symbol button.current-move {
   background-color: rgba(255, 255, 255, 0.2);
   border-bottom: 2px solid rgba(255, 255, 255, 0.4)
 }

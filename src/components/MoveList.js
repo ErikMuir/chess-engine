@@ -5,7 +5,7 @@ import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
 
-const MoveList = ({ pgn, currentMoveIndex }) => {
+const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
   logger.trace('render');
 
   const currentMoveRef = useRef(null);
@@ -19,6 +19,12 @@ const MoveList = ({ pgn, currentMoveIndex }) => {
     scrollToBottom();
   }, [pgn, currentMoveIndex]);
 
+  const handleMoveJump = (e) => {
+    logger.trace('handleMoveJump');
+    const moveIndex = parseInt(e.target.dataset.moveindex, 10);
+    moveJump(moveIndex);
+  };
+
   const getMove = (move, moveNumber) => {
     const { white, black, score } = move;
     const getMoveNumber = () => (white ? `${moveNumber}.` : null);
@@ -30,8 +36,26 @@ const MoveList = ({ pgn, currentMoveIndex }) => {
         ? (moveNumber * 2) - 1
         : moveNumber * 2;
       return moveIndex === currentMoveIndex
-        ? <span className="current-move" ref={currentMoveRef}>{pgnMove}</span>
-        : <span>{pgnMove}</span>;
+        ? (
+          <button
+            type="button"
+            onClick={handleMoveJump}
+            data-moveindex={moveIndex}
+            className="current-move"
+            ref={currentMoveRef}
+          >
+            {pgnMove}
+          </button>
+        )
+        : (
+          <button
+            type="button"
+            onClick={handleMoveJump}
+            data-moveindex={moveIndex}
+          >
+            {pgnMove}
+          </button>
+        );
     };
 
     return (
