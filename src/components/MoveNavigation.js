@@ -8,7 +8,7 @@ const logger = new Logger('MoveNavigation');
 
 const MoveNavigation = ({
   currentMoveIndex,
-  moveHistory,
+  moveCount,
   moveBackward,
   moveForward,
 }) => {
@@ -27,7 +27,7 @@ const MoveNavigation = ({
   };
 
   const backwardDisabled = currentMoveIndex === 0;
-  const forwardDisabled = currentMoveIndex === moveHistory.length;
+  const forwardDisabled = currentMoveIndex === moveCount;
   return (
     <>
       <div>

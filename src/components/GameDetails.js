@@ -27,7 +27,7 @@ const GameDetails = ({
     : (
       <MoveNavigation
         currentMoveIndex={currentMoveIndex}
-        moveHistory={moveHistory}
+        moveCount={moveHistory.length}
         moveBackward={moveBackward}
         moveForward={moveForward}
       />
