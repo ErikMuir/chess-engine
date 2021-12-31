@@ -1,5 +1,3 @@
-/* eslint-disable no-case-declarations */
-/* eslint-disable react/no-did-update-set-state */
 import React from 'react';
 import ActiveLayer from './board-layers/ActiveLayer';
 import InteractiveLayer from './board-layers/InteractiveLayer';
@@ -43,22 +41,10 @@ class Board extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { game, squares } = this.state;
     const { forceRefresh } = this.props;
     const isForceRefresh = forceRefresh !== prevProps.forceRefresh;
     if (isForceRefresh) {
-      const { currentMoveIndex, moveHistory } = game;
-      const previousSquares = [];
-      if (currentMoveIndex > 0) {
-        const previousMove = moveHistory[currentMoveIndex - 1];
-        previousSquares.push(squares[previousMove.fromIndex]);
-        previousSquares.push(squares[previousMove.toIndex]);
-      }
-      this.setState({
-        activeSquare: null,
-        possibleSquares: [],
-        previousSquares,
-      });
+      this.forceRefresh();
       this.syncSquares();
     }
   }
@@ -67,6 +53,22 @@ class Board extends React.Component {
     const { game } = props;
     return game === state.game ? null : { game };
   }
+
+  forceRefresh = () => {
+    const { game, squares } = this.state;
+    const { currentMoveIndex, moveHistory } = game;
+    const previousSquares = [];
+    if (currentMoveIndex > 0) {
+      const previousMove = moveHistory[currentMoveIndex - 1];
+      previousSquares.push(squares[previousMove.fromIndex]);
+      previousSquares.push(squares[previousMove.toIndex]);
+    }
+    this.setState({
+      activeSquare: null,
+      possibleSquares: [],
+      previousSquares,
+    });
+  };
 
   initSquares = (game) => {
     logger.trace('initSquares');
@@ -129,7 +131,7 @@ class Board extends React.Component {
     if (!activeSquare) return;
 
     if (dragPiece) {
-      activeSquare.piece = dragPiece; // setState did not work as expected here
+      activeSquare.piece = dragPiece;
       this.setState({ dragPiece: null });
     }
 
@@ -161,7 +163,7 @@ class Board extends React.Component {
     if (dragPiece) {
       logger.trace('onMouseOut');
       if (activeSquare) {
-        activeSquare.piece = dragPiece; // setState did not work as expected here
+        activeSquare.piece = dragPiece;
       }
       this.setState({
         activeSquare: null,
