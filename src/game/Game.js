@@ -41,8 +41,6 @@ export default class Game {
 
     FEN.load(fen, this);
     this.init();
-    this.archiveGame();
-    this.generateMoves();
   }
 
   trace = (msg) => {
@@ -81,6 +79,12 @@ export default class Game {
   }
 
   init = () => {
+    this.setNumSquaresToEdge();
+    this.generateMoves();
+    this.populateGameHistory();
+  };
+
+  setNumSquaresToEdge = () => {
     this.trace('init');
 
     for (let file = 0; file < 8; file += 1) {
@@ -103,6 +107,13 @@ export default class Game {
           Math.min(numSouth, numWest),
         ];
       }
+    }
+  };
+
+  populateGameHistory = () => {
+    this.archiveGame();
+    if (this.pgn && this.pgn.length) {
+      // TODO : populate gameHistory with pgn from imported game
     }
   };
 
