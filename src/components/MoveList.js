@@ -1,6 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
 import PieceColor from '../game/PieceColor';
+import { getMovesFromPgn } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
@@ -67,9 +68,11 @@ const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
     );
   };
 
+  const moves = getMovesFromPgn(pgn);
+
   return (
     <div className="move-list">
-      {pgn.map((move, i) => getMove(move, (i + 1)))}
+      {moves.map((move, i) => getMove(move, (i + 1)))}
     </div>
   );
 };

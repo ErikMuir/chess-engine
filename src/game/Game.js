@@ -72,7 +72,7 @@ export default class Game {
     return {
       schema,
       fen: FEN.get(this),
-      pgn: this.pgn.map((pgn) => ({ ...pgn })),
+      pgn: [...this.pgn],
     };
   }
 
@@ -83,45 +83,39 @@ export default class Game {
 
   populateHistory = () => {
     this.archiveGame();
-    if (this.preventRecursion || !this.pgn.length) return;
+    // if (this.preventRecursion || !this.pgn.length) return;
 
-    let workingGame = new Game({ ...this.game, preventRecursion: true });
+    // let workingGame = new Game({ ...this.game, preventRecursion: true });
 
-    function parseMove(pgn, pieceColor) {
-      // TODO : parse move
-    }
+    // function parseMove(moveSymbol) {
+    //   // TODO : parse move
+    // }
 
-    function appendHistory(move) {
-      // TODO : append to moveHistory
-      // TODO : doMove
-      // TODO : append to gameHistory
-    }
+    // function appendHistory(move) {
+    //   // TODO : doMove
+    //   // TODO : append to moveHistory
+    //   // TODO : append to gameHistory
+    // }
 
-    for (let i = 0; i < this.pgn.length; i += 1) {
-      const { white, black, score } = this.pgn[i];
-      if (white) {
-        const move = parseMove(white, PieceColor.white);
-        appendHistory(move);
-      }
-      if (black) {
-        const move = parseMove(black, PieceColor.black);
-        appendHistory(move);
-      }
-      if (score) {
-        if (score.includes('resign')) this.isResignation = true;
-      }
-    }
+    // for (let i = 0; i < this.pgn.length; i += 1) {
+    //   const moveSymbol = this.pgn[i];
+    //   if (moveSymbol.includes('resign')) {
+    //     this.isResignation = true;
+    //     return;
+    //   }
+    //   const move = parseMove(moveSymbol);
+    //   appendHistory(move);
+    // }
   };
 
   resign = () => {
     this.trace('resign');
     this.isResignation = true;
     this.legalMoves = [];
-    if (this.activePlayer === PieceColor.white) {
-      this.pgn.push({ score: '0-1 (white resigns)' });
-    } else {
-      this.pgn[this.pgn.length - 1].score = '1-0 (black resigns)';
-    }
+    const msg = this.activePlayer === PieceColor.white
+      ? '0-1 (white resigns)'
+      : '1-0 (black resigns)';
+    this.pgn.push(msg);
   };
 
   getMovePiece = (move) => {
@@ -252,12 +246,8 @@ export default class Game {
 
   appendToPgn = (move, legalMoves) => {
     this.trace('appendToPgn');
-    const pgn = PGN.get(move, legalMoves);
-    if (PieceColor.fromPieceValue(move.piece) === PieceColor.white) {
-      this.pgn.push({ white: pgn });
-    } else {
-      this.pgn[this.pgn.length - 1].black = pgn;
-    }
+    const moveSymbol = PGN.get(move, legalMoves);
+    this.pgn.push(moveSymbol);
   };
 
   generateMoves = () => {

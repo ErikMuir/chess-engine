@@ -19,8 +19,6 @@ A javascript chess engine with React chess GUI
 
 - unit tests
 - consider redux or some other state management system?
-- refactor Board.previousSquares to Game.previousMove (and get rid of moveHistory)
-- refactor Game.pgn to be a straight array of pgn stringsinstead of object with white/black/score
 
 ## Known Bugs
 
