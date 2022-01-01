@@ -4,7 +4,7 @@ import MoveType from './MoveType';
 import Piece from './Piece';
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
-import { directionIndex, directionOffsets } from './utils';
+import { getNumSquaresToEdge, directionIndex, directionOffsets } from './utils';
 
 const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => {
   const moves = [];
@@ -66,8 +66,9 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
   return moves;
 };
 
-const generateKnightMoves = (fromIndex, piece, squares, numSquaresToEdge) => {
+const generateKnightMoves = (fromIndex, piece, squares) => {
   const moves = [];
+  const numSquaresToEdge = getNumSquaresToEdge();
 
   const checkMove = (passingIndex, dirIndex) => {
     const toIndex = passingIndex + directionOffsets[dirIndex];
@@ -113,8 +114,9 @@ const generateKnightMoves = (fromIndex, piece, squares, numSquaresToEdge) => {
   return moves;
 };
 
-const generateKingMoves = (fromIndex, piece, squares, numSquaresToEdge, castlingAvailability) => {
+const generateKingMoves = (fromIndex, piece, squares, castlingAvailability) => {
   const moves = [];
+  const numSquaresToEdge = getNumSquaresToEdge();
 
   for (let dirIndex = 0; dirIndex < 8; dirIndex += 1) {
     const toIndex = fromIndex + directionOffsets[dirIndex];
@@ -151,8 +153,9 @@ const generateKingMoves = (fromIndex, piece, squares, numSquaresToEdge, castling
   return moves;
 };
 
-const generateSlidingMoves = (fromIndex, piece, squares, numSquaresToEdge) => {
+const generateSlidingMoves = (fromIndex, piece, squares) => {
   const moves = [];
+  const numSquaresToEdge = getNumSquaresToEdge();
 
   const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
   const endDirIndex = piece.type === PieceType.rook ? 4 : 8;
@@ -179,7 +182,6 @@ const generateSlidingMoves = (fromIndex, piece, squares, numSquaresToEdge) => {
 
 const generatePseudoLegalMoves = ({
   squares,
-  numSquaresToEdge,
   castlingAvailability,
   enPassantTargetSquare,
 }) => {
@@ -193,15 +195,15 @@ const generatePseudoLegalMoves = ({
         moves.push(...generatePawnMoves(fromIndex, piece, squares, enPassantTargetSquare));
         break;
       case PieceType.knight:
-        moves.push(...generateKnightMoves(fromIndex, piece, squares, numSquaresToEdge));
+        moves.push(...generateKnightMoves(fromIndex, piece, squares));
         break;
       case PieceType.king:
-        moves.push(...generateKingMoves(fromIndex, piece, squares, numSquaresToEdge, castlingAvailability));
+        moves.push(...generateKingMoves(fromIndex, piece, squares, castlingAvailability));
         break;
       case PieceType.bishop:
       case PieceType.rook:
       case PieceType.queen:
-        moves.push(...generateSlidingMoves(fromIndex, piece, squares, numSquaresToEdge));
+        moves.push(...generateSlidingMoves(fromIndex, piece, squares));
         break;
       default:
         break;

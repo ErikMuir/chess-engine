@@ -20,7 +20,6 @@ export default class Game {
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
     this.squares = new Array(64);
-    this.numSquaresToEdge = new Array(64);
     this.playerColor = playerColor;
     this.activePlayer = null;
     this.isCapture = false;

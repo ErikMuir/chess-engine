@@ -20,6 +20,34 @@ const directionIndex = {
 };
 const startPosition = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+let numSquaresToEdge;
+const getNumSquaresToEdge = () => {
+  if (!numSquaresToEdge) {
+    numSquaresToEdge = new Array(64);
+    for (let file = 0; file < 8; file += 1) {
+      for (let rank = 0; rank < 8; rank += 1) {
+        const numNorth = 7 - rank;
+        const numSouth = rank;
+        const numWest = file;
+        const numEast = 7 - file;
+
+        const squareIndex = rank * 8 + file;
+
+        numSquaresToEdge[squareIndex] = [
+          numNorth,
+          numSouth,
+          numWest,
+          numEast,
+          Math.min(numNorth, numWest),
+          Math.min(numSouth, numEast),
+          Math.min(numNorth, numEast),
+          Math.min(numSouth, numWest),
+        ];
+      }
+    }
+  }
+  return numSquaresToEdge;
+};
 const proportion = (ratio) => Math.floor(squareSize * ratio);
 const getFile = (index) => index % 8;
 const getRank = (index) => Math.floor(index / 8);
@@ -71,6 +99,7 @@ export {
   directionIndex,
   startPosition,
   testGames,
+  getNumSquaresToEdge,
   proportion,
   getFile,
   getRank,
