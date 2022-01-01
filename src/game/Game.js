@@ -19,8 +19,17 @@ export default class Game {
     preventRecursion = false,
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
-    this.squares = new Array(64);
+    this.initProps(pgn, playerColor, preventRecursion);
+    FEN.load(fen, this);
+    this.populateHistory();
+    this.generateMoves();
+  }
+
+  initProps = (pgn, playerColor, preventRecursion) => {
+    this.pgn = pgn;
     this.playerColor = playerColor;
+    this.preventRecursion = preventRecursion;
+    this.squares = new Array(64);
     this.activePlayer = null;
     this.isCapture = false;
     this.enPassantTargetSquare = null;
@@ -32,15 +41,10 @@ export default class Game {
     this.legalMoves = [];
     this.moveHistory = [];
     this.gameHistory = [];
-    this.pgn = pgn;
-    this.preventRecursion = preventRecursion;
     this.isResignation = false;
     this.tempMove = null;
     this.confirmationDisabled = false;
-
-    FEN.load(fen, this);
-    this.init();
-  }
+  };
 
   trace = (msg) => {
     if (this.preventRecursion) return;
@@ -68,7 +72,7 @@ export default class Game {
     return {
       schema,
       fen: FEN.get(this),
-      pgn: this.pgn,
+      pgn: this.pgn.map((pgn) => ({ ...pgn })),
     };
   }
 
@@ -77,42 +81,35 @@ export default class Game {
     return JSON.stringify(this.game, null, 2);
   }
 
-  init = () => {
-    this.setNumSquaresToEdge();
-    this.generateMoves();
-    this.populateGameHistory();
-  };
-
-  setNumSquaresToEdge = () => {
-    this.trace('init');
-
-    for (let file = 0; file < 8; file += 1) {
-      for (let rank = 0; rank < 8; rank += 1) {
-        const numNorth = 7 - rank;
-        const numSouth = rank;
-        const numWest = file;
-        const numEast = 7 - file;
-
-        const squareIndex = rank * 8 + file;
-
-        this.numSquaresToEdge[squareIndex] = [
-          numNorth,
-          numSouth,
-          numWest,
-          numEast,
-          Math.min(numNorth, numWest),
-          Math.min(numSouth, numEast),
-          Math.min(numNorth, numEast),
-          Math.min(numSouth, numWest),
-        ];
-      }
-    }
-  };
-
-  populateGameHistory = () => {
+  populateHistory = () => {
     this.archiveGame();
-    if (this.pgn && this.pgn.length) {
-      // TODO : populate gameHistory with pgn from imported game
+    if (this.preventRecursion || !this.pgn.length) return;
+
+    let workingGame = new Game({ ...this.game, preventRecursion: true });
+
+    function parseMove(pgn, pieceColor) {
+      // TODO : parse move
+    }
+
+    function appendHistory(move) {
+      // TODO : append to moveHistory
+      // TODO : doMove
+      // TODO : append to gameHistory
+    }
+
+    for (let i = 0; i < this.pgn.length; i += 1) {
+      const { white, black, score } = this.pgn[i];
+      if (white) {
+        const move = parseMove(white, PieceColor.white);
+        appendHistory(move);
+      }
+      if (black) {
+        const move = parseMove(black, PieceColor.black);
+        appendHistory(move);
+      }
+      if (score) {
+        if (score.includes('resign')) this.isResignation = true;
+      }
     }
   };
 
