@@ -41,7 +41,10 @@ export default class Game {
     this.legalMoves = [];
     this.moveHistory = [];
     this.gameHistory = [];
+    this.isCheckmate = false;
+    this.isStalemate = false;
     this.isResignation = false;
+    this.isDraw = false;
     this.tempMove = null;
     this.confirmationDisabled = false;
   };
@@ -53,18 +56,13 @@ export default class Game {
 
   get isGameOver() {
     this.trace('isGameOver');
-    return this.legalMoves.length === 0;
+    return this.isCheckmate || this.isStalemate || this.isResignation || this.isDraw;
   }
 
   get isCheck() {
     this.trace('isCheck');
     const king = this.activePlayer | PieceType.king;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
-  }
-
-  get isCheckmate() {
-    this.trace('isCheckmate');
-    return this.isGameOver && this.isCheck;
   }
 
   get game() {
@@ -111,7 +109,6 @@ export default class Game {
   resign = () => {
     this.trace('resign');
     this.isResignation = true;
-    this.legalMoves = [];
     const msg = this.activePlayer === PieceColor.white
       ? '0-1 (white resigns)'
       : '1-0 (black resigns)';
@@ -176,6 +173,7 @@ export default class Game {
     this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
     this.archiveGame();
+    this.handleMates();
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -248,6 +246,18 @@ export default class Game {
     this.trace('appendToPgn');
     const moveSymbol = PGN.get(move, legalMoves);
     this.pgn.push(moveSymbol);
+  };
+
+  handleMates = () => {
+    if (this.legalMoves.length) return;
+    if (this.isCheck) {
+      this.isCheckmate = true;
+      const score = this.activePlayer === PieceColor.white ? '0-1' : '1-0';
+      this.pgn.push(score);
+    } else {
+      this.isStalemate = true;
+      this.pgn.push('½-½ (stalemate)');
+    }
   };
 
   generateMoves = () => {
