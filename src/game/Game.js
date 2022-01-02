@@ -5,7 +5,7 @@ import Piece from './Piece';
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
 import { generatePseudoLegalMoves } from './moveGeneration';
-import { getFile, startPosition } from './utils';
+import { getFile, startPosition, scorePattern } from './utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Game');
@@ -40,7 +40,7 @@ export default class Game {
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
     this.moveHistory = [];
-    this.gameHistory = [];
+    this.fenHistory = [];
     this.isCheckmate = false;
     this.isStalemate = false;
     this.isResignation = false;
@@ -80,8 +80,11 @@ export default class Game {
   }
 
   populateHistory = () => {
-    this.archiveGame();
-    // if (this.preventRecursion || !this.pgn.length) return;
+    if (this.preventRecursion) return;
+    if (!this.pgn.length) {
+      this.archiveGame();
+      return;
+    }
 
     // let workingGame = new Game({ ...this.game, preventRecursion: true });
 
@@ -239,7 +242,8 @@ export default class Game {
 
   archiveGame = () => {
     this.trace('archiveGame');
-    this.gameHistory.push(this.game);
+    const fen = FEN.get(this);
+    this.fenHistory.push(fen);
   };
 
   appendToPgn = (move, legalMoves) => {
@@ -296,7 +300,7 @@ export default class Game {
 
   moveForward = () => {
     this.trace('moveForward');
-    if (this.currentMoveIndex < this.gameHistory.length - 1) this.currentMoveIndex += 1;
+    if (this.currentMoveIndex < this.fenHistory.length - 1) this.currentMoveIndex += 1;
   };
 
   moveJump = (moveIndex) => {

@@ -88,8 +88,8 @@ class Board extends React.Component {
   syncSquares = () => {
     logger.trace('syncSquares');
     const { game, squares } = this.state;
-    const { currentMoveIndex, gameHistory } = game;
-    const currentGame = new Game(gameHistory[currentMoveIndex]);
+    const { currentMoveIndex, fenHistory } = game;
+    const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
       const pieceValue = currentGame.squares[i];

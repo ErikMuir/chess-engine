@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
 import PieceColor from '../game/PieceColor';
-import { getMovesFromPgn } from '../game/utils';
+import { scorePattern } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('MoveList');
@@ -68,7 +68,27 @@ const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
     );
   };
 
-  const moves = getMovesFromPgn(pgn);
+  const moves = [];
+  for (let i = 0; i < pgn.length; i += 2) {
+    if (i % 2 === 0) {
+      const pgnMove = {};
+      const white = pgn[i];
+      const black = pgn[i + 1];
+      if (white.match(scorePattern)) {
+        pgnMove.score = white;
+      } else {
+        pgnMove.white = white;
+      }
+      if (black) {
+        if (black.match(scorePattern)) {
+          pgnMove.score = black;
+        } else {
+          pgnMove.black = black;
+        }
+      }
+      moves.push(pgnMove);
+    }
+  }
 
   return (
     <div className="move-list">

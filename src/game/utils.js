@@ -19,6 +19,7 @@ const directionIndex = {
   get southWest() { return 7; },
 };
 const startPosition = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const scorePattern = /[01]-[01]/;
 
 let numSquaresToEdge;
 const getNumSquaresToEdge = () => {
@@ -61,31 +62,6 @@ const getCoordinatesFromSquareIndex = (index) => {
   const file = getFile(index);
   return `${'abcdefgh'[file]}${rank + 1}`;
 };
-const getMovesFromPgn = (pgn) => {
-  const moves = [];
-  const scorePattern = /[01]-[01]/;
-  for (let i = 0; i < pgn.length; i += 2) {
-    if (i % 2 === 0) {
-      const pgnMove = {};
-      const white = pgn[i];
-      const black = pgn[i + 1];
-      if (white.match(scorePattern)) {
-        pgnMove.score = white;
-      } else {
-        pgnMove.white = white;
-      }
-      if (black) {
-        if (black.match(scorePattern)) {
-          pgnMove.score = black;
-        } else {
-          pgnMove.black = black;
-        }
-      }
-      moves.push(pgnMove);
-    }
-  }
-  return moves;
-};
 
 const testGames = {
   checkmate: {
@@ -123,6 +99,7 @@ export {
   directionOffsets,
   directionIndex,
   startPosition,
+  scorePattern,
   testGames,
   getNumSquaresToEdge,
   proportion,
@@ -130,5 +107,4 @@ export {
   getRank,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
-  getMovesFromPgn,
 };
