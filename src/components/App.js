@@ -7,6 +7,7 @@ import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import { importGameFromJson } from '../game/import';
 import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
@@ -52,7 +53,7 @@ class App extends React.Component {
 
   importGame = (gameJson) => {
     logger.trace('importGame');
-    const game = new Game(gameJson);
+    const game = importGameFromJson(gameJson);
     this.setState({ game });
     this.forceRefresh();
   };

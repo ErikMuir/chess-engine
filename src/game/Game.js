@@ -5,7 +5,7 @@ import Piece from './Piece';
 import PieceColor from './PieceColor';
 import PieceType from './PieceType';
 import { generatePseudoLegalMoves } from './moveGeneration';
-import { getFile, startPosition, scorePattern } from './utils';
+import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Game');
@@ -21,7 +21,7 @@ export default class Game {
     if (!preventRecursion) logger.trace('ctor');
     this.initProps(pgn, playerColor, preventRecursion);
     FEN.load(fen, this);
-    this.populateHistory();
+    this.archiveFen();
     this.generateMoves();
   }
 
@@ -78,36 +78,6 @@ export default class Game {
     this.trace('json');
     return JSON.stringify(this.game, null, 2);
   }
-
-  populateHistory = () => {
-    if (this.preventRecursion) return;
-    if (!this.pgn.length) {
-      this.archiveGame();
-      return;
-    }
-
-    // let workingGame = new Game({ ...this.game, preventRecursion: true });
-
-    // function parseMove(moveSymbol) {
-    //   // TODO : parse move
-    // }
-
-    // function appendHistory(move) {
-    //   // TODO : doMove
-    //   // TODO : append to moveHistory
-    //   // TODO : append to gameHistory
-    // }
-
-    // for (let i = 0; i < this.pgn.length; i += 1) {
-    //   const moveSymbol = this.pgn[i];
-    //   if (moveSymbol.includes('resign')) {
-    //     this.isResignation = true;
-    //     return;
-    //   }
-    //   const move = parseMove(moveSymbol);
-    //   appendHistory(move);
-    // }
-  };
 
   resign = () => {
     this.trace('resign');
@@ -175,7 +145,7 @@ export default class Game {
     this.updateMove(move);
     this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
-    this.archiveGame();
+    this.archiveFen();
     this.handleMates();
   };
 
@@ -240,8 +210,8 @@ export default class Game {
     this.moveHistory.push(move);
   };
 
-  archiveGame = () => {
-    this.trace('archiveGame');
+  archiveFen = () => {
+    this.trace('archiveFen');
     const fen = FEN.get(this);
     this.fenHistory.push(fen);
   };
