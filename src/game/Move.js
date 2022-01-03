@@ -12,9 +12,6 @@ class Move {
     this.capturePiece = type === MoveType.enPassant
       ? PieceColor.opposite(this.pieceColor) | PieceType.pawn
       : squares[toIndex];
-    this.isCheck = false;
-    this.isCheckmate = false;
-    this.pawnPromotionType = PieceType.queen;
   }
 
   get pieceType() {

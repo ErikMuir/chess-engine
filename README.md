@@ -4,6 +4,7 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
+- track captured pieces (or at least net points)
 - new game - choose white or black
 - analysis
 - hint
@@ -22,7 +23,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- move list shows checkmate as check (+ instead of #)
+- castling shouldn't be allowed when currently in check
 
 ## Attributions
 

@@ -100,7 +100,7 @@ export default class Game {
     this.trace('handleEnPassant');
     const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
-    this.squares[captureSquareIndex] = null;
+    this.squares[captureSquareIndex] = undefined;
   };
 
   handleCastle = (move) => {
@@ -112,12 +112,12 @@ export default class Game {
     const fromIndex = rookRank * 8 + rookFile;
     const toIndex = rookRank * 8 + targetFile;
     this.squares[toIndex] = this.squares[fromIndex];
-    this.squares[fromIndex] = null;
+    this.squares[fromIndex] = undefined;
   };
 
   doMove = (move) => {
     this.trace('doMove');
-    this.squares[move.fromIndex] = null;
+    this.squares[move.fromIndex] = undefined;
     this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
       case MoveType.enPassant:
@@ -203,8 +203,8 @@ export default class Game {
 
   updateMove = (move) => {
     this.trace('updateMove');
-    move.isCheck = this.isCheck;
-    move.isCheckmate = this.isCheckmate;
+    if (this.isCheck) move.isCheck = true;
+    if (this.isCheckmate) move.isCheckmate = true;
   };
 
   archiveMove = (move) => {
