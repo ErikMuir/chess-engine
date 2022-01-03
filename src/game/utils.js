@@ -62,6 +62,29 @@ const getCoordinatesFromSquareIndex = (index) => {
   const file = getFile(index);
   return `${'abcdefgh'[file]}${rank + 1}`;
 };
+const getMovesFromPgn = (pgn) => {
+  const moves = [];
+  if (!pgn || !pgn.length) return moves;
+  for (let i = 0; i < pgn.length; i += 2) {
+    const white = pgn[i];
+    if (i === pgn.length - 1 && white.match(scorePattern)) {
+      moves.push({ score: white });
+      break;
+    }
+    if (i + 1 > pgn.length - 1) {
+      moves.push({ white });
+      break;
+    }
+    const black = pgn[i + 1];
+    if (i + 1 === pgn.length - 1 && black.match(scorePattern)) {
+      moves.push({ white });
+      moves.push({ score: black });
+      break;
+    }
+    moves.push({ white, black });
+  }
+  return moves;
+};
 
 const testGames = {
   checkmate: {
@@ -107,4 +130,5 @@ export {
   getRank,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
+  getMovesFromPgn,
 };
