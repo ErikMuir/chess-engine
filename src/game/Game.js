@@ -245,18 +245,26 @@ export default class Game {
 
   generateLegalMoves = () => {
     this.trace('generateLegalMoves');
-    const activePlayerMoves = this.pseudoLegalMoves
-      .filter((move) => PieceColor.fromPieceValue(move.piece) === this.activePlayer);
     const fen = FEN.get(this);
-    const moves = [];
-    activePlayerMoves.forEach((move) => {
+    return this.pseudoLegalMoves.filter((move) => {
+      // filter out other player moves
+      if (PieceColor.fromPieceValue(move.piece) !== this.activePlayer) return false;
+
+      // filter out illegal castling moves
+      if (MoveType.castlingMoves.includes(move.type)) {
+        if (this.isCheck) return false;
+        // TODO : king cannot castle through a check
+      }
+
+      // filter out self-check moves
       const futureGame = new Game({ fen, preventRecursion: true });
       futureGame.doMove(move);
       futureGame.pseudoLegalMoves = generatePseudoLegalMoves(futureGame);
-      const isCheck = futureGame.testForCheck(this.activePlayer);
-      if (!isCheck) moves.push(move);
+      if (futureGame.testForCheck(this.activePlayer)) return false;
+
+      // allow all other moves
+      return true;
     });
-    return moves;
   };
 
   testForCheck = (color = this.activePlayer) => {

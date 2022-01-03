@@ -23,7 +23,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- castling shouldn't be allowed when currently in check
+- shouldn't be able to castle through check
 
 ## Attributions
 

@@ -13,6 +13,11 @@ class MoveType {
     MoveType.capture,
     MoveType.enPassant,
   ];
+
+  static castlingMoves = [
+    MoveType.kingSideCastle,
+    MoveType.queenSideCastle,
+  ];
 }
 
 export default MoveType;
