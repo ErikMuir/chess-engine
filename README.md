@@ -22,7 +22,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- imported games don't allow move navigation
+- move list shows checkmate as check (+ instead of #)
 
 ## Attributions
 

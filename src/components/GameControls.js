@@ -8,7 +8,6 @@ import {
   mdiCheckCircle,
   mdiCheckCircleOutline,
 } from '@mdi/js';
-import { getStandardizedGameJson } from '../schemas/schemaHelpers';
 import { boardSize, iconColor } from '../game/utils';
 import Logger from '../Logger';
 
@@ -32,8 +31,7 @@ const GameControls = (props) => {
   fileReader.onload = () => {
     logger.trace('fileReaderOnLoad');
     try {
-      const rawJson = JSON.parse(fileReader.result);
-      const gameJson = getStandardizedGameJson(rawJson);
+      const gameJson = JSON.parse(fileReader.result);
       importGame(gameJson);
     } catch (err) {
       logger.error('Error loading game', err);

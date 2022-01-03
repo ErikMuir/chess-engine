@@ -1,22 +1,27 @@
+import FEN from './FEN';
 import Game from './Game';
-import { scorePattern } from './utils';
 
-const importGameFromJson = ({ pgn, playerColor }) => {
-  const game = new Game({ playerColor });
-
-  function parseMove(moveSymbol) {
-    // TODO : parse move
+const importGameFromJson = ({
+  playerColor,
+  fen,
+  moves,
+  pgn,
+}) => {
+  if (!moves || !moves.length) {
+    return new Game({ playerColor, fen });
   }
 
-  for (let i = 0; i < pgn.length; i += 1) {
-    const moveSymbol = pgn[i];
-    if (moveSymbol.match(scorePattern)) {
-      if (moveSymbol.includes('resign')) game.isResignation = true;
-      if (moveSymbol.includes('draw')) game.isDraw = true;
-      return game;
-    }
-    const move = parseMove(moveSymbol);
-    game.doMove(move);
+  const game = new Game({ playerColor });
+  moves.forEach(game.doMove);
+
+  if (fen !== FEN.get(game)) {
+    throw new Error('Invalid game json');
+  }
+
+  if (pgn && pgn.length) {
+    const lastPgn = pgn[pgn.length - 1];
+    if (lastPgn.includes('resign')) game.isResignation = true;
+    if (lastPgn.includes('draw')) game.isDraw = true;
   }
 
   return game;

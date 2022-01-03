@@ -9,24 +9,22 @@ import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Game');
-const schema = '1.0.0';
+const schema = '0.1.1';
 
 export default class Game {
   constructor({
     fen = startPosition,
-    pgn = [],
     playerColor = PieceColor.white,
     preventRecursion = false,
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
-    this.initProps(pgn, playerColor, preventRecursion);
+    this.initProps(playerColor, preventRecursion);
     FEN.load(fen, this);
     this.archiveFen();
     this.generateMoves();
   }
 
-  initProps = (pgn, playerColor, preventRecursion) => {
-    this.pgn = pgn;
+  initProps = (playerColor, preventRecursion) => {
     this.playerColor = playerColor;
     this.preventRecursion = preventRecursion;
     this.squares = new Array(64);
@@ -39,6 +37,7 @@ export default class Game {
     this.currentMoveIndex = 0;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
+    this.pgn = [];
     this.moveHistory = [];
     this.fenHistory = [];
     this.isCheckmate = false;
@@ -69,7 +68,9 @@ export default class Game {
     this.trace('game');
     return {
       schema,
+      playerColor: this.playerColor,
       fen: FEN.get(this),
+      moves: this.moveHistory.map((move) => ({ ...move })),
       pgn: [...this.pgn],
     };
   }
@@ -90,8 +91,9 @@ export default class Game {
 
   getMovePiece = (move) => {
     this.trace('getMovePiece');
-    if (!move.isPawnPromotion) return move.piece;
-    return this.activePlayer | move.pawnPromotionType;
+    return move.isPawnPromotion
+      ? this.activePlayer | move.pawnPromotionType
+      : move.piece;
   };
 
   handleEnPassant = (move) => {
@@ -226,8 +228,6 @@ export default class Game {
     if (this.legalMoves.length) return;
     if (this.isCheck) {
       this.isCheckmate = true;
-      const score = this.activePlayer === PieceColor.white ? '0-1' : '1-0';
-      this.pgn.push(score);
     } else {
       this.isStalemate = true;
       this.pgn.push('½-½ (stalemate)');
