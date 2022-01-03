@@ -144,11 +144,11 @@ export default class Game {
     this.togglePlayerTurn();
     this.generateMoves();
     this.updateFullMoveNumber(move);
+    this.handleMates();
     this.updateMove(move);
     this.appendToPgn(move, legalMoves);
     this.archiveMove(move);
     this.archiveFen();
-    this.handleMates();
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -222,6 +222,9 @@ export default class Game {
     this.trace('appendToPgn');
     const moveSymbol = PGN.get(move, legalMoves);
     this.pgn.push(moveSymbol);
+    if (this.isStalemate) {
+      this.pgn.push('½-½ (stalemate)');
+    }
   };
 
   handleMates = () => {
@@ -230,7 +233,6 @@ export default class Game {
       this.isCheckmate = true;
     } else {
       this.isStalemate = true;
-      this.pgn.push('½-½ (stalemate)');
     }
   };
 
