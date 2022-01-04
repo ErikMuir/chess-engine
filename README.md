@@ -4,6 +4,7 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
+- add resignation confirmation
 - track captured pieces (or at least net points)
 - new game - choose white or black
 - analysis
@@ -22,8 +23,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-<!-- - _none_ -->
-- shouldn't be able to castle through check
+- _none_
 
 ## Attributions
 

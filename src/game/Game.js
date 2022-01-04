@@ -246,25 +246,39 @@ export default class Game {
   generateLegalMoves = () => {
     this.trace('generateLegalMoves');
     const fen = FEN.get(this);
-    return this.pseudoLegalMoves.filter((move) => {
-      // filter out other player moves
-      if (PieceColor.fromPieceValue(move.piece) !== this.activePlayer) return false;
+    const legalMoves = this.pseudoLegalMoves.filter((move) => this.isLegalMove(move, fen));
+    return legalMoves;
+  };
 
-      // filter out illegal castling moves
-      if (MoveType.castlingMoves.includes(move.type)) {
-        if (this.isCheck) return false;
-        // TODO : king cannot castle through a check
-      }
+  isLegalMove = (move, fen) => {
+    // filter out other player moves
+    if (PieceColor.fromPieceValue(move.piece) !== this.activePlayer) return false;
 
-      // filter out self-check moves
-      const futureGame = new Game({ fen, preventRecursion: true });
-      futureGame.doMove(move);
-      futureGame.pseudoLegalMoves = generatePseudoLegalMoves(futureGame);
-      if (futureGame.testForCheck(this.activePlayer)) return false;
+    // filter out illegal castling moves
+    if (MoveType.castlingMoves.includes(move.type)) {
+      if (this.isCheck) return false;
+      const passingSquareIndex = move.type === MoveType.kingSideCastle
+        ? move.fromIndex + 1
+        : move.fromIndex - 1;
+      const tempMove = {
+        ...move,
+        type: MoveType.normal,
+        toIndex: passingSquareIndex,
+      };
+      const tempGame = new Game({ fen, preventRecursion: true });
+      tempGame.doMove(tempMove);
+      tempGame.pseudoLegalMoves = generatePseudoLegalMoves(tempGame);
+      if (tempGame.testForCheck(this.activePlayer)) return false;
+    }
 
-      // allow all other moves
-      return true;
-    });
+    // filter out self-check moves
+    const futureGame = new Game({ fen, preventRecursion: true });
+    futureGame.doMove(move);
+    futureGame.pseudoLegalMoves = generatePseudoLegalMoves(futureGame);
+    if (futureGame.testForCheck(this.activePlayer)) return false;
+
+    // allow all other moves
+    return true;
   };
 
   testForCheck = (color = this.activePlayer) => {
