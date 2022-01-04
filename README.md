@@ -23,7 +23,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+<!-- - _none_ -->
+- importing a game containing a pawn promotion fails
 
 ## Attributions
 
