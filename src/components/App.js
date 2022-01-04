@@ -12,6 +12,7 @@ import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
 import '../styles/modal.css';
+import ConfirmModal from './ConfirmModal';
 
 Modal.setAppElement('#app');
 const logger = new Logger('App');
@@ -22,12 +23,15 @@ class App extends React.Component {
     this.state = {
       game: new Game(),
       showGameOverModal: false,
+      showResignationModal: false,
       forceRefresh: 0,
     };
     this.newGame = this.newGame.bind(this);
     this.importGame = this.importGame.bind(this);
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
+    this.confirmResignation = this.confirmResignation.bind(this);
+    this.closeResignationModal = this.closeResignationModal.bind(this);
     this.toggleConfirmation = this.toggleConfirmation.bind(this);
     this.moveBackward = this.moveBackward.bind(this);
     this.moveForward = this.moveForward.bind(this);
@@ -43,6 +47,11 @@ class App extends React.Component {
   closeGameOverModal = () => {
     logger.trace('closeGameOverModal');
     this.setState({ showGameOverModal: false });
+  };
+
+  closeResignationModal = () => {
+    logger.trace('closeResignationModal');
+    this.setState({ showResignationModal: false });
   };
 
   newGame = () => {
@@ -69,6 +78,15 @@ class App extends React.Component {
   resign = () => {
     logger.trace('resign');
     const { game } = this.state;
+    if (!game.isGameOver) {
+      this.setState({ showResignationModal: true });
+    }
+  };
+
+  confirmResignation = () => {
+    logger.trace('confirmResignation');
+    const { game } = this.state;
+    this.closeResignationModal();
     if (!game.isGameOver) {
       game.resign();
       this.updateApp(game);
@@ -140,6 +158,7 @@ class App extends React.Component {
   };
 
   forceRefresh = () => {
+    // this is a hack
     logger.trace('forceRefresh');
     const { forceRefresh } = this.state;
     const newForceRefresh = forceRefresh + 1;
@@ -166,6 +185,18 @@ class App extends React.Component {
         <GameOver
           game={game}
           closeGameOverModal={this.closeGameOverModal}
+        />
+      ) : null;
+  };
+
+  getResignationModal = () => {
+    const { showResignationModal } = this.state;
+    return showResignationModal
+      ? (
+        <ConfirmModal
+          displayText="Are you sure you want to resign?"
+          confirm={this.confirmResignation}
+          cancel={this.closeResignationModal}
         />
       ) : null;
   };
@@ -206,6 +237,7 @@ class App extends React.Component {
           <span>{`© ${new Date().getFullYear()} MuirDev`}</span>
         </footer>
         {this.getGameOverModal()}
+        {this.getResignationModal()}
       </div>
     );
   }
