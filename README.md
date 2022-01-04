@@ -23,8 +23,7 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-<!-- - _none_ -->
-- cannot import after clicking "new game" after importing a stalemate game
+- _none_
 
 ## Attributions
 

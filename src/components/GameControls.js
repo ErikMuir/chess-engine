@@ -58,6 +58,7 @@ const GameControls = (props) => {
   const handleImport = (e) => {
     logger.trace('handleImport');
     const loadGameInput = document.getElementById(loadGameInputId);
+    loadGameInput.value = '';
     loadGameInput.click();
     e.currentTarget.blur();
   };
