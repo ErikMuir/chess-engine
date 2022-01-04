@@ -20,6 +20,32 @@ const directionIndex = {
 };
 const startPosition = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const scorePattern = /[01]-[01]/;
+const modalOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: -1000,
+  right: -1000,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+};
+const modalContentStyle = {
+  backgroundColor: '#eeeeee',
+  padding: 0,
+  maxWidth: '500px',
+  borderRadius: '4px',
+  overflow: 'hidden',
+  boxSizing: 'border-box',
+  position: 'relative',
+  inset: 0,
+  marginLeft: 'auto',
+  marginRight: 'auto',
+  border: 'none',
+  outline: 'none',
+};
 
 let numSquaresToEdge;
 const getNumSquaresToEdge = () => {
@@ -123,6 +149,8 @@ export {
   directionIndex,
   startPosition,
   scorePattern,
+  modalOverlayStyle,
+  modalContentStyle,
   testGames,
   getNumSquaresToEdge,
   proportion,

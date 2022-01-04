@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import Piece from '../game/Piece';
 import PieceType from '../game/PieceType';
+import { modalContentStyle, modalOverlayStyle } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('PawnPromotion');
@@ -32,38 +33,17 @@ class PawnPromotion extends React.Component {
     });
   };
 
-  getOverlayStyle = () => ({
-    position: 'fixed',
-    top: 0,
-    left: -1000,
-    right: -1000,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-  });
-
-  getContentStyle = (width, height) => ({
-    backgroundColor: '#eeeeee',
-    padding: '10px 20px',
-    width: `${width + 40}px`,
-    height: `${height + 20}px`,
-    borderRadius: '4px',
-    overflow: 'hidden',
-    boxSizing: 'border-box',
-    position: 'relative',
-    inset: 0,
-    marginTop: `${pieceSize * 4}px`,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    border: 'none',
-    outline: 'none',
-  });
-
   render() {
     logger.trace('render');
     const height = pieceSize;
     const width = pieceSize * PieceType.promotionTypes.length;
-    const overlay = this.getOverlayStyle();
-    const content = this.getContentStyle(width, height);
+    const overlay = modalOverlayStyle;
+    const content = {
+      ...modalContentStyle,
+      padding: '10px 20px',
+      width: `${width + 40}px`,
+      height: `${height + 20}px`,
+    };
     const cursor = 'pointer';
     return (
       <Modal

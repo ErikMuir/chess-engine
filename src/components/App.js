@@ -1,8 +1,9 @@
 import React from 'react';
 import Modal from 'react-modal';
 import FileSaver from 'file-saver';
-import GameControls from './GameControls';
 import Board from './Board';
+import ConfirmModal from './ConfirmModal';
+import GameControls from './GameControls';
 import GameDetails from './GameDetails';
 import GameOver from './GameOver';
 import Logger from '../Logger';
@@ -12,7 +13,6 @@ import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/canvas.css';
 import '../styles/modal.css';
-import ConfirmModal from './ConfirmModal';
 
 Modal.setAppElement('#app');
 const logger = new Logger('App');
