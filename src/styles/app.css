@@ -82,7 +82,7 @@ body {
   font-size: 90%;
   line-height: 120%;
   height: 100%;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   background-color: #444444;
   border-radius: 4px 4px 0 0;
 }
@@ -119,7 +119,8 @@ body {
 
 .move-list .move .move-symbol button.current-move {
   background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.4)
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+  padding-bottom: 0;
 }
 
 .move-controls {
