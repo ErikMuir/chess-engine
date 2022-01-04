@@ -1,6 +1,7 @@
 import FEN from './FEN';
 import Game from './Game';
 import Logger from '../Logger';
+import Move from './Move';
 
 const logger = new Logger('import');
 
@@ -16,7 +17,24 @@ const importGameFromJson = ({
   }
 
   const game = new Game({ playerColor });
-  moves.forEach(game.doMove);
+  moves.forEach(({
+    type,
+    fromIndex,
+    toIndex,
+    piece,
+    capturePiece,
+    isCheck,
+    isCheckmate,
+    pawnPromotionType,
+  }) => {
+    const move = new Move(type, fromIndex, toIndex, []);
+    move.piece = piece;
+    move.capturePiece = capturePiece;
+    move.isCheck = isCheck;
+    move.isCheckmate = isCheckmate;
+    move.pawnPromotionType = pawnPromotionType;
+    game.doMove(move);
+  });
 
   const resultingGameFen = FEN.get(game);
   if (fen !== resultingGameFen) {

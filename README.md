@@ -24,7 +24,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- importing a game containing a pawn promotion fails
+- cannot import after clicking "new game" after importing a stalemate game
 
 ## Attributions
 
