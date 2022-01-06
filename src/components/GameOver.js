@@ -10,7 +10,7 @@ const getMessage = ({
   const currentPlayer = PieceColor.toString(activePlayer);
   if (isResignation) return `${otherPlayer} wins by resignation.`;
   if (isCheckmate) return `${otherPlayer} mated ${currentPlayer} in ${fullMoveNumber} moves.`;
-  return `${currentPlayer} is not in check but has no legal moves, therefore it is a draw.`;
+  return `${currentPlayer} is not in check but has no legal moves, therefore it is a stalemate.`;
 };
 
 const GameOver = ({ game, closeGameOverModal }) => (
