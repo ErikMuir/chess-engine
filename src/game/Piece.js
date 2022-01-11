@@ -1,33 +1,30 @@
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
+import { pieceColorFromPieceId, pieceColorFromFEN, getSymbolForColor } from './PieceColors';
+import { pieceTypeFromPieceId, pieceTypeFromFEN } from './PieceTypes';
 import { getPieceImage } from './PieceImages';
 
 class Piece {
   constructor(color, type) {
     this.color = color;
     this.type = type;
-    this.value = color | type;
+    this.id = color | type.id;
   }
 
   getImage = async () => getPieceImage(this);
 
-  static fromPieceValue = (val) => {
-    if (!val) return null;
-    const color = PieceColor.fromPieceValue(val);
-    const type = PieceType.fromPieceValue(val);
+  static fromPieceId = (pieceId) => {
+    if (!pieceId) return null;
+    const color = pieceColorFromPieceId(pieceId);
+    const type = pieceTypeFromPieceId(pieceId);
     return new Piece(color, type);
   };
 
   static fromFEN = (val) => {
-    const color = PieceColor.fromFEN(val);
-    const type = PieceType.fromFEN(val);
+    const color = pieceColorFromFEN(val);
+    const type = pieceTypeFromFEN(val);
     return new Piece(color, type);
   };
 
-  static toString = (val) => {
-    const symbol = PieceType.toString(val.type);
-    return PieceColor.updateCasing(symbol, val.color);
-  };
+  static toString = (val) => getSymbolForColor(val.type.symbol, val.color);
 }
 
 export default Piece;

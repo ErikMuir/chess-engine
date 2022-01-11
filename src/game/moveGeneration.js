@@ -2,20 +2,27 @@
 import Move from './Move';
 import MoveType from './MoveType';
 import Piece from './Piece';
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
+import { white, black } from './PieceColors';
+import {
+  king,
+  pawn,
+  knight,
+  bishop,
+  rook,
+  queen,
+} from './PieceTypes';
 import { getNumSquaresToEdge, directionIndex, directionOffsets } from './utils';
 
 const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => {
   const moves = [];
 
-  const moveForward = piece.color === PieceColor.white
+  const moveForward = piece.color === white
     ? directionIndex.north
     : directionIndex.south;
-  const attackLeft = piece.color === PieceColor.white
+  const attackLeft = piece.color === white
     ? directionIndex.northWest
     : directionIndex.southEast;
-  const attackRight = piece.color === PieceColor.white
+  const attackRight = piece.color === white
     ? directionIndex.northEast
     : directionIndex.southWest;
 
@@ -29,8 +36,8 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
   // check two squares forward
   const rank = Math.floor(fromIndex / 8);
   const isFirstMove = (
-    (piece.color === PieceColor.white && rank === 1)
-    || (piece.color === PieceColor.black && rank === 6)
+    (piece.color === white && rank === 1)
+    || (piece.color === black && rank === 6)
   );
   if (isFirstMove) {
     const doubleSquareIndex = forwardSquareIndex + directionOffsets[moveForward];
@@ -42,7 +49,7 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
 
   // check attack left
   const attackLeftSquareIndex = fromIndex + directionOffsets[attackLeft];
-  const attackLeftSquarePiece = Piece.fromPieceValue(squares[attackLeftSquareIndex]);
+  const attackLeftSquarePiece = Piece.fromPieceId(squares[attackLeftSquareIndex]);
   const isAttackLeftOpponent = attackLeftSquarePiece
     && attackLeftSquarePiece.color !== piece.color;
   if (isAttackLeftOpponent) {
@@ -51,7 +58,7 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
 
   // check attack right
   const attackRightSquareIndex = fromIndex + directionOffsets[attackRight];
-  const attackRightSquarePiece = Piece.fromPieceValue(squares[attackRightSquareIndex]);
+  const attackRightSquarePiece = Piece.fromPieceId(squares[attackRightSquareIndex]);
   const isAttackRightOpponent = attackRightSquarePiece
     && attackRightSquarePiece.color !== piece.color;
   if (isAttackRightOpponent) {
@@ -72,7 +79,7 @@ const generateKnightMoves = (fromIndex, piece, squares) => {
 
   const checkMove = (passingIndex, dirIndex) => {
     const toIndex = passingIndex + directionOffsets[dirIndex];
-    const toPiece = Piece.fromPieceValue(squares[toIndex]);
+    const toPiece = Piece.fromPieceId(squares[toIndex]);
 
     // blocked by friendly piece
     if (toPiece && toPiece.color === piece.color) return;
@@ -124,7 +131,7 @@ const generateKingMoves = (fromIndex, piece, squares, castlingAvailability) => {
     // blocked by edge of board
     if (numSquaresToEdge[fromIndex][dirIndex] === 0) continue;
 
-    const toPiece = Piece.fromPieceValue(squares[toIndex]);
+    const toPiece = Piece.fromPieceId(squares[toIndex]);
 
     // blocked by friendly piece
     if (toPiece && toPiece.color === piece.color) continue;
@@ -138,13 +145,13 @@ const generateKingMoves = (fromIndex, piece, squares, castlingAvailability) => {
   castlingAvailability
     .filter((x) => x.color === piece.color)
     .forEach((x) => {
-      const dirIndex = x.type === PieceType.king ? directionIndex.east : directionIndex.west;
+      const dirIndex = x.type === king ? directionIndex.east : directionIndex.west;
       const offset = directionOffsets[dirIndex];
       const passingSquarePiece = squares[fromIndex + offset];
       const landingSquareIndex = fromIndex + (offset * 2);
       const landingSquarePiece = squares[landingSquareIndex];
       if (passingSquarePiece || landingSquarePiece) return;
-      const moveType = x.type === PieceType.king
+      const moveType = x.type === king
         ? MoveType.kingSideCastle
         : MoveType.queenSideCastle;
       moves.push(new Move(moveType, fromIndex, landingSquareIndex, squares));
@@ -157,13 +164,13 @@ const generateSlidingMoves = (fromIndex, piece, squares) => {
   const moves = [];
   const numSquaresToEdge = getNumSquaresToEdge();
 
-  const startDirIndex = piece.type === PieceType.bishop ? 4 : 0;
-  const endDirIndex = piece.type === PieceType.rook ? 4 : 8;
+  const startDirIndex = piece.type === bishop ? 4 : 0;
+  const endDirIndex = piece.type === rook ? 4 : 8;
 
   for (let dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex += 1) {
     for (let n = 0; n < numSquaresToEdge[fromIndex][dirIndex]; n += 1) {
       const toIndex = fromIndex + directionOffsets[dirIndex] * (n + 1);
-      const toPiece = Piece.fromPieceValue(squares[toIndex]);
+      const toPiece = Piece.fromPieceId(squares[toIndex]);
 
       // blocked by friendly piece, so can't move any further in this direction
       if (toPiece && toPiece.color === piece.color) break;
@@ -187,22 +194,22 @@ const generatePseudoLegalMoves = ({
 }) => {
   const moves = [];
   for (let fromIndex = 0; fromIndex < 64; fromIndex += 1) {
-    const pieceValue = squares[fromIndex];
-    const piece = Piece.fromPieceValue(pieceValue);
+    const pieceId = squares[fromIndex];
+    const piece = Piece.fromPieceId(pieceId);
     if (!piece) continue;
     switch (piece.type) {
-      case PieceType.pawn:
+      case pawn:
         moves.push(...generatePawnMoves(fromIndex, piece, squares, enPassantTargetSquare));
         break;
-      case PieceType.knight:
+      case knight:
         moves.push(...generateKnightMoves(fromIndex, piece, squares));
         break;
-      case PieceType.king:
+      case king:
         moves.push(...generateKingMoves(fromIndex, piece, squares, castlingAvailability));
         break;
-      case PieceType.bishop:
-      case PieceType.rook:
-      case PieceType.queen:
+      case bishop:
+      case rook:
+      case queen:
         moves.push(...generateSlidingMoves(fromIndex, piece, squares));
         break;
       default:

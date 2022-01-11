@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
-import PieceColor from '../game/PieceColor';
+import * as pieceColors from '../game/PieceColors';
 import { getMovesFromPgn } from '../game/utils';
 import Logger from '../Logger';
 
@@ -30,10 +30,10 @@ const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
     const { white, black, score } = move;
     const getMoveNumber = () => (white ? `${moveNumber}.` : null);
     const getPlayerMove = (pieceColor) => {
-      const pgnMove = pieceColor === PieceColor.white
+      const pgnMove = pieceColor === pieceColors.white
         ? white || score : white
           ? black || score : null;
-      const moveIndex = pieceColor === PieceColor.white
+      const moveIndex = pieceColor === pieceColors.white
         ? (moveNumber * 2) - 1
         : moveNumber * 2;
       return moveIndex === currentMoveIndex
@@ -62,8 +62,8 @@ const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
     return (
       <div className="move" key={moveNumber}>
         <div className="move-number">{getMoveNumber()}</div>
-        <div className="move-symbol">{getPlayerMove(PieceColor.white)}</div>
-        <div className="move-symbol">{getPlayerMove(PieceColor.black)}</div>
+        <div className="move-symbol">{getPlayerMove(pieceColors.white)}</div>
+        <div className="move-symbol">{getPlayerMove(pieceColors.black)}</div>
       </div>
     );
   };

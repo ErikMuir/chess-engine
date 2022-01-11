@@ -1,5 +1,5 @@
 import MoveType from './MoveType';
-import PieceType from './PieceType';
+import { pawn, ambiguousTypes } from './PieceTypes';
 import { getFile, getRank, getCoordinatesFromSquareIndex } from './utils';
 
 class PGN {
@@ -23,15 +23,15 @@ class PGN {
   };
 
   static #getPiece = (move, legalMoves = []) => {
-    if (move.pieceType === PieceType.pawn) {
+    if (move.pieceType === pawn) {
       return MoveType.captureMoves.includes(move.type)
         ? 'abcdefgh'[getFile(move.fromIndex)]
         : '';
     }
 
-    const symbol = PieceType.toString(move.pieceType);
+    const { symbol } = move.pieceType;
 
-    const isAmbiguousType = PieceType.ambiguousTypes.includes(move.pieceType);
+    const isAmbiguousType = ambiguousTypes.includes(move.pieceType);
     if (!isAmbiguousType) return symbol;
 
     const ambiguousMoves = legalMoves.filter((x) => x.pieceType === move.pieceType
@@ -57,9 +57,7 @@ class PGN {
   static #getResult = (move) => {
     let result = '';
     if (move.isPawnPromotion) {
-      const type = move.pawnPromotionType;
-      const symbol = PieceType.toString(type);
-      result += `=${symbol}`;
+      result += `=${move.pawnPromotionType.symbol}`;
     }
     if (move.isCheckmate) result += '#';
     else if (move.isCheck) result += '+';

@@ -2,8 +2,14 @@ import FEN from './FEN';
 import MoveType from './MoveType';
 import PGN from './PGN';
 import Piece from './Piece';
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
+import { white, black, pieceColorFromPieceId } from './PieceColors';
+import {
+  king,
+  pawn,
+  rook,
+  queen,
+  pieceTypeFromPieceId,
+} from './PieceTypes';
 import { generatePseudoLegalMoves } from './moveGeneration';
 import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
@@ -14,7 +20,7 @@ const schema = '0.1.1';
 export default class Game {
   constructor({
     fen = startPosition,
-    playerColor = PieceColor.white,
+    playerColor = white,
     preventRecursion = false,
   } = {}) {
     if (!preventRecursion) logger.trace('ctor');
@@ -60,8 +66,8 @@ export default class Game {
 
   get isCheck() {
     this.trace('isCheck');
-    const king = this.activePlayer | PieceType.king;
-    return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
+    const playerKing = this.activePlayer | king.id;
+    return this.pseudoLegalMoves.some((move) => move.capturePiece === playerKing);
   }
 
   get game() {
@@ -83,7 +89,7 @@ export default class Game {
   resign = () => {
     this.trace('resign');
     this.isResignation = true;
-    const msg = this.activePlayer === PieceColor.white
+    const msg = this.activePlayer === white
       ? '0-1 (white resigns)'
       : '1-0 (black resigns)';
     this.pgn.push(msg);
@@ -92,13 +98,13 @@ export default class Game {
   getMovePiece = (move) => {
     this.trace('getMovePiece');
     return move.isPawnPromotion
-      ? this.activePlayer | move.pawnPromotionType
+      ? this.activePlayer | move.pawnPromotionType.id
       : move.piece;
   };
 
   handleEnPassant = (move) => {
     this.trace('handleEnPassant');
-    const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
+    const offset = pieceColorFromPieceId(move.piece) === white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     this.squares[captureSquareIndex] = undefined;
   };
@@ -106,7 +112,7 @@ export default class Game {
   handleCastle = (move) => {
     this.trace('handleCastle');
     const isKingSide = getFile(move.toIndex) === 6;
-    const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
+    const rookRank = pieceColorFromPieceId(move.piece) === white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
     const targetFile = isKingSide ? 5 : 3;
     const fromIndex = rookRank * 8 + rookFile;
@@ -153,10 +159,10 @@ export default class Game {
 
   setEnPassantTargetSquare = (move) => {
     this.trace('setEnPassantTargetSquare');
-    const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
+    const isPawn = pieceTypeFromPieceId(move.piece) === pawn;
     const distance = Math.abs(move.toIndex - move.fromIndex);
-    const color = PieceColor.fromPieceValue(move.piece);
-    const targetOffset = color === PieceColor.white ? -8 : 8;
+    const color = pieceColorFromPieceId(move.piece);
+    const targetOffset = color === white ? -8 : 8;
     this.enPassantTargetSquare = isPawn && distance === 16
       ? move.toIndex + targetOffset
       : -1;
@@ -165,12 +171,12 @@ export default class Game {
   updateCastlingAvailability = (move) => {
     this.trace('updateCastlingAvailability');
     if (this.castlingAvailability.length === 0) return;
-    const { color, type } = Piece.fromPieceValue(move.piece);
+    const { color, type } = Piece.fromPieceId(move.piece);
     const fromFile = getFile(move.fromIndex);
-    if (type === PieceType.king) {
+    if (type === king) {
       this.castlingAvailability = this.castlingAvailability.filter((x) => x.color !== color);
-    } else if (type === PieceType.rook && [0, 7].includes(fromFile)) {
-      const side = fromFile === 0 ? PieceType.queen : PieceType.king;
+    } else if (type === rook && [0, 7].includes(fromFile)) {
+      const side = fromFile === 0 ? queen : king;
       this.castlingAvailability = this.castlingAvailability
         .filter((x) => x.color !== color || x.type !== side);
     }
@@ -179,24 +185,24 @@ export default class Game {
   setHalfMoveClock = (move) => {
     this.trace('setMoveClock');
     const isCapture = !!move.capturePiece;
-    const isPawn = PieceType.fromPieceValue(move.piece) === PieceType.pawn;
+    const isPawn = pieceTypeFromPieceId(move.piece) === pawn;
     this.halfMoveClock = isCapture || isPawn ? 0 : this.halfMoveClock + 1;
   };
 
   togglePlayerTurn = () => {
     this.trace('togglePlayerTurn');
-    this.activePlayer = this.activePlayer === PieceColor.white
-      ? PieceColor.black
-      : PieceColor.white;
+    this.activePlayer = this.activePlayer === white
+      ? black
+      : white;
   };
 
   updateFullMoveNumber = (move) => {
     this.trace('updateFullMoveNumber');
-    const movePieceColor = PieceColor.fromPieceValue(move.piece);
+    const movePieceColor = pieceColorFromPieceId(move.piece);
     if (!this.isResignation) {
       this.currentMoveIndex += 1;
     }
-    if (!this.isGameOver && movePieceColor === PieceColor.black) {
+    if (!this.isGameOver && movePieceColor === black) {
       this.fullMoveNumber += 1;
     }
   };
@@ -252,7 +258,7 @@ export default class Game {
 
   isLegalMove = (move, fen) => {
     // filter out other player moves
-    if (PieceColor.fromPieceValue(move.piece) !== this.activePlayer) return false;
+    if (pieceColorFromPieceId(move.piece) !== this.activePlayer) return false;
 
     // filter out illegal castling moves
     if (MoveType.castlingMoves.includes(move.type)) {
@@ -283,8 +289,8 @@ export default class Game {
 
   testForCheck = (color = this.activePlayer) => {
     this.trace('testForCheck');
-    const king = color | PieceType.king;
-    return this.pseudoLegalMoves.some((move) => move.capturePiece === king);
+    const playerKing = color | king.id;
+    return this.pseudoLegalMoves.some((move) => move.capturePiece === playerKing);
   };
 
   moveBackward = () => {

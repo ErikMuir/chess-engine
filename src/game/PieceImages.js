@@ -1,5 +1,4 @@
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
+import { getColorString } from './PieceColors';
 import blackPawn from '../assets/images/black-pawn.svg';
 import blackKnight from '../assets/images/black-knight.svg';
 import blackBishop from '../assets/images/black-bishop.svg';
@@ -39,8 +38,8 @@ const cachedPieceImages = {
 
 const getPieceImage = async (piece) => new Promise((resolve, reject) => {
   if (!piece) resolve(null);
-  const color = PieceColor.toString(piece.color).toLowerCase();
-  const type = PieceType.toString(piece.type).toLowerCase();
+  const color = getColorString(piece.color).toLowerCase();
+  const type = piece.type.symbol.toLowerCase();
   if (cachedPieceImages[color][type]) resolve(cachedPieceImages[color][type]);
   const img = new Image();
   img.onload = () => {

@@ -9,8 +9,8 @@ import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
 import Game from '../game/Game';
 import MoveType from '../game/MoveType';
-import PieceColor from '../game/PieceColor';
-import PieceType from '../game/PieceType';
+import { white, pieceColorFromPieceId } from '../game/PieceColors';
+import { promotionTypes } from '../game/PieceTypes';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
 import { squareSize, boardSize, getFile } from '../game/utils';
@@ -77,8 +77,8 @@ class Board extends React.Component {
       for (let file = 0; file < 8; file += 1) {
         const index = rank * 8 + file;
         const square = new Square(file, rank);
-        const pieceValue = game.squares[index];
-        square.piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
+        const pieceId = game.squares[index];
+        square.piece = pieceId ? Piece.fromPieceId(pieceId) : null;
         squares[index] = square;
       }
     }
@@ -92,8 +92,8 @@ class Board extends React.Component {
     const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
-      const pieceValue = currentGame.squares[i];
-      newSquares[i].piece = pieceValue ? Piece.fromPieceValue(pieceValue) : null;
+      const pieceId = currentGame.squares[i];
+      newSquares[i].piece = pieceId ? Piece.fromPieceId(pieceId) : null;
     }
     this.setState({ squares: newSquares, possibleSquares: [] });
   };
@@ -178,7 +178,7 @@ class Board extends React.Component {
     const { game, promotionMove } = this.state;
     const { updateGameOver, computerMove } = this.props;
     const index = Math.floor(event.offsetX / squareSize);
-    promotionMove.pawnPromotionType = PieceType.promotionTypes[index];
+    promotionMove.pawnPromotionType = promotionTypes[index];
     this.setState({ promotionMove: null });
     game.confirmMove();
     this.syncSquares();
@@ -197,14 +197,14 @@ class Board extends React.Component {
   };
 
   handleEnPassant = (move, newSquares) => {
-    const offset = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? -8 : 8;
+    const offset = pieceColorFromPieceId(move.piece) === white ? -8 : 8;
     const captureSquareIndex = move.toIndex + offset;
     newSquares[captureSquareIndex].piece = null;
   };
 
   handleCastle = (move, newSquares) => {
     const isKingSide = getFile(move.toIndex) === 6;
-    const rookRank = PieceColor.fromPieceValue(move.piece) === PieceColor.white ? 0 : 7;
+    const rookRank = pieceColorFromPieceId(move.piece) === white ? 0 : 7;
     const rookFile = isKingSide ? 7 : 0;
     const targetFile = isKingSide ? 5 : 3;
     const fromIndex = rookRank * 8 + rookFile;
@@ -219,7 +219,7 @@ class Board extends React.Component {
     game.tempMove = move;
     const newSquares = [...squares];
     newSquares[move.fromIndex].piece = null;
-    newSquares[move.toIndex].piece = Piece.fromPieceValue(move.piece);
+    newSquares[move.toIndex].piece = Piece.fromPieceId(move.piece);
     switch (move.type) {
       case MoveType.enPassant:
         this.handleEnPassant(move, newSquares);

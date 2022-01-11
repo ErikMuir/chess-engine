@@ -1,6 +1,6 @@
 import Piece from './Piece';
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
+import { white, black, noColor } from './PieceColors';
+import { king, queen } from './PieceTypes';
 import {
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
@@ -44,7 +44,7 @@ class FEN {
       } else if (isDigit(symbol)) {
         file += parseInt(symbol, 10);
       } else {
-        game.squares[rank * 8 + file] = Piece.fromFEN(symbol).value;
+        game.squares[rank * 8 + file] = Piece.fromFEN(symbol).id;
         file += 1;
       }
     });
@@ -63,15 +63,15 @@ class FEN {
     let output = '';
     let consecutiveEmptySquares = 0;
     for (let file = 0; file < 8; file += 1) {
-      const pieceValue = game.squares[rank * 8 + file];
-      if (!pieceValue) {
+      const pieceId = game.squares[rank * 8 + file];
+      if (!pieceId) {
         consecutiveEmptySquares += 1;
       } else {
         if (consecutiveEmptySquares > 0) {
           output += `${consecutiveEmptySquares}`;
         }
         consecutiveEmptySquares = 0;
-        const piece = Piece.fromPieceValue(pieceValue);
+        const piece = Piece.fromPieceId(pieceId);
         output += Piece.toString(piece);
       }
     }
@@ -80,26 +80,26 @@ class FEN {
 
   static parseActivePlayer = (val, game) => {
     switch (val.toLowerCase()) {
-      case 'w': game.activePlayer = PieceColor.white; break;
-      case 'b': game.activePlayer = PieceColor.black; break;
-      default: game.activePlayer = PieceColor.none; break;
+      case 'w': game.activePlayer = white; break;
+      case 'b': game.activePlayer = black; break;
+      default: game.activePlayer = noColor; break;
     }
   };
 
   static getActivePlayer = (game) => {
     switch (game.activePlayer) {
-      case PieceColor.white: return 'w';
-      case PieceColor.black: return 'b';
+      case white: return 'w';
+      case black: return 'b';
       default: return '-';
     }
   };
 
   static parseCastlingAvailability = (val, game) => {
     game.castlingAvailability = [];
-    if (val.indexOf('K') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.king));
-    if (val.indexOf('Q') > -1) game.castlingAvailability.push(new Piece(PieceColor.white, PieceType.queen));
-    if (val.indexOf('k') > -1) game.castlingAvailability.push(new Piece(PieceColor.black, PieceType.king));
-    if (val.indexOf('q') > -1) game.castlingAvailability.push(new Piece(PieceColor.black, PieceType.queen));
+    if (val.indexOf('K') > -1) game.castlingAvailability.push(new Piece(white, king));
+    if (val.indexOf('Q') > -1) game.castlingAvailability.push(new Piece(white, queen));
+    if (val.indexOf('k') > -1) game.castlingAvailability.push(new Piece(black, king));
+    if (val.indexOf('q') > -1) game.castlingAvailability.push(new Piece(black, queen));
   };
 
   static getCastlingAvailability = (game) => {

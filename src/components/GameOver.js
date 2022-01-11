@@ -1,13 +1,13 @@
 import React from 'react';
 import Modal from 'react-modal';
-import PieceColor from '../game/PieceColor';
+import { getColorString, oppositeColor } from '../game/PieceColors';
 import { modalOverlayStyle, modalContentStyle } from '../game/utils';
 
 const getMessage = ({
   isResignation, isCheckmate, activePlayer, fullMoveNumber,
 }) => {
-  const otherPlayer = PieceColor.toString(PieceColor.opposite(activePlayer));
-  const currentPlayer = PieceColor.toString(activePlayer);
+  const otherPlayer = getColorString(oppositeColor(activePlayer));
+  const currentPlayer = getColorString(activePlayer);
   if (isResignation) return `${otherPlayer} wins by resignation.`;
   if (isCheckmate) return `${otherPlayer} mated ${currentPlayer} in ${fullMoveNumber} moves.`;
   return `${currentPlayer} is not in check but has no legal moves, therefore it is a stalemate.`;

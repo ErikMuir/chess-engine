@@ -1,6 +1,6 @@
-import PieceColor from './PieceColor';
-import PieceType from './PieceType';
 import MoveType from './MoveType';
+import { white, pieceColorFromPieceId, oppositeColor } from './PieceColors';
+import { pawn, queen, pieceTypeFromPieceId } from './PieceTypes';
 import { getRank } from './utils';
 
 class Move {
@@ -10,21 +10,22 @@ class Move {
     this.toIndex = toIndex;
     this.piece = squares[fromIndex];
     this.capturePiece = type === MoveType.enPassant
-      ? PieceColor.opposite(this.pieceColor) | PieceType.pawn
+      ? oppositeColor(this.pieceColor) | pawn.id
       : squares[toIndex];
+    this.pawnPromotionType = queen; // hack for legal move generation
   }
 
   get pieceType() {
-    return PieceType.fromPieceValue(this.piece);
+    return pieceTypeFromPieceId(this.piece);
   }
 
   get pieceColor() {
-    return PieceColor.fromPieceValue(this.piece);
+    return pieceColorFromPieceId(this.piece);
   }
 
   get isPawnPromotion() {
-    const isPawn = this.pieceType === PieceType.pawn;
-    const promotionRank = this.pieceColor === PieceColor.white ? 7 : 0;
+    const isPawn = this.pieceType === pawn;
+    const promotionRank = this.pieceColor === white ? 7 : 0;
     const isPromotionRank = getRank(this.toIndex) === promotionRank;
     return isPawn && isPromotionRank;
   }
