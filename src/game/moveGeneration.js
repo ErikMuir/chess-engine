@@ -15,18 +15,10 @@ import { getNumSquaresToEdge, directionIndex, directionOffsets } from './utils';
 
 const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => {
   const moves = [];
-
-  const moveForward = piece.color === white
-    ? directionIndex.north
-    : directionIndex.south;
-  const attackLeft = piece.color === white
-    ? directionIndex.northWest
-    : directionIndex.southEast;
-  const attackRight = piece.color === white
-    ? directionIndex.northEast
-    : directionIndex.southWest;
+  const numSquaresToEdge = getNumSquaresToEdge();
 
   // check one square forward
+  const moveForward = piece.color === white ? directionIndex.north : directionIndex.south;
   const forwardSquareIndex = fromIndex + directionOffsets[moveForward];
   const forwardSquarePiece = squares[forwardSquareIndex];
   if (!forwardSquarePiece) {
@@ -35,10 +27,7 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
 
   // check two squares forward
   const rank = Math.floor(fromIndex / 8);
-  const isFirstMove = (
-    (piece.color === white && rank === 1)
-    || (piece.color === black && rank === 6)
-  );
+  const isFirstMove = (piece.color === white && rank === 1) || (piece.color === black && rank === 6);
   if (isFirstMove) {
     const doubleSquareIndex = forwardSquareIndex + directionOffsets[moveForward];
     const doubleSquarePiece = squares[doubleSquareIndex];
@@ -48,21 +37,31 @@ const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => 
   }
 
   // check attack left
-  const attackLeftSquareIndex = fromIndex + directionOffsets[attackLeft];
-  const attackLeftSquarePiece = Piece.fromPieceId(squares[attackLeftSquareIndex]);
-  const isAttackLeftOpponent = attackLeftSquarePiece
-    && attackLeftSquarePiece.color !== piece.color;
-  if (isAttackLeftOpponent) {
-    moves.push(new Move(MoveType.capture, fromIndex, attackLeftSquareIndex, squares));
+  let attackLeftSquareIndex;
+  const leftDirection = piece.color === white ? directionIndex.west : directionIndex.east;
+  const leftEdge = numSquaresToEdge[fromIndex][leftDirection];
+  if (leftEdge > 0) {
+    const attackLeft = piece.color === white ? directionIndex.northWest : directionIndex.southEast;
+    attackLeftSquareIndex = fromIndex + directionOffsets[attackLeft];
+    const attackLeftSquarePiece = Piece.fromPieceId(squares[attackLeftSquareIndex]);
+    const isAttackLeftOpponent = attackLeftSquarePiece && attackLeftSquarePiece.color !== piece.color;
+    if (isAttackLeftOpponent) {
+      moves.push(new Move(MoveType.capture, fromIndex, attackLeftSquareIndex, squares));
+    }
   }
 
   // check attack right
-  const attackRightSquareIndex = fromIndex + directionOffsets[attackRight];
-  const attackRightSquarePiece = Piece.fromPieceId(squares[attackRightSquareIndex]);
-  const isAttackRightOpponent = attackRightSquarePiece
-    && attackRightSquarePiece.color !== piece.color;
-  if (isAttackRightOpponent) {
-    moves.push(new Move(MoveType.capture, fromIndex, attackRightSquareIndex, squares));
+  let attackRightSquareIndex;
+  const rightDirection = piece.color === white ? directionIndex.east : directionIndex.west;
+  const rightEdge = numSquaresToEdge[fromIndex][rightDirection];
+  if (rightEdge > 0) {
+    const attackRight = piece.color === white ? directionIndex.northEast : directionIndex.southWest;
+    attackRightSquareIndex = fromIndex + directionOffsets[attackRight];
+    const attackRightSquarePiece = Piece.fromPieceId(squares[attackRightSquareIndex]);
+    const isAttackRightOpponent = attackRightSquarePiece && attackRightSquarePiece.color !== piece.color;
+    if (isAttackRightOpponent) {
+      moves.push(new Move(MoveType.capture, fromIndex, attackRightSquareIndex, squares));
+    }
   }
 
   // check en passant
