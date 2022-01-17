@@ -22,7 +22,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+<!-- - _none_ -->
+- rolling pawn attacks (pawns can attack from one side of the board to the other)
 
 ## Attributions
 

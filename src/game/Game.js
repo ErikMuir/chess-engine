@@ -2,7 +2,12 @@ import FEN from './FEN';
 import MoveType from './MoveType';
 import PGN from './PGN';
 import Piece from './Piece';
-import { white, black, pieceColorFromPieceId } from './PieceColors';
+import {
+  white,
+  black,
+  pieceColorFromPieceId,
+  oppositeColor,
+} from './PieceColors';
 import {
   king,
   pawn,
@@ -52,6 +57,7 @@ export default class Game {
     this.isDraw = false;
     this.tempMove = null;
     this.confirmationDisabled = false;
+    this.capturedPieces = [];
   };
 
   trace = (msg) => {
@@ -84,6 +90,13 @@ export default class Game {
   get json() {
     this.trace('json');
     return JSON.stringify(this.game, null, 2);
+  }
+
+  get playerScore() {
+    this.trace('playerScore');
+    const playerScore = this.getScore(this.playerColor);
+    const opponentScore = this.getScore(oppositeColor(this.playerColor));
+    return playerScore - opponentScore;
   }
 
   resign = () => {
@@ -143,18 +156,19 @@ export default class Game {
 
   postMoveActions = (move) => {
     this.trace('postMoveActions');
-    const legalMoves = [...this.legalMoves];
     this.setEnPassantTargetSquare(move);
     this.updateCastlingAvailability(move);
     this.setHalfMoveClock(move);
     this.togglePlayerTurn();
     this.generateMoves();
     this.updateFullMoveNumber(move);
+    this.handleCapture(move);
     this.handleMates();
     this.updateMove(move);
-    this.appendToPgn(move, legalMoves);
+    this.appendToPgn(move, [...this.legalMoves]);
     this.archiveMove(move);
     this.archiveFen();
+    this.trace({ score: this.playerScore });
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -233,7 +247,15 @@ export default class Game {
     }
   };
 
+  handleCapture = (move) => {
+    this.trace('handleCapture');
+    if (move.capturePiece) {
+      this.capturedPieces.push(move.capturePiece);
+    }
+  };
+
   handleMates = () => {
+    this.trace('handleMates');
     if (this.legalMoves.length) return;
     if (this.isCheck) {
       this.isCheckmate = true;
@@ -319,5 +341,13 @@ export default class Game {
   cancelMove = () => {
     this.trace('cancelMove');
     this.tempMove = null;
+  };
+
+  getScore = (color) => {
+    this.trace('getScore');
+    return this.squares
+      .filter((pieceId) => pieceId && pieceColorFromPieceId(pieceId) === color)
+      .map((pieceId) => pieceTypeFromPieceId(pieceId).value)
+      .reduce((acc, curr) => acc + curr, 0);
   };
 }

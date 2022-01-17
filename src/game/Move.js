@@ -8,7 +8,7 @@ class Move {
     this.type = type;
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
-    this.piece = squares[fromIndex];
+    this.piece = squares[fromIndex]; // TODO: rename to pieceId for accuracy
     this.capturePiece = type === MoveType.enPassant
       ? oppositeColor(this.pieceColor) | pawn.id
       : squares[toIndex];
