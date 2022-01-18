@@ -4,7 +4,6 @@ A javascript chess engine with React chess GUI
 
 ## Upcoming Features
 
-- track captured pieces (or at least net points)
 - new game - choose white or black
 - analysis
 - hint
@@ -22,7 +21,8 @@ A javascript chess engine with React chess GUI
 
 ## Known Bugs
 
-- _none_
+<!-- - _none_ -->
+- legal moves sometimes get screwed up (can't replicate)
 
 ## Attributions
 

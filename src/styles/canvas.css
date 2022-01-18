@@ -5,7 +5,7 @@
 .canvas-container:before {
   content: '';
   display: block;
-  padding-top: 100%;
+  /* padding-top: 100%; removed this because it was creating whitespace under the captured pieces canvas. not sure what it was here for in the first place. */ 
 }
 
 .canvas-container canvas {

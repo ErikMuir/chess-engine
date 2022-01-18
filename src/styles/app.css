@@ -175,3 +175,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #888888;
 }
+
+.captured-pieces {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}

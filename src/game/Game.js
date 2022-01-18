@@ -168,7 +168,6 @@ export default class Game {
     this.appendToPgn(move, [...this.legalMoves]);
     this.archiveMove(move);
     this.archiveFen();
-    this.trace({ score: this.playerScore });
   };
 
   setEnPassantTargetSquare = (move) => {

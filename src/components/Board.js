@@ -1,4 +1,5 @@
 import React from 'react';
+import CapturedPieces from './CapturedPieces';
 import ActiveLayer from './board-layers/ActiveLayer';
 import InteractiveLayer from './board-layers/InteractiveLayer';
 import LabelsLayer from './board-layers/LabelsLayer';
@@ -269,14 +270,16 @@ class Board extends React.Component {
       activeSquare,
       possibleSquares,
       dragPiece,
+      game,
     } = this.state;
+    const { capturedPieces, playerScore } = game;
     const width = boardSize;
     const height = boardSize;
     const flexBasis = boardSize;
 
     return (
-      <>
-        <div className="board canvas-container" style={{ width, height, flexBasis }}>
+      <div className="board">
+        <div className="canvas-container" style={{ width, height, flexBasis }}>
           <SquaresLayer squares={squares} />
           <LabelsLayer squares={squares} />
           <PreviousLayer previousSquares={previousSquares} />
@@ -290,8 +293,9 @@ class Board extends React.Component {
             onMouseOut={this.onMouseOut}
           />
         </div>
+        <CapturedPieces capturedPieces={capturedPieces} playerScore={playerScore} />
         {this.getPromotionModal()}
-      </>
+      </div>
     );
   }
 }
