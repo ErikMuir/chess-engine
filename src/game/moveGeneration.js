@@ -1,8 +1,16 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable no-continue */
+import { randomElement } from '../utils';
+import Game from './Game';
 import Move from './Move';
 import MoveType from './MoveType';
 import Piece from './Piece';
-import { white, black } from './PieceColors';
+import {
+  white,
+  black,
+  pieceColorFromPieceId,
+  oppositeColor,
+} from './PieceColors';
 import {
   king,
   pawn,
@@ -10,6 +18,7 @@ import {
   bishop,
   rook,
   queen,
+  pieceTypeFromPieceId,
 } from './PieceTypes';
 import { getNumSquaresToEdge, directionIndex, directionOffsets } from './utils';
 
@@ -186,7 +195,7 @@ const generateSlidingMoves = (fromIndex, piece, squares) => {
   return moves;
 };
 
-const generatePseudoLegalMoves = ({
+const getPseudoLegalMoves = ({
   squares,
   castlingAvailability,
   enPassantTargetSquare,
@@ -218,4 +227,86 @@ const generatePseudoLegalMoves = ({
   return moves;
 };
 
-export { generatePseudoLegalMoves };
+const isLegalMove = (move, { activePlayer, isCheck, fen }) => {
+  // filter out other player moves
+  if (pieceColorFromPieceId(move.piece) !== activePlayer) return false;
+
+  // filter out illegal castling moves
+  if (MoveType.castlingMoves.includes(move.type)) {
+    if (isCheck) return false;
+    const passingSquareIndex = move.type === MoveType.kingSideCastle
+      ? move.fromIndex + 1
+      : move.fromIndex - 1;
+    const tempMove = {
+      ...move,
+      type: MoveType.normal,
+      toIndex: passingSquareIndex,
+    };
+    const tempGame = new Game({ fen, preventRecursion: true });
+    tempGame.doMove(tempMove);
+    tempGame.pseudoLegalMoves = getPseudoLegalMoves(tempGame);
+    if (tempGame.testForCheck(activePlayer)) return false;
+  }
+
+  // filter out self-check moves
+  const futureGame = new Game({ fen, preventRecursion: true });
+  futureGame.doMove(move);
+  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+  if (futureGame.testForCheck(activePlayer)) return false;
+
+  // allow all other moves
+  return true;
+};
+
+const getLegalMoves = (game) => game.pseudoLegalMoves.filter((move) => isLegalMove(move, game));
+
+const getCheckMoves = (moves, fen, activePlayer) => moves.filter((move) => {
+  const opponent = oppositeColor(activePlayer);
+  const futureGame = new Game({ fen, preventRecursion: true });
+  futureGame.doMove(move);
+  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+  const isCheck = futureGame.testForCheck(opponent);
+  return isCheck;
+});
+
+const getCheckmateMoves = (moves, fen) => moves.filter((move) => {
+  const futureGame = new Game({ fen, preventRecursion: true });
+  futureGame.doMove(move);
+  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+  futureGame.legalMoves = getLegalMoves(futureGame);
+  const isCheckmate = futureGame.legalMoves.length === 0;
+  return isCheckmate;
+});
+
+const getCaptureMoves = (moves) => moves.filter((move) => MoveType.captureMoves.includes(move.type));
+
+const getRandomMove = (game) => randomElement(game.legalMoves);
+
+const getMove = ({ legalMoves, activePlayer, fen }) => {
+  let moves = [...legalMoves];
+  const checkMoves = getCheckMoves(moves, fen, activePlayer);
+  if (checkMoves && checkMoves.length) {
+    moves = [...checkMoves];
+    const checkmateMoves = getCheckmateMoves(moves, fen);
+    if (checkmateMoves && checkmateMoves.length) {
+      return checkmateMoves[0];
+    }
+  }
+  const captureMoves = getCaptureMoves(moves);
+  if (captureMoves && captureMoves.length) {
+    captureMoves.sort((a, b) => {
+      const aValue = pieceTypeFromPieceId(a.capturePiece).value;
+      const bValue = pieceTypeFromPieceId(b.capturePiece).value;
+      return bValue - aValue;
+    });
+    return captureMoves[0];
+  }
+  return randomElement(moves);
+};
+
+export {
+  getPseudoLegalMoves,
+  getLegalMoves,
+  getRandomMove,
+  getMove,
+};

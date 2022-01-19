@@ -4,9 +4,11 @@ const clearCanvas = (context) => {
 };
 const isDigit = (str) => /^\d+$/.test(str);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const randomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 export {
   clearCanvas,
   isDigit,
   sleep,
+  randomElement,
 };

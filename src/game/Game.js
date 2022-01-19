@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import FEN from './FEN';
 import MoveType from './MoveType';
 import PGN from './PGN';
@@ -15,7 +16,7 @@ import {
   queen,
   pieceTypeFromPieceId,
 } from './PieceTypes';
-import { generatePseudoLegalMoves } from './moveGeneration';
+import { getPseudoLegalMoves, getLegalMoves } from './moveGeneration';
 import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
 
@@ -81,7 +82,7 @@ export default class Game {
     return {
       schema,
       playerColor: this.playerColor,
-      fen: FEN.get(this),
+      fen: this.fen,
       moves: this.moveHistory.map((move) => ({ ...move })),
       pgn: [...this.pgn],
     };
@@ -90,6 +91,11 @@ export default class Game {
   get json() {
     this.trace('json');
     return JSON.stringify(this.game, null, 2);
+  }
+
+  get fen() {
+    this.trace('fen');
+    return FEN.get(this);
   }
 
   get playerScore() {
@@ -233,8 +239,7 @@ export default class Game {
 
   archiveFen = () => {
     this.trace('archiveFen');
-    const fen = FEN.get(this);
-    this.fenHistory.push(fen);
+    this.fenHistory.push(this.fen);
   };
 
   appendToPgn = (move, legalMoves) => {
@@ -265,47 +270,9 @@ export default class Game {
 
   generateMoves = () => {
     this.trace('generateMoves');
-    this.pseudoLegalMoves = generatePseudoLegalMoves(this);
+    this.pseudoLegalMoves = getPseudoLegalMoves(this);
     if (this.preventRecursion) return;
-    this.legalMoves = this.generateLegalMoves();
-  };
-
-  generateLegalMoves = () => {
-    this.trace('generateLegalMoves');
-    const fen = FEN.get(this);
-    const legalMoves = this.pseudoLegalMoves.filter((move) => this.isLegalMove(move, fen));
-    return legalMoves;
-  };
-
-  isLegalMove = (move, fen) => {
-    // filter out other player moves
-    if (pieceColorFromPieceId(move.piece) !== this.activePlayer) return false;
-
-    // filter out illegal castling moves
-    if (MoveType.castlingMoves.includes(move.type)) {
-      if (this.isCheck) return false;
-      const passingSquareIndex = move.type === MoveType.kingSideCastle
-        ? move.fromIndex + 1
-        : move.fromIndex - 1;
-      const tempMove = {
-        ...move,
-        type: MoveType.normal,
-        toIndex: passingSquareIndex,
-      };
-      const tempGame = new Game({ fen, preventRecursion: true });
-      tempGame.doMove(tempMove);
-      tempGame.pseudoLegalMoves = generatePseudoLegalMoves(tempGame);
-      if (tempGame.testForCheck(this.activePlayer)) return false;
-    }
-
-    // filter out self-check moves
-    const futureGame = new Game({ fen, preventRecursion: true });
-    futureGame.doMove(move);
-    futureGame.pseudoLegalMoves = generatePseudoLegalMoves(futureGame);
-    if (futureGame.testForCheck(this.activePlayer)) return false;
-
-    // allow all other moves
-    return true;
+    this.legalMoves = getLegalMoves(this);
   };
 
   testForCheck = (color = this.activePlayer) => {

@@ -8,9 +8,15 @@ A javascript chess engine with React chess GUI
 - analysis
 - hint
 - play vs computer
-  - add 1 level of depth
+  - add 1 level of depth (capture the piece with highest value)
+  - add 2 levels of depth (capture the piece with highest value differential after a trade)
   - add basic strategy
-  - add multiple levels of depth
+    - control center squares
+    - castle as soon as possible
+    - avoid double pawns
+    - connected rooks
+    - align rooks on open files
+  - add more levels of depth
   - add advanced strategy
 - responsive design for mobile support
 
@@ -22,6 +28,7 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
+- clicking inelligible square should deselect active square
 - legal moves sometimes get screwed up (can't replicate)
 
 ## Attributions

@@ -9,7 +9,7 @@ class Move {
     this.fromIndex = fromIndex;
     this.toIndex = toIndex;
     this.piece = squares[fromIndex]; // TODO: rename to pieceId for accuracy
-    this.capturePiece = type === MoveType.enPassant
+    this.capturePiece = type === MoveType.enPassant // TODO : rename to capturePieceId for accuracy
       ? oppositeColor(this.pieceColor) | pawn.id
       : squares[toIndex];
     this.pawnPromotionType = queen; // hack for legal move generation

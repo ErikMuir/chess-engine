@@ -1,4 +1,3 @@
-import FEN from './FEN';
 import Game from './Game';
 import Logger from '../Logger';
 import Move from './Move';
@@ -36,7 +35,7 @@ const importGameFromJson = ({
     game.doMove(move);
   });
 
-  const resultingGameFen = FEN.get(game);
+  const resultingGameFen = game.fen;
   if (fen !== resultingGameFen) {
     logger.trace('mismatched FENs', { fen, resultingGameFen });
     throw new Error('Invalid game json');
