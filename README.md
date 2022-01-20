@@ -8,7 +8,6 @@ A javascript chess engine with React chess GUI
 - analysis
 - hint
 - play vs computer
-  - add 1 level of depth (capture the piece with highest value)
   - add 2 levels of depth (capture the piece with highest value differential after a trade)
   - add basic strategy
     - control center squares
@@ -28,7 +27,6 @@ A javascript chess engine with React chess GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- clicking inelligible square should deselect active square
 - legal moves sometimes get screwed up (can't replicate)
 
 ## Attributions

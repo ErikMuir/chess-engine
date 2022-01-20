@@ -101,12 +101,12 @@ class Board extends React.Component {
 
   onMouseDown = (event) => {
     logger.trace('onMouseDown');
-    const { game, squares } = this.state;
+    const { game, squares, possibleSquares } = this.state;
     if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
     const { activeSquare } = this.state;
     const square = this.getEventSquare(event);
     const newState = {};
-    if (square === activeSquare) {
+    if (activeSquare && !possibleSquares.includes(square)) {
       newState.deselect = true;
     }
     if (square.piece && square.piece.color === game.activePlayer) {
@@ -128,6 +128,7 @@ class Board extends React.Component {
       activeSquare,
       dragPiece,
       deselect,
+      possibleSquares,
     } = this.state;
     if (!activeSquare) return;
 
@@ -137,7 +138,7 @@ class Board extends React.Component {
     }
 
     const square = this.getEventSquare(event);
-    if (square === activeSquare && deselect) {
+    if (deselect && !possibleSquares.includes(square) && !dragPiece) {
       this.setState({
         activeSquare: null,
         possibleSquares: [],
