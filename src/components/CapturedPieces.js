@@ -13,13 +13,20 @@ const pieceSize = 20;
 class CapturedPieces extends React.Component {
   static filterByColor(pieces, color) {
     if (!pieces || !pieces.length) return [];
+    const isDescending = color === white;
     return pieces
       .filter((pieceId) => pieceColorFromPieceId(pieceId) === color)
       .sort((a, b) => {
         const aType = pieceTypeFromPieceId(a);
         const bType = pieceTypeFromPieceId(b);
-        let diff = aType.value - bType.value;
-        if (diff === 0) diff = aType.id - bType.id;
+        let diff = isDescending
+          ? bType.value - aType.value
+          : aType.value - bType.value;
+        if (diff === 0) {
+          diff = isDescending
+            ? bType.id - aType.id
+            : aType.id - bType.id;
+        }
         return diff;
       });
   }
@@ -77,10 +84,10 @@ class CapturedPieces extends React.Component {
     clearCanvas(ctx);
     this.resizeCanvas(canvasId, pieces);
     pieces.forEach((pieceId, index) => {
-      const x = pieceSize * index;
-      const y = 0;
-      const piece = Piece.fromPieceId(pieceId);
-      piece.getImage().then((img) => ctx.drawImage(img, x, y, pieceSize, pieceSize));
+      Piece
+        .fromPieceId(pieceId)
+        .getImage()
+        .then((img) => ctx.drawImage(img, pieceSize * index, 0, pieceSize, pieceSize));
     });
   };
 

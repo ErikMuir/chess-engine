@@ -67,18 +67,15 @@ export default class Game {
   };
 
   get isGameOver() {
-    this.trace('isGameOver');
     return this.isCheckmate || this.isStalemate || this.isResignation || this.isDraw;
   }
 
   get isCheck() {
-    this.trace('isCheck');
     const playerKing = this.activePlayer | king.id;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === playerKing);
   }
 
   get game() {
-    this.trace('game');
     return {
       schema,
       playerColor: this.playerColor,
@@ -89,17 +86,14 @@ export default class Game {
   }
 
   get json() {
-    this.trace('json');
     return JSON.stringify(this.game, null, 2);
   }
 
   get fen() {
-    this.trace('fen');
     return FEN.get(this);
   }
 
   get playerScore() {
-    this.trace('playerScore');
     const playerScore = this.getScore(this.playerColor);
     const opponentScore = this.getScore(oppositeColor(this.playerColor));
     return playerScore - opponentScore;
