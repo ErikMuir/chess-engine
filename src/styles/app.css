@@ -37,6 +37,18 @@ body {
   color: rgb(89, 89, 89);
 }
 
+.app-footer .copyright {
+  margin-right: 6px;
+}
+
+.app-footer a {
+  margin: 0 3px;
+}
+
+.app-footer svg {
+  vertical-align: text-bottom;
+}
+
 .aside {
   margin: 0 1rem;
 }

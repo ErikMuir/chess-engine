@@ -20,7 +20,11 @@ import {
   queen,
   pieceTypeFromPieceId,
 } from './PieceTypes';
-import { getNumSquaresToEdge, directionIndex, directionOffsets } from './utils';
+import {
+  getNumSquaresToEdge,
+  directionIndex,
+  directionOffsets,
+} from './utils';
 
 const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => {
   const moves = [];

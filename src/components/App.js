@@ -3,6 +3,7 @@ import Modal from 'react-modal';
 import FileSaver from 'file-saver';
 import Board from './Board';
 import ConfirmModal from './ConfirmModal';
+import Footer from './Footer';
 import GameControls from './GameControls';
 import GameDetails from './GameDetails';
 import GameOver from './GameOver';
@@ -234,9 +235,7 @@ class App extends React.Component {
             cancelMove={this.cancelMove}
           />
         </main>
-        <footer className="app-footer">
-          <span>{`© ${new Date().getFullYear()} MuirDev`}</span>
-        </footer>
+        <Footer />
         {this.getGameOverModal()}
         {this.getResignationModal()}
       </div>
