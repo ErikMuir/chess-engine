@@ -25,7 +25,10 @@ module.exports = (env) => {
         LOG_LEVEL,
         LOGGERS: process.env.npm_config_loggers || null, // npm run start:trace --loggers=Game,Board
       }),
-      new HtmlWebpackPlugin({ template: './public/index.html' }),
+      new HtmlWebpackPlugin({
+        template: './public/index.html',
+        favicon: './public/favicon.ico',
+      }),
     ],
   };
 };

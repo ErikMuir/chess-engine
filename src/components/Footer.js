@@ -8,7 +8,7 @@ import Icon from '@mdi/react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const copyright = `© ${currentYear} Erik Muir`;
+  const copyright = `Copyright © ${currentYear} Erik Muir`;
   return (
     <footer className="app-footer">
       <div>
