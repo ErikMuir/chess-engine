@@ -31,6 +31,10 @@ class CapturedPieces extends React.Component {
       });
   }
 
+  static getWidth(pieces) {
+    return pieceSize * pieces.length;
+  }
+
   constructor(props) {
     super(props);
     logger.trace('ctor');
@@ -46,8 +50,8 @@ class CapturedPieces extends React.Component {
   componentDidMount() {
     logger.trace('componentDidMount');
     const { blackPieces, whitePieces } = this.state;
-    const blackWidth = pieceSize * blackPieces.length;
-    const whiteWidth = pieceSize * whitePieces.length;
+    const blackWidth = CapturedPieces.getWidth(blackPieces);
+    const whiteWidth = CapturedPieces.getWidth(whitePieces);
     const blackCanvas = document.getElementById(blackCanvasId);
     const whiteCanvas = document.getElementById(whiteCanvasId);
     blackCanvas.height = pieceSize;
@@ -77,7 +81,7 @@ class CapturedPieces extends React.Component {
   resizeCanvas = (canvasId, pieces) => {
     const canvas = document.getElementById(canvasId);
     canvas.height = pieceSize;
-    canvas.width = pieceSize * pieces.length;
+    canvas.width = CapturedPieces.getWidth(pieces);
   };
 
   drawPieces = (pieces, ctx, canvasId) => {
@@ -102,19 +106,24 @@ class CapturedPieces extends React.Component {
     this.drawPieces(whitePieces, whiteCtx, whiteCanvasId);
   };
 
+  getCanvas = (canvasId, pieces) => {
+    let styles = 'canvas-container';
+    if (pieces.length) styles += ' captured-pieces';
+    const width = CapturedPieces.getWidth(pieces);
+    return (
+      <div className={styles} style={{ height: pieceSize, width }}>
+        <canvas id={canvasId} />
+      </div>
+    );
+  };
+
   render() {
     logger.trace('render');
     const { blackPieces, whitePieces } = this.state;
-    const blackWidth = pieceSize * blackPieces.length;
-    const whiteWidth = pieceSize * whitePieces.length;
     return (
-      <div className="captured-pieces">
-        <div className="canvas-container" style={{ height: pieceSize, width: blackWidth }}>
-          <canvas id={blackCanvasId} />
-        </div>
-        <div className="canvas-container" style={{ height: pieceSize, width: whiteWidth }}>
-          <canvas id={whiteCanvasId} />
-        </div>
+      <div className="captured-pieces-container" style={{ height: pieceSize }}>
+        {this.getCanvas(blackCanvasId, blackPieces)}
+        {this.getCanvas(whiteCanvasId, whitePieces)}
       </div>
     );
   }

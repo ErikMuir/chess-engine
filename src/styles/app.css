@@ -188,8 +188,14 @@ body {
   background: #888888;
 }
 
-.captured-pieces {
+.captured-pieces-container {
   margin-top: 0.5rem;
   display: flex;
   justify-content: space-between;
+}
+
+.captured-pieces {
+  background-color: #555555;
+  border-radius: 3px;
+  padding: 2px;
 }

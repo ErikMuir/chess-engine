@@ -28,6 +28,7 @@ A javascript chess engine with React chess GUI
 
 <!-- - _none_ -->
 - captured pieces momentarily overlap
+- captured pieces don't change when navigatingmove history
 - legal moves sometimes get screwed up (can't replicate)
 
 ## Attributions
