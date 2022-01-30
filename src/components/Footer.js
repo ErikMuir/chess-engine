@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  // mdiWeb,
+  mdiWeb,
   mdiEmail,
   mdiGithub,
 } from '@mdi/js';
@@ -8,7 +8,7 @@ import Icon from '@mdi/react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const copyright = `Copyright © ${currentYear} Erik Muir`;
+  const copyright = `© Copyright ${currentYear} MuirDev`;
   return (
     <footer className="app-footer">
       <div>
@@ -16,9 +16,9 @@ const Footer = () => {
         <a href="mailto:erik@muirdev.com">
           <Icon path={mdiEmail} size={0.7} color="rgb(89, 89, 89)" />
         </a>
-        {/* <a href="http://muirdev.com" target="_blank" rel="noreferrer">
+        <a href="https://muirdev.com" target="_blank" rel="noreferrer">
           <Icon path={mdiWeb} size={0.7} color="rgb(89, 89, 89)" />
-        </a> */}
+        </a>
         <a href="https://github.com/ErikMuir/chess-engine" target="_blank" rel="noreferrer">
           <Icon path={mdiGithub} size={0.7} color="rgb(89, 89, 89)" />
         </a>

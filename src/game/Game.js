@@ -86,7 +86,7 @@ export default class Game {
   }
 
   get json() {
-    return JSON.stringify(this.game, null, 2);
+    return JSON.stringify(this.game);
   }
 
   get fen() {
