@@ -8,7 +8,9 @@ A javascript chess engine with React chess GUI
 - analysis
 - hint
 - play vs computer
-  - add 2 levels of depth (capture the piece with highest value differential after a trade)
+  - add 1 level of depth
+    - ~~capture the piece with highest value~~
+    - make move with highest trade differential
   - add basic strategy
     - control center squares
     - castle as soon as possible

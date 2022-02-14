@@ -13,7 +13,6 @@ import { importGameFromJson } from '../game/import';
 import { getMove } from '../game/moveGeneration';
 import { sleep } from '../utils';
 import '../styles/app.css';
-import '../styles/canvas.css';
 import '../styles/modal.css';
 
 Modal.setAppElement('#app');
