@@ -264,53 +264,70 @@ const isLegalMove = (move, { activePlayer, isCheck, fen }) => {
 
 const getLegalMoves = (game) => game.pseudoLegalMoves.filter((move) => isLegalMove(move, game));
 
-const getCheckMoves = (moves, fen, activePlayer) => moves.filter((move) => {
-  const opponent = oppositeColor(activePlayer);
-  const futureGame = new Game({ fen, preventRecursion: true });
-  futureGame.doMove(move);
-  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
-  const isCheck = futureGame.testForCheck(opponent);
-  return isCheck;
-});
+// const getCheckMoves = (moves, fen, activePlayer) => {
+//   const opponent = oppositeColor(activePlayer);
+//   return moves.filter((move) => {
+//     const futureGame = new Game({ fen, preventRecursion: true });
+//     futureGame.doMove(move);
+//     futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+//     const isCheck = futureGame.testForCheck(opponent);
+//     return isCheck;
+//   });
+// };
 
-const getCheckmateMoves = (moves, fen) => moves.filter((move) => {
-  const futureGame = new Game({ fen, preventRecursion: true });
-  futureGame.doMove(move);
-  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
-  futureGame.legalMoves = getLegalMoves(futureGame);
-  const isCheckmate = futureGame.legalMoves.length === 0;
-  return isCheckmate;
-});
+// const getCheckmateMoves = (moves, fen, activePlayer) => {
+//   const opponent = oppositeColor(activePlayer);
+//   return moves.filter((move) => {
+//     const futureGame = new Game({ fen, preventRecursion: true });
+//     futureGame.doMove(move);
+//     futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+//     const isCheck = futureGame.testForCheck(opponent);
+//     if (!isCheck) return false;
+//     futureGame.legalMoves = getLegalMoves(futureGame);
+//     const isCheckmate = futureGame.legalMoves.length === 0;
+//     return isCheckmate;
+//   });
+// };
 
-const getCaptureMoves = (moves) => moves.filter((move) => MoveType.captureMoves.includes(move.type));
+// const getCaptureMoves = (moves) => moves.filter((move) => MoveType.captureMoves.includes(move.type));
 
-const getRandomMove = (game) => randomElement(game.legalMoves);
+// const getRandomMove = (game) => randomElement(game.legalMoves);
 
 const getMove = ({ legalMoves, activePlayer, fen }) => {
-  let moves = [...legalMoves];
-  const checkMoves = getCheckMoves(moves, fen, activePlayer);
-  if (checkMoves && checkMoves.length) {
-    moves = [...checkMoves];
-    const checkmateMoves = getCheckmateMoves(moves, fen);
-    if (checkmateMoves && checkmateMoves.length) {
-      return checkmateMoves[0];
-    }
+  const opponent = oppositeColor(activePlayer);
+  const movesWithDifferentials = legalMoves
+    .map((move) => {
+      let differential = 0;
+      if (move.capturePiece) {
+        differential = pieceTypeFromPieceId(move.capturePiece).value;
+      }
+      const futureGame = new Game({ fen, preventRecursion: true });
+      futureGame.doMove(move);
+      futureGame.setEnPassantTargetSquare(move);
+      futureGame.updateCastlingAvailability(move);
+      futureGame.togglePlayerTurn();
+      futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+      futureGame.legalMoves = getLegalMoves(futureGame);
+      const isCheck = futureGame.testForCheck(opponent);
+      const isCheckmate = isCheck && futureGame.legalMoves.length === 0;
+      if (isCheckmate) differential = 999999;
+      else {
+        // TODO
+      }
+      return { move, differential };
+    })
+    .sort((a, b) => b.differential - a.differential);
+  let bestMoveWithDifferential = movesWithDifferentials[0];
+  if (bestMoveWithDifferential.differential === 0) {
+    const zeroDiffMoves = movesWithDifferentials
+      .filter((x) => x.differential === 0);
+    bestMoveWithDifferential = randomElement(zeroDiffMoves);
   }
-  const captureMoves = getCaptureMoves(moves);
-  if (captureMoves && captureMoves.length) {
-    captureMoves.sort((a, b) => {
-      const aValue = pieceTypeFromPieceId(a.capturePiece).value;
-      const bValue = pieceTypeFromPieceId(b.capturePiece).value;
-      return bValue - aValue;
-    });
-    return captureMoves[0];
-  }
-  return randomElement(moves);
+  return bestMoveWithDifferential.move;
 };
 
 export {
   getPseudoLegalMoves,
   getLegalMoves,
-  getRandomMove,
   getMove,
 };

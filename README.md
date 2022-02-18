@@ -1,6 +1,6 @@
 # chess-engine
 
-A javascript chess engine with React chess GUI
+A javascript chess engine with React GUI
 
 ## Upcoming Features
 
