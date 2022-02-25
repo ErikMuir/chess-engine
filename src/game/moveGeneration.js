@@ -264,56 +264,36 @@ const isLegalMove = (move, { activePlayer, isCheck, fen }) => {
 
 const getLegalMoves = (game) => game.pseudoLegalMoves.filter((move) => isLegalMove(move, game));
 
-// const getCheckMoves = (moves, fen, activePlayer) => {
-//   const opponent = oppositeColor(activePlayer);
-//   return moves.filter((move) => {
-//     const futureGame = new Game({ fen, preventRecursion: true });
-//     futureGame.doMove(move);
-//     futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
-//     const isCheck = futureGame.testForCheck(opponent);
-//     return isCheck;
-//   });
-// };
-
-// const getCheckmateMoves = (moves, fen, activePlayer) => {
-//   const opponent = oppositeColor(activePlayer);
-//   return moves.filter((move) => {
-//     const futureGame = new Game({ fen, preventRecursion: true });
-//     futureGame.doMove(move);
-//     futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
-//     const isCheck = futureGame.testForCheck(opponent);
-//     if (!isCheck) return false;
-//     futureGame.legalMoves = getLegalMoves(futureGame);
-//     const isCheckmate = futureGame.legalMoves.length === 0;
-//     return isCheckmate;
-//   });
-// };
-
-// const getCaptureMoves = (moves) => moves.filter((move) => MoveType.captureMoves.includes(move.type));
-
-// const getRandomMove = (game) => randomElement(game.legalMoves);
+const getDifferential = ((move, fen, opponent) => {
+  let differential = 0;
+  if (move.capturePiece) {
+    differential = pieceTypeFromPieceId(move.capturePiece).value;
+  }
+  const futureGame = new Game({ fen, preventRecursion: true });
+  futureGame.doMove(move);
+  futureGame.setEnPassantTargetSquare(move);
+  futureGame.updateCastlingAvailability(move);
+  futureGame.togglePlayerTurn();
+  futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
+  futureGame.legalMoves = getLegalMoves(futureGame);
+  const isCheck = futureGame.testForCheck(opponent);
+  const isCheckmate = isCheck && futureGame.legalMoves.length === 0;
+  if (isCheckmate) differential = 999999;
+  else {
+    const oppValue = futureGame.legalMoves
+      .filter((oppMove) => MoveType.captureMoves.includes(oppMove.type))
+      .map((oppMove) => pieceTypeFromPieceId(oppMove.capturePiece).value)
+      .sort((a, b) => b - a)[0];
+    differential -= oppValue;
+  }
+  return differential || 0; // TODO : figure out why this was NaN sometimes
+});
 
 const getMove = ({ legalMoves, activePlayer, fen }) => {
   const opponent = oppositeColor(activePlayer);
   const movesWithDifferentials = legalMoves
     .map((move) => {
-      let differential = 0;
-      if (move.capturePiece) {
-        differential = pieceTypeFromPieceId(move.capturePiece).value;
-      }
-      const futureGame = new Game({ fen, preventRecursion: true });
-      futureGame.doMove(move);
-      futureGame.setEnPassantTargetSquare(move);
-      futureGame.updateCastlingAvailability(move);
-      futureGame.togglePlayerTurn();
-      futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
-      futureGame.legalMoves = getLegalMoves(futureGame);
-      const isCheck = futureGame.testForCheck(opponent);
-      const isCheckmate = isCheck && futureGame.legalMoves.length === 0;
-      if (isCheckmate) differential = 999999;
-      else {
-        // TODO
-      }
+      const differential = getDifferential(move, fen, opponent);
       return { move, differential };
     })
     .sort((a, b) => b.differential - a.differential);

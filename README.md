@@ -8,17 +8,17 @@ A javascript chess engine with React GUI
 - analysis
 - hint
 - play vs computer
-  - add 1 level of depth
+  - ~~add 1 level of depth~~
     - ~~capture the piece with highest value~~
-    - make move with highest trade differential
-  - add basic strategy
+    - ~~make move with highest trade differential~~
+  - add multiple levels of depth
+  - add strategy
     - control center squares
     - castle as soon as possible
     - avoid double pawns
     - connected rooks
     - align rooks on open files
-  - add more levels of depth
-  - add advanced strategy
+    - pawns capture toward the center
 - responsive design for mobile support
 
 ## Tech Debt
