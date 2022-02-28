@@ -6,7 +6,9 @@ A javascript chess engine with React GUI
 
 - new game - choose white or black
 - analysis
-- hint
+- disable game controls when appropriate
+- page load modal explaining that it's a wip
+- move confirmation should have text explaining how to turn off
 - play vs computer
   - ~~add 1 level of depth~~
     - ~~capture the piece with highest value~~

@@ -7,6 +7,7 @@ import {
   mdiTrayArrowDown,
   mdiCheckCircle,
   mdiCheckCircleOutline,
+  mdiLightbulbOn,
 } from '@mdi/js';
 import { boardSize, iconColor } from '../game/utils';
 import Logger from '../Logger';
@@ -22,6 +23,7 @@ const GameControls = (props) => {
     newGame,
     exportGame,
     resign,
+    hint,
     toggleConfirmation,
     confirmationDisabled,
   } = props;
@@ -75,6 +77,12 @@ const GameControls = (props) => {
     e.currentTarget.blur();
   };
 
+  const handleHint = (e) => {
+    logger.trace('handleHint');
+    hint();
+    e.currentTarget.blur();
+  };
+
   const handleToggleConfirmation = (e) => {
     logger.trace('handleToggleConfirmation');
     toggleConfirmation();
@@ -101,6 +109,11 @@ const GameControls = (props) => {
       <div>
         <button type="button" onClick={handleResign} title="Resign">
           <Icon path={mdiFlag} size={1.5} color="#eeeeee" />
+        </button>
+      </div>
+      <div>
+        <button type="button" onClick={handleHint} title="Hint">
+          <Icon path={mdiLightbulbOn} size={1.5} color="#eeeeee" />
         </button>
       </div>
       <div>

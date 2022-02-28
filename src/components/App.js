@@ -11,6 +11,7 @@ import Logger from '../Logger';
 import Game from '../game/Game';
 import { importGameFromJson } from '../game/import';
 import { getMove } from '../game/moveGeneration';
+import PGN from '../game/PGN';
 import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/modal.css';
@@ -31,6 +32,7 @@ class App extends React.Component {
     this.importGame = this.importGame.bind(this);
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
+    this.hint = this.hint.bind(this);
     this.confirmResignation = this.confirmResignation.bind(this);
     this.closeResignationModal = this.closeResignationModal.bind(this);
     this.toggleConfirmation = this.toggleConfirmation.bind(this);
@@ -81,6 +83,17 @@ class App extends React.Component {
     const { game } = this.state;
     if (!game.isGameOver) {
       this.setState({ showResignationModal: true });
+    }
+  };
+
+  hint = () => {
+    logger.trace('hint');
+    const { game } = this.state;
+    if (!game.isGameOver) {
+      const move = getMove(game);
+      const pgn = PGN.get(move, game.legalMoves);
+      // eslint-disable-next-line no-alert
+      alert(pgn);
     }
   };
 
@@ -214,6 +227,7 @@ class App extends React.Component {
             importGame={this.importGame}
             exportGame={this.exportGame}
             resign={this.resign}
+            hint={this.hint}
             toggleConfirmation={this.toggleConfirmation}
             confirmationDisabled={game.confirmationDisabled}
           />
