@@ -7,6 +7,7 @@ import Footer from './Footer';
 import GameControls from './GameControls';
 import GameDetails from './GameDetails';
 import GameOver from './GameOver';
+import Welcome from './Welcome';
 import Logger from '../Logger';
 import Game from '../game/Game';
 import { importGameFromJson } from '../game/import';
@@ -24,6 +25,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       game: new Game(),
+      showWelcomeModal: true,
       showGameOverModal: false,
       showResignationModal: false,
       forceRefresh: 0,
@@ -44,8 +46,14 @@ class App extends React.Component {
     this.updateApp = this.updateApp.bind(this);
     this.updateGameOver = this.updateGameOver.bind(this);
     this.computerMove = this.computerMove.bind(this);
+    this.closeWelcomeModal = this.closeWelcomeModal.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
+
+  closeWelcomeModal = () => {
+    logger.trace('closeWelcomeModal');
+    this.setState({ showWelcomeModal: false });
+  };
 
   closeGameOverModal = () => {
     logger.trace('closeGameOverModal');
@@ -192,6 +200,13 @@ class App extends React.Component {
     });
   };
 
+  getWelcomeModal = () => {
+    const { showWelcomeModal } = this.state;
+    return showWelcomeModal
+      ? <Welcome closeWelcomeModal={this.closeWelcomeModal} />
+      : null;
+  };
+
   getGameOverModal = () => {
     const { game, showGameOverModal } = this.state;
     return showGameOverModal
@@ -249,6 +264,7 @@ class App extends React.Component {
           />
         </main>
         <Footer />
+        {this.getWelcomeModal()}
         {this.getGameOverModal()}
         {this.getResignationModal()}
       </div>

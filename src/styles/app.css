@@ -219,3 +219,7 @@ body {
   bottom: 0;
   right: 0;
 }
+
+.align-right {
+  text-align: right;
+}
