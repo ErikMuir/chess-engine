@@ -20,9 +20,8 @@ const Welcome = ({ closeWelcomeModal }) => (
     <main className="modal__content-container">
       <div className="modal__content">
         <p>
-          This is a side project I&apos;ve been working on. It&apos;s a
-          JavaScript chess engine with React GUI, and is still a work in
-          progress.
+          This is one of my side projects, and is still a work in progress.
+          It does not work on mobile devices currently.
         </p>
         <p>
           Send bug reports and feature requests to
