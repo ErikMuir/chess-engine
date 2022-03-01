@@ -23,7 +23,7 @@ const GameControls = (props) => {
     newGame,
     exportGame,
     resign,
-    hint,
+    getHint,
     toggleConfirmation,
     confirmationDisabled,
   } = props;
@@ -79,7 +79,7 @@ const GameControls = (props) => {
 
   const handleHint = (e) => {
     logger.trace('handleHint');
-    hint();
+    getHint();
     e.currentTarget.blur();
   };
 

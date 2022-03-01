@@ -6,13 +6,14 @@ import ConfirmModal from './ConfirmModal';
 import Footer from './Footer';
 import GameControls from './GameControls';
 import GameDetails from './GameDetails';
-import GameOver from './GameOver';
 import Welcome from './Welcome';
+import Hint from './Hint';
+import GameOver from './GameOver';
 import Logger from '../Logger';
 import Game from '../game/Game';
+import PGN from '../game/PGN';
 import { importGameFromJson } from '../game/import';
 import { getMove } from '../game/moveGeneration';
-import PGN from '../game/PGN';
 import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/modal.css';
@@ -25,6 +26,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       game: new Game(),
+      hint: null,
       showWelcomeModal: true,
       showGameOverModal: false,
       showResignationModal: false,
@@ -34,7 +36,7 @@ class App extends React.Component {
     this.importGame = this.importGame.bind(this);
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
-    this.hint = this.hint.bind(this);
+    this.getHint = this.getHint.bind(this);
     this.confirmResignation = this.confirmResignation.bind(this);
     this.closeResignationModal = this.closeResignationModal.bind(this);
     this.toggleConfirmation = this.toggleConfirmation.bind(this);
@@ -47,12 +49,18 @@ class App extends React.Component {
     this.updateGameOver = this.updateGameOver.bind(this);
     this.computerMove = this.computerMove.bind(this);
     this.closeWelcomeModal = this.closeWelcomeModal.bind(this);
+    this.closeHintModal = this.closeHintModal.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
 
   closeWelcomeModal = () => {
     logger.trace('closeWelcomeModal');
     this.setState({ showWelcomeModal: false });
+  };
+
+  closeHintModal = () => {
+    logger.trace('closeHintModal');
+    this.setState({ hint: null });
   };
 
   closeGameOverModal = () => {
@@ -94,14 +102,13 @@ class App extends React.Component {
     }
   };
 
-  hint = () => {
-    logger.trace('hint');
+  getHint = () => {
+    logger.trace('getHint');
     const { game } = this.state;
     if (!game.isGameOver) {
       const move = getMove(game);
-      const pgn = PGN.get(move, game.legalMoves);
-      // eslint-disable-next-line no-alert
-      alert(pgn);
+      const hint = PGN.get(move, game.legalMoves);
+      this.setState({ hint });
     }
   };
 
@@ -207,6 +214,13 @@ class App extends React.Component {
       : null;
   };
 
+  getHintModal = () => {
+    const { hint } = this.state;
+    return hint
+      ? <Hint hint={hint} closeHintModal={this.closeHintModal} />
+      : null;
+  };
+
   getGameOverModal = () => {
     const { game, showGameOverModal } = this.state;
     return showGameOverModal
@@ -242,7 +256,7 @@ class App extends React.Component {
             importGame={this.importGame}
             exportGame={this.exportGame}
             resign={this.resign}
-            hint={this.hint}
+            getHint={this.getHint}
             toggleConfirmation={this.toggleConfirmation}
             confirmationDisabled={game.confirmationDisabled}
           />
@@ -265,6 +279,7 @@ class App extends React.Component {
         </main>
         <Footer />
         {this.getWelcomeModal()}
+        {this.getHintModal()}
         {this.getGameOverModal()}
         {this.getResignationModal()}
       </div>

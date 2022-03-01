@@ -33,7 +33,8 @@ const modalOverlayStyle = {
   zIndex: 10,
 };
 const modalContentStyle = {
-  backgroundColor: '#eeeeee',
+  // backgroundColor: '#eeeeee',
+  backgroundColor: 'initial',
   padding: 0,
   maxWidth: '500px',
   borderRadius: '4px',
