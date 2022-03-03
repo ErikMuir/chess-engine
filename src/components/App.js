@@ -96,31 +96,24 @@ class App extends React.Component {
 
   resign = () => {
     logger.trace('resign');
-    const { game } = this.state;
-    if (!game.isGameOver) {
-      this.setState({ showResignationModal: true });
-    }
-  };
-
-  getHint = () => {
-    logger.trace('getHint');
-    const { game } = this.state;
-    if (!game.isGameOver) {
-      const move = getMove(game);
-      const hint = PGN.get(move, game.legalMoves);
-      this.setState({ hint });
-    }
+    this.setState({ showResignationModal: true });
   };
 
   confirmResignation = () => {
     logger.trace('confirmResignation');
     const { game } = this.state;
     this.closeResignationModal();
-    if (!game.isGameOver) {
-      game.resign();
-      this.updateApp(game);
-      this.updateGameOver();
-    }
+    game.resign();
+    this.updateApp(game);
+    this.updateGameOver();
+  };
+
+  getHint = () => {
+    logger.trace('getHint');
+    const { game } = this.state;
+    const move = getMove(game);
+    const hint = PGN.get(move, game.legalMoves);
+    this.setState({ hint });
   };
 
   toggleConfirmation = () => {
@@ -259,6 +252,7 @@ class App extends React.Component {
             getHint={this.getHint}
             toggleConfirmation={this.toggleConfirmation}
             confirmationDisabled={game.confirmationDisabled}
+            isGameOver={game.isGameOver}
           />
           <Board
             game={game}

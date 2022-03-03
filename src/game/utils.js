@@ -6,6 +6,7 @@ const activeOverlay = '#cccc00';
 const previousOverlay = '#cccc00';
 const possibleOverlay = '#333333';
 const iconColor = '#eeeeee';
+const disabledIconColor = '#666666';
 const overlayOpacity = 0.4;
 const directionOffsets = [8, -8, -1, 1, 7, -7, 9, -9];
 const directionIndex = {
@@ -146,6 +147,7 @@ export {
   possibleOverlay,
   overlayOpacity,
   iconColor,
+  disabledIconColor,
   directionOffsets,
   directionIndex,
   startPosition,

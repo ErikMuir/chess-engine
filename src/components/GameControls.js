@@ -9,7 +9,7 @@ import {
   mdiCheckCircleOutline,
   mdiLightbulbOn,
 } from '@mdi/js';
-import { boardSize, iconColor } from '../game/utils';
+import { boardSize, iconColor, disabledIconColor } from '../game/utils';
 import Logger from '../Logger';
 
 const logger = new Logger('Controls');
@@ -26,6 +26,7 @@ const GameControls = (props) => {
     getHint,
     toggleConfirmation,
     confirmationDisabled,
+    isGameOver,
   } = props;
 
   const fileReader = new FileReader();
@@ -93,27 +94,27 @@ const GameControls = (props) => {
     <div className="aside game-controls" style={{ height: boardSize }}>
       <div>
         <button type="button" onClick={handleNew} title="New game">
-          <Icon path={mdiNewBox} size={1.5} color="#eeeeee" />
+          <Icon path={mdiNewBox} size={1.5} color={iconColor} />
         </button>
       </div>
       <div>
         <button type="button" onClick={handleImport} title="Import">
-          <Icon path={mdiImport} size={1.5} color="#eeeeee" />
+          <Icon path={mdiImport} size={1.5} color={iconColor} />
         </button>
       </div>
       <div>
         <button type="button" onClick={handleExport} title="Export">
-          <Icon path={mdiTrayArrowDown} size={1.5} color="#eeeeee" />
+          <Icon path={mdiTrayArrowDown} size={1.5} color={iconColor} />
         </button>
       </div>
       <div>
-        <button type="button" onClick={handleResign} title="Resign">
-          <Icon path={mdiFlag} size={1.5} color="#eeeeee" />
+        <button type="button" onClick={handleResign} title="Resign" disabled={isGameOver}>
+          <Icon path={mdiFlag} size={1.5} color={isGameOver ? disabledIconColor : iconColor} />
         </button>
       </div>
       <div>
-        <button type="button" onClick={handleHint} title="Hint">
-          <Icon path={mdiLightbulbOn} size={1.5} color="#eeeeee" />
+        <button type="button" onClick={handleHint} title="Hint" disabled={isGameOver}>
+          <Icon path={mdiLightbulbOn} size={1.5} color={isGameOver ? disabledIconColor : iconColor} />
         </button>
       </div>
       <div>
