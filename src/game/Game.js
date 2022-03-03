@@ -57,7 +57,6 @@ export default class Game {
     this.isResignation = false;
     this.isDraw = false;
     this.tempMove = null;
-    this.confirmationDisabled = false;
     this.capturedPieces = [];
   };
 

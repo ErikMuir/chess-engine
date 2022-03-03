@@ -30,6 +30,7 @@ class App extends React.Component {
       showWelcomeModal: true,
       showGameOverModal: false,
       showResignationModal: false,
+      confirmationDisabled: false,
       forceRefresh: 0,
     };
     this.newGame = this.newGame.bind(this);
@@ -118,9 +119,8 @@ class App extends React.Component {
 
   toggleConfirmation = () => {
     logger.trace('toggleConfirmation');
-    const { game } = this.state;
-    game.confirmationDisabled = !game.confirmationDisabled;
-    this.updateApp(game);
+    const { confirmationDisabled } = this.state;
+    this.setState({ confirmationDisabled: !confirmationDisabled });
   };
 
   moveBackward = () => {
@@ -239,7 +239,7 @@ class App extends React.Component {
 
   render() {
     logger.trace('render');
-    const { game, forceRefresh } = this.state;
+    const { game, forceRefresh, confirmationDisabled } = this.state;
     return (
       <div className="app-container">
         <header className="app-header" />
@@ -251,7 +251,7 @@ class App extends React.Component {
             resign={this.resign}
             getHint={this.getHint}
             toggleConfirmation={this.toggleConfirmation}
-            confirmationDisabled={game.confirmationDisabled}
+            confirmationDisabled={confirmationDisabled}
             isGameOver={game.isGameOver}
           />
           <Board
@@ -261,6 +261,7 @@ class App extends React.Component {
             updateGameOver={this.updateGameOver}
             confirmMove={this.confirmMove}
             computerMove={this.computerMove}
+            confirmationDisabled={confirmationDisabled}
           />
           <GameDetails
             game={game}

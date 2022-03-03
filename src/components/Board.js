@@ -122,7 +122,7 @@ class Board extends React.Component {
 
   onMouseUp = (event) => {
     logger.trace('onMouseUp');
-    const { updateApp, confirmMove } = this.props;
+    const { updateApp, confirmMove, confirmationDisabled } = this.props;
     const {
       game,
       activeSquare,
@@ -155,7 +155,7 @@ class Board extends React.Component {
 
     if (move.isPawnPromotion) {
       this.setState({ promotionMove: move });
-    } else if (game.confirmationDisabled) {
+    } else if (confirmationDisabled) {
       confirmMove();
     }
   };
