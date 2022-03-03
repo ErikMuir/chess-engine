@@ -6,17 +6,20 @@ A javascript chess engine with React GUI
 
 - play as white or black
 - analysis
-- should move confirmation have text explaining how to turn off?
 - play vs computer
   - ~~add 1 level of depth~~
   - add multiple levels of depth
-  - add strategy
+  - opening strategy
     - control center squares
+    - develop pieces
     - castle as soon as possible
+  - middle-game strategy
     - avoid double pawns
     - connected rooks
     - align rooks on open files
     - pawns capture toward the center
+  - end-game strategy
+    - staircase mates
 - responsive design for mobile support
 
 ## Tech Debt

@@ -23,7 +23,12 @@ const GameDetails = ({
   logger.trace('render');
 
   const controls = tempMove
-    ? <MoveConfirmation confirmMove={confirmMove} cancelMove={cancelMove} />
+    ? (
+      <MoveConfirmation
+        confirmMove={confirmMove}
+        cancelMove={cancelMove}
+      />
+    )
     : (
       <MoveNavigation
         currentMoveIndex={currentMoveIndex}

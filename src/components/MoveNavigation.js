@@ -29,7 +29,7 @@ const MoveNavigation = ({
   const backwardDisabled = currentMoveIndex === 0;
   const forwardDisabled = currentMoveIndex === moveCount;
   return (
-    <>
+    <div className="move-navigation">
       <div>
         <button type="button" onClick={handleBackward} title="Go back" disabled={backwardDisabled}>
           <Icon path={mdiChevronLeft} size={1.5} color={iconColor} />
@@ -40,7 +40,7 @@ const MoveNavigation = ({
           <Icon path={mdiChevronRight} size={1.5} color={iconColor} />
         </button>
       </div>
-    </>
+    </div>
   );
 };
 
