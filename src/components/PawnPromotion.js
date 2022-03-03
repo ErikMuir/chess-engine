@@ -43,6 +43,7 @@ class PawnPromotion extends React.Component {
       padding: '10px 20px',
       width: `${width + 40}px`,
       height: `${height + 20}px`,
+      backgroundColor: '#eeeeee',
     };
     const cursor = 'pointer';
     return (
