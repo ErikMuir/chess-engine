@@ -26,7 +26,6 @@ class Board extends React.Component {
     const { game } = this.props;
     const squares = this.initSquares(game);
     this.state = {
-      game,
       squares,
       activeSquare: null,
       possibleSquares: [],
@@ -50,14 +49,9 @@ class Board extends React.Component {
     }
   }
 
-  static getDerivedStateFromProps(props, state) {
-    const { game } = props;
-    return game === state.game ? null : { game };
-  }
-
   forceRefresh = () => {
-    const { game, squares } = this.state;
-    const { currentMoveIndex, moveHistory } = game;
+    const { squares } = this.state;
+    const { game: { currentMoveIndex, moveHistory } } = this.props;
     const previousSquares = [];
     if (currentMoveIndex > 0) {
       const previousMove = moveHistory[currentMoveIndex - 1];
@@ -88,8 +82,8 @@ class Board extends React.Component {
 
   syncSquares = () => {
     logger.trace('syncSquares');
-    const { game, squares } = this.state;
-    const { currentMoveIndex, fenHistory } = game;
+    const { squares } = this.state;
+    const { game: { currentMoveIndex, fenHistory } } = this.props;
     const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
     const newSquares = [...squares];
     for (let i = 0; i < 64; i += 1) {
@@ -101,9 +95,9 @@ class Board extends React.Component {
 
   onMouseDown = (event) => {
     logger.trace('onMouseDown');
-    const { game, squares, possibleSquares } = this.state;
+    const { game } = this.props;
     if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
-    const { activeSquare } = this.state;
+    const { squares, possibleSquares, activeSquare } = this.state;
     const square = this.getEventSquare(event);
     const newState = {};
     if (activeSquare && !possibleSquares.includes(square)) {
@@ -122,9 +116,13 @@ class Board extends React.Component {
 
   onMouseUp = (event) => {
     logger.trace('onMouseUp');
-    const { updateApp, confirmMove, confirmationDisabled } = this.props;
     const {
       game,
+      updateApp,
+      confirmMove,
+      confirmationDisabled,
+    } = this.props;
+    const {
       activeSquare,
       dragPiece,
       deselect,
@@ -177,8 +175,8 @@ class Board extends React.Component {
 
   onClickPawnPromotion = (event) => {
     logger.trace('onClickPawnPromotion');
-    const { game, promotionMove } = this.state;
-    const { updateGameOver, computerMove } = this.props;
+    const { promotionMove } = this.state;
+    const { game, updateGameOver, computerMove } = this.props;
     const index = Math.floor(event.offsetX / squareSize);
     promotionMove.pawnPromotionType = promotionTypes[index];
     this.setState({ promotionMove: null });
@@ -217,7 +215,8 @@ class Board extends React.Component {
 
   doTempMove = (move) => {
     logger.trace('doTempMove');
-    const { game, squares } = this.state;
+    const { squares } = this.state;
+    const { game } = this.props;
     game.tempMove = move;
     const newSquares = [...squares];
     newSquares[move.fromIndex].piece = null;
@@ -246,14 +245,16 @@ class Board extends React.Component {
 
   getLegalMove = (toSquare) => {
     logger.trace('getLegalMove');
-    const { activeSquare, game } = this.state;
+    const { activeSquare } = this.state;
+    const { game } = this.props;
     return game.legalMoves
       .find((move) => move.fromIndex === activeSquare.index
         && move.toIndex === toSquare.index);
   };
 
   getPromotionModal = () => {
-    const { game, promotionMove } = this.state;
+    const { promotionMove } = this.state;
+    const { game } = this.props;
     return promotionMove
       ? (
         <PawnPromotion
@@ -271,9 +272,8 @@ class Board extends React.Component {
       activeSquare,
       possibleSquares,
       dragPiece,
-      game,
     } = this.state;
-    const { capturedPieces, playerScore } = game;
+    const { game: { capturedPieces, playerScore } } = this.props;
     const width = boardSize;
     const height = boardSize;
     const flexBasis = boardSize;

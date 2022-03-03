@@ -4,14 +4,11 @@ A javascript chess engine with React GUI
 
 ## Upcoming Features
 
-- new game - choose white or black
+- play as white or black
 - analysis
-- disable game controls when appropriate
-- move confirmation should have text explaining how to turn off
+- should move confirmation have text explaining how to turn off?
 - play vs computer
   - ~~add 1 level of depth~~
-    - ~~capture the piece with highest value~~
-    - ~~make move with highest trade differential~~
   - add multiple levels of depth
   - add strategy
     - control center squares
