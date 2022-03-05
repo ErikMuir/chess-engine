@@ -7,7 +7,6 @@ import {
   white,
   black,
   pieceColorFromPieceId,
-  oppositeColor,
 } from './PieceColors';
 import {
   king,
@@ -16,7 +15,7 @@ import {
   queen,
   pieceTypeFromPieceId,
 } from './PieceTypes';
-import { getPseudoLegalMoves, getLegalMoves } from './moveGeneration';
+import { getPseudoLegalMoves, getLegalMoves } from './engine';
 import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
 
@@ -57,7 +56,6 @@ export default class Game {
     this.isResignation = false;
     this.isDraw = false;
     this.tempMove = null;
-    this.capturedPieces = [];
   };
 
   trace = (msg) => {
@@ -92,10 +90,11 @@ export default class Game {
     return FEN.get(this);
   }
 
-  get playerScore() {
-    const playerScore = this.getScore(this.playerColor);
-    const opponentScore = this.getScore(oppositeColor(this.playerColor));
-    return playerScore - opponentScore;
+  get capturedPieces() {
+    return this.moveHistory
+      .slice(0, this.currentMoveIndex)
+      .filter((move) => move.capturePiece)
+      .map((move) => move.capturePiece);
   }
 
   resign = () => {
@@ -161,7 +160,6 @@ export default class Game {
     this.togglePlayerTurn();
     this.generateMoves();
     this.updateFullMoveNumber(move);
-    this.handleCapture(move);
     this.handleMates();
     this.updateMove(move);
     this.appendToPgn(move, [...this.legalMoves]);
@@ -241,13 +239,6 @@ export default class Game {
     this.pgn.push(moveSymbol);
     if (this.isStalemate) {
       this.pgn.push('½-½ (stalemate)');
-    }
-  };
-
-  handleCapture = (move) => {
-    this.trace('handleCapture');
-    if (move.capturePiece) {
-      this.capturedPieces.push(move.capturePiece);
     }
   };
 

@@ -13,7 +13,7 @@ import Logger from '../Logger';
 import Game from '../game/Game';
 import PGN from '../game/PGN';
 import { importGameFromJson } from '../game/import';
-import { getMove } from '../game/moveGeneration';
+import { getMove } from '../game/engine';
 import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/modal.css';
@@ -153,6 +153,7 @@ class App extends React.Component {
 
     game.confirmMove();
     this.updateApp(game);
+    this.forceRefresh();
     this.updateGameOver();
 
     if (!game.isGameOver) {

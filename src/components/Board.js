@@ -33,6 +33,7 @@ class Board extends React.Component {
       dragPiece: null,
       deselect: false,
       promotionMove: null,
+      capturedPieces: game.capturedPieces,
     };
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
@@ -51,7 +52,7 @@ class Board extends React.Component {
 
   forceRefresh = () => {
     const { squares } = this.state;
-    const { game: { currentMoveIndex, moveHistory } } = this.props;
+    const { game: { currentMoveIndex, moveHistory, capturedPieces } } = this.props;
     const previousSquares = [];
     if (currentMoveIndex > 0) {
       const previousMove = moveHistory[currentMoveIndex - 1];
@@ -62,6 +63,8 @@ class Board extends React.Component {
       activeSquare: null,
       possibleSquares: [],
       previousSquares,
+      capturedPieces,
+      squares: [...squares],
     });
   };
 
@@ -272,8 +275,8 @@ class Board extends React.Component {
       activeSquare,
       possibleSquares,
       dragPiece,
+      capturedPieces,
     } = this.state;
-    const { game: { capturedPieces, playerScore } } = this.props;
     const width = boardSize;
     const height = boardSize;
     const flexBasis = boardSize;
@@ -294,7 +297,7 @@ class Board extends React.Component {
             onMouseOut={this.onMouseOut}
           />
         </div>
-        <CapturedPieces capturedPieces={capturedPieces} playerScore={playerScore} />
+        <CapturedPieces capturedPieces={capturedPieces} />
         {this.getPromotionModal()}
       </div>
     );
