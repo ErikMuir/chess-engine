@@ -276,17 +276,18 @@ const getDifferential = ((move, fen, opponent) => {
   futureGame.togglePlayerTurn();
   futureGame.pseudoLegalMoves = getPseudoLegalMoves(futureGame);
   futureGame.legalMoves = getLegalMoves(futureGame);
+  const captureMoves = futureGame.legalMoves
+    .filter((oppMove) => MoveType.captureMoves.includes(oppMove.type));
   const isCheck = futureGame.testForCheck(opponent);
   const isCheckmate = isCheck && futureGame.legalMoves.length === 0;
   if (isCheckmate) differential = 999999;
-  else {
-    const oppValue = futureGame.legalMoves
-      .filter((oppMove) => MoveType.captureMoves.includes(oppMove.type))
+  else if (captureMoves.length) {
+    const oppValue = captureMoves
       .map((oppMove) => pieceTypeFromPieceId(oppMove.capturePiece).value)
       .sort((a, b) => b - a)[0];
     differential -= oppValue;
   }
-  return differential || 0; // TODO : figure out why this was NaN sometimes
+  return differential;
 });
 
 const getMove = ({ legalMoves, activePlayer, fen }) => {
@@ -297,12 +298,10 @@ const getMove = ({ legalMoves, activePlayer, fen }) => {
       return { move, differential };
     })
     .sort((a, b) => b.differential - a.differential);
-  let bestMoveWithDifferential = movesWithDifferentials[0];
-  if (bestMoveWithDifferential.differential === 0) {
-    const zeroDiffMoves = movesWithDifferentials
-      .filter((x) => x.differential === 0);
-    bestMoveWithDifferential = randomElement(zeroDiffMoves);
-  }
+  const bestDifferential = movesWithDifferentials[0].differential;
+  const movesWithBestDifferential = movesWithDifferentials
+    .filter((x) => x.differential === bestDifferential);
+  const bestMoveWithDifferential = randomElement(movesWithBestDifferential);
   return bestMoveWithDifferential.move;
 };
 
