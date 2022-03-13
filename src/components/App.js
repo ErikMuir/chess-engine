@@ -6,7 +6,7 @@ import ConfirmModal from './ConfirmModal';
 import Footer from './Footer';
 import GameControls from './GameControls';
 import GameDetails from './GameDetails';
-import Welcome from './Welcome';
+import Information from './Information';
 import Hint from './Hint';
 import GameOver from './GameOver';
 import Logger from '../Logger';
@@ -27,10 +27,10 @@ class App extends React.Component {
     this.state = {
       game: new Game(),
       hint: null,
-      showWelcomeModal: true,
       showGameOverModal: false,
       showResignationModal: false,
       confirmationDisabled: false,
+      showInformationModal: false,
       forceRefresh: 0,
     };
     this.newGame = this.newGame.bind(this);
@@ -38,6 +38,7 @@ class App extends React.Component {
     this.exportGame = this.exportGame.bind(this);
     this.resign = this.resign.bind(this);
     this.getHint = this.getHint.bind(this);
+    this.showInformation = this.showInformation.bind(this);
     this.confirmResignation = this.confirmResignation.bind(this);
     this.closeResignationModal = this.closeResignationModal.bind(this);
     this.toggleConfirmation = this.toggleConfirmation.bind(this);
@@ -49,19 +50,19 @@ class App extends React.Component {
     this.updateApp = this.updateApp.bind(this);
     this.updateGameOver = this.updateGameOver.bind(this);
     this.computerMove = this.computerMove.bind(this);
-    this.closeWelcomeModal = this.closeWelcomeModal.bind(this);
     this.closeHintModal = this.closeHintModal.bind(this);
+    this.closeInformationModal = this.closeInformationModal.bind(this);
     this.closeGameOverModal = this.closeGameOverModal.bind(this);
   }
-
-  closeWelcomeModal = () => {
-    logger.trace('closeWelcomeModal');
-    this.setState({ showWelcomeModal: false });
-  };
 
   closeHintModal = () => {
     logger.trace('closeHintModal');
     this.setState({ hint: null });
+  };
+
+  closeInformationModal = () => {
+    logger.trace('closeInformationModal');
+    this.setState({ showInformationModal: false });
   };
 
   closeGameOverModal = () => {
@@ -121,6 +122,11 @@ class App extends React.Component {
     logger.trace('toggleConfirmation');
     const { confirmationDisabled } = this.state;
     this.setState({ confirmationDisabled: !confirmationDisabled });
+  };
+
+  showInformation = () => {
+    logger.trace('showInformation');
+    this.setState({ showInformationModal: true });
   };
 
   moveBackward = () => {
@@ -201,10 +207,10 @@ class App extends React.Component {
     });
   };
 
-  getWelcomeModal = () => {
-    const { showWelcomeModal } = this.state;
-    return showWelcomeModal
-      ? <Welcome closeWelcomeModal={this.closeWelcomeModal} />
+  getInformationModal = () => {
+    const { showInformationModal } = this.state;
+    return showInformationModal
+      ? <Information closeInformationModal={this.closeInformationModal} />
       : null;
   };
 
@@ -253,6 +259,7 @@ class App extends React.Component {
             getHint={this.getHint}
             toggleConfirmation={this.toggleConfirmation}
             confirmationDisabled={confirmationDisabled}
+            showInformation={this.showInformation}
             isGameOver={game.isGameOver}
           />
           <Board
@@ -274,7 +281,7 @@ class App extends React.Component {
           />
         </main>
         <Footer />
-        {this.getWelcomeModal()}
+        {this.getInformationModal()}
         {this.getHintModal()}
         {this.getGameOverModal()}
         {this.getResignationModal()}

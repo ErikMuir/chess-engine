@@ -2,29 +2,26 @@ import React from 'react';
 import Modal from 'react-modal';
 import { modalOverlayStyle, modalContentStyle } from '../game/utils';
 
-const Welcome = ({ closeWelcomeModal }) => (
+const Information = ({ closeInformationModal }) => (
   <Modal
     isOpen
-    onRequestClose={closeWelcomeModal}
+    onRequestClose={closeInformationModal}
     style={{ overlay: modalOverlayStyle, content: modalContentStyle }}
   >
     <header className="modal__header">
-      <h2 className="modal__title">Welcome to Chess!</h2>
+      <h2 className="modal__title">Information</h2>
       <button
         type="button"
         className="modal__close"
         aria-label="Close modal"
-        onClick={closeWelcomeModal}
+        onClick={closeInformationModal}
       />
     </header>
     <main className="modal__content-container">
       <div className="modal__content">
         <p>
-          This is one of my side projects, and is still a work in progress.
-          It does not work on mobile devices currently.
-        </p>
-        <p>
-          Send bug reports and feature requests to
+          This is a side project and is still a work in progress.
+          Send bug reports and feature requests to:
           {' '}
           <a href="mailto:erik@muirdev.com">erik@muirdev.com</a>
           .
@@ -35,4 +32,4 @@ const Welcome = ({ closeWelcomeModal }) => (
   </Modal>
 );
 
-export default Welcome;
+export default Information;

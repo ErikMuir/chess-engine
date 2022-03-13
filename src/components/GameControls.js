@@ -8,6 +8,7 @@ import {
   mdiCheckCircle,
   mdiCheckCircleOutline,
   mdiLightbulbOn,
+  mdiInformation,
 } from '@mdi/js';
 import { boardSize, iconColor, disabledIconColor } from '../game/utils';
 import Logger from '../Logger';
@@ -26,6 +27,7 @@ const GameControls = (props) => {
     getHint,
     toggleConfirmation,
     confirmationDisabled,
+    showInformation,
     isGameOver,
   } = props;
 
@@ -90,6 +92,12 @@ const GameControls = (props) => {
     e.currentTarget.blur();
   };
 
+  const handleInformation = (e) => {
+    logger.trace('handleInformation');
+    showInformation();
+    e.currentTarget.blur();
+  };
+
   return (
     <div className="aside game-controls" style={{ height: boardSize }}>
       <div>
@@ -120,6 +128,11 @@ const GameControls = (props) => {
       <div>
         <button type="button" onClick={handleToggleConfirmation} title={toggleConfirmationText}>
           <Icon path={toggleConfirmationIcon} size={1.5} color={iconColor} />
+        </button>
+      </div>
+      <div>
+        <button type="button" onClick={handleInformation} title="Information">
+          <Icon path={mdiInformation} size={1.5} color={iconColor} />
         </button>
       </div>
       <input type="file" id={loadGameInputId} onChange={readFile} accept="application/json" />
