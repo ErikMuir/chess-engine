@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   squareSize,
   boardSize,
@@ -11,39 +11,13 @@ import Logger from '../../Logger';
 const logger = new Logger('ActiveLayer');
 const canvasId = 'active-layer';
 
-class ActiveLayer extends React.Component {
-  constructor(props) {
-    super(props);
-    logger.trace('ctor');
-    this.state = {
-      ctx: null,
-      activeSquare: props.activeSquare,
-    };
-  }
+const ActiveLayer = ({ activeSquare }) => {
+  logger.trace('render');
 
-  componentDidMount() {
-    logger.trace('componentDidMount');
-    const canvas = document.getElementById(canvasId);
-    canvas.width = boardSize;
-    canvas.height = boardSize;
-    const ctx = canvas.getContext('2d');
-    this.setState({ ctx });
-  }
+  const [ctx, setCtx] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { activeSquare } = this.state;
-    if (activeSquare !== prevState.activeSquare) {
-      this.draw();
-    }
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    const { activeSquare } = props;
-    return activeSquare === state.activeSquare ? null : { activeSquare };
-  }
-
-  draw = () => {
-    const { ctx, activeSquare } = this.state;
+  const draw = () => {
+    if (!ctx) return;
     clearCanvas(ctx);
     if (activeSquare) {
       ctx.fillStyle = activeOverlay;
@@ -53,10 +27,16 @@ class ActiveLayer extends React.Component {
     }
   };
 
-  render() {
-    logger.trace('render');
-    return <canvas id={canvasId} />;
-  }
-}
+  useEffect(() => {
+    const canvas = document.getElementById(canvasId);
+    canvas.width = boardSize;
+    canvas.height = boardSize;
+    setCtx(canvas.getContext('2d'));
+  }, []);
+
+  useEffect(draw, [activeSquare]);
+
+  return <canvas id={canvasId} />;
+};
 
 export default ActiveLayer;

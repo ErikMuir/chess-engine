@@ -16,20 +16,18 @@ import Logger from '../Logger';
 const logger = new Logger('Controls');
 const loadGameInputId = 'load-game-input';
 
-const GameControls = (props) => {
+const GameControls = ({
+  importGame,
+  newGame,
+  exportGame,
+  resign,
+  getHint,
+  toggleConfirmation,
+  confirmationDisabled,
+  showInformation,
+  isGameOver,
+}) => {
   logger.trace('render');
-
-  const {
-    importGame,
-    newGame,
-    exportGame,
-    resign,
-    getHint,
-    toggleConfirmation,
-    confirmationDisabled,
-    showInformation,
-    isGameOver,
-  } = props;
 
   const fileReader = new FileReader();
   fileReader.onerror = () => logger.error(fileReader.error);

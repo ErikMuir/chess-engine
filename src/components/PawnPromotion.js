@@ -10,16 +10,11 @@ const canvasId = 'promotion-canvas';
 const pieceSize = 80;
 const proportion = (ratio) => Math.floor(pieceSize * ratio);
 
-class PawnPromotion extends React.Component {
-  constructor(props) {
-    super(props);
-    logger.trace('ctor');
-    this.onAfterOpen = this.onAfterOpen.bind(this);
-  }
+const PawnPromotion = ({ onClick, activePlayer }) => {
+  logger.trace('render');
 
-  onAfterOpen = () => {
+  const onAfterOpen = () => {
     logger.trace('onAfterOpen');
-    const { onClick, activePlayer } = this.props;
     const canvas = document.getElementById(canvasId);
     canvas.onclick = onClick;
     const ctx = canvas.getContext('2d');
@@ -33,33 +28,31 @@ class PawnPromotion extends React.Component {
     });
   };
 
-  render() {
-    logger.trace('render');
-    const height = pieceSize;
-    const width = pieceSize * promotionTypes.length;
-    const overlay = modalOverlayStyle;
-    const content = {
-      ...modalContentStyle,
-      padding: '10px 20px',
-      width: `${width + 40}px`,
-      height: `${height + 20}px`,
-      backgroundColor: '#eeeeee',
-    };
-    const cursor = 'pointer';
-    return (
-      <Modal
-        isOpen
-        onAfterOpen={this.onAfterOpen}
-        shouldCloseOnOverlayClick={false}
-        shouldCloseOnEsc={false}
-        style={{ overlay, content }}
-      >
-        <div className="canvas-container" style={{ width, height }}>
-          <canvas id={canvasId} style={{ cursor }} />
-        </div>
-      </Modal>
-    );
-  }
-}
+  const height = pieceSize;
+  const width = pieceSize * promotionTypes.length;
+  const overlay = modalOverlayStyle;
+  const content = {
+    ...modalContentStyle,
+    padding: '10px 20px',
+    width: `${width + 40}px`,
+    height: `${height + 20}px`,
+    backgroundColor: '#eeeeee',
+  };
+  const cursor = 'pointer';
+
+  return (
+    <Modal
+      isOpen
+      onAfterOpen={onAfterOpen}
+      shouldCloseOnOverlayClick={false}
+      shouldCloseOnEsc={false}
+      style={{ overlay, content }}
+    >
+      <div className="canvas-container" style={{ width, height }}>
+        <canvas id={canvasId} style={{ cursor }} />
+      </div>
+    </Modal>
+  );
+};
 
 export default PawnPromotion;

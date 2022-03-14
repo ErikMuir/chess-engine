@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { boardSize, possibleOverlay, proportion } from '../../game/utils';
 import { clearCanvas } from '../../utils';
 import Logger from '../../Logger';
@@ -6,38 +6,13 @@ import Logger from '../../Logger';
 const logger = new Logger('PossibleLayer');
 const canvasId = 'possible-layer';
 
-class PossibleLayer extends React.Component {
-  constructor(props) {
-    super(props);
-    logger.trace('ctor');
-    this.state = {
-      ctx: null,
-      possibleSquares: props.possibleSquares,
-    };
-  }
+const PossibleLayer = ({ possibleSquares }) => {
+  logger.trace('render');
 
-  componentDidMount() {
-    logger.trace('componentDidMount');
-    const canvas = document.getElementById(canvasId);
-    canvas.width = boardSize;
-    canvas.height = boardSize;
-    const ctx = canvas.getContext('2d');
-    this.setState({ ctx });
-  }
+  const [ctx, setCtx] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state !== prevState) {
-      this.draw();
-    }
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    const { possibleSquares } = props;
-    return possibleSquares === state.possibleSquares ? null : { possibleSquares };
-  }
-
-  draw = () => {
-    const { ctx, possibleSquares } = this.state;
+  const draw = () => {
+    if (!ctx) return;
     clearCanvas(ctx);
     possibleSquares
       .forEach((sq) => {
@@ -68,10 +43,16 @@ class PossibleLayer extends React.Component {
       });
   };
 
-  render() {
-    logger.trace('render');
-    return <canvas id={canvasId} />;
-  }
-}
+  useEffect(() => {
+    const canvas = document.getElementById(canvasId);
+    canvas.width = boardSize;
+    canvas.height = boardSize;
+    setCtx(canvas.getContext('2d'));
+  }, []);
+
+  useEffect(draw, [possibleSquares]);
+
+  return <canvas id={canvasId} />;
+};
 
 export default PossibleLayer;

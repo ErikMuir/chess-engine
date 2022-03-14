@@ -10,7 +10,7 @@ import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
 import Game from '../game/Game';
 import MoveType from '../game/MoveType';
-import { white, pieceColorFromPieceId } from '../game/PieceColors';
+import { black, white, pieceColorFromPieceId } from '../game/PieceColors';
 import { promotionTypes } from '../game/PieceTypes';
 import Piece from '../game/Piece';
 import Square from '../game/Square';
@@ -280,6 +280,9 @@ class Board extends React.Component {
     const width = boardSize;
     const height = boardSize;
     const flexBasis = boardSize;
+    const piecesSquares = squares.filter((sq) => sq.piece);
+    const blackPieces = capturedPieces.filter((pieceId) => pieceColorFromPieceId(pieceId) === black);
+    const whitePieces = capturedPieces.filter((pieceId) => pieceColorFromPieceId(pieceId) === white);
 
     return (
       <div className="board">
@@ -288,7 +291,7 @@ class Board extends React.Component {
           <LabelsLayer squares={squares} />
           <PreviousLayer previousSquares={previousSquares} />
           <ActiveLayer activeSquare={activeSquare} />
-          <PiecesLayer squares={squares} />
+          <PiecesLayer piecesSquares={piecesSquares} />
           <PossibleLayer possibleSquares={possibleSquares} />
           <InteractiveLayer
             dragPiece={dragPiece}
@@ -297,7 +300,7 @@ class Board extends React.Component {
             onMouseOut={this.onMouseOut}
           />
         </div>
-        <CapturedPieces capturedPieces={capturedPieces} />
+        <CapturedPieces blackPieces={blackPieces} whitePieces={whitePieces} />
         {this.getPromotionModal()}
       </div>
     );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import FileSaver from 'file-saver';
 import Board from './Board';
@@ -20,6 +20,84 @@ import '../styles/modal.css';
 
 Modal.setAppElement('#app');
 const logger = new Logger('App');
+
+// const App = () => {
+//   logger.trace('render');
+
+//   const [game, setGame] = useState(new Game());
+//   const [hint, setHint] = useState(null);
+//   const [showGameOverModal, setShowGameOverModal] = useState(false);
+//   const [showResignationModal, setShowResignationModal] = useState(false);
+//   const [showInformationModal, setShowInformationModal] = useState(false);
+//   const [confirmationDisabled, setConfirmationDisabled] = useState(false);
+//   const [forceRefresh, setForceRefresh] = useState(0);
+
+//   const getInformationModal = () => showInformationModal
+//       ? <Information closeInformationModal={this.closeInformationModal} />
+//       : null;
+
+//   const getHintModal = () => hint
+//       ? <Hint hint={hint} closeHintModal={this.closeHintModal} />
+//       : null;
+
+//   const getGameOverModal = () => showGameOverModal
+//       ? (
+//         <GameOver
+//           game={game}
+//           closeGameOverModal={this.closeGameOverModal}
+//         />
+//       ) : null;
+
+//   const getResignationModal = () => showResignationModal
+//       ? (
+//         <ConfirmModal
+//           displayText="Are you sure you want to resign?"
+//           confirm={this.confirmResignation}
+//           cancel={this.closeResignationModal}
+//         />
+//       ) : null;
+
+//   return (
+//     <div className="app-container">
+//       <header className="app-header" />
+//       <main className="app-main">
+//         <GameControls
+//           newGame={this.newGame}
+//           importGame={this.importGame}
+//           exportGame={this.exportGame}
+//           resign={this.resign}
+//           getHint={this.getHint}
+//           toggleConfirmation={this.toggleConfirmation}
+//           confirmationDisabled={confirmationDisabled}
+//           showInformation={this.showInformation}
+//           isGameOver={game.isGameOver}
+//         />
+//         <Board
+//           game={game}
+//           forceRefresh={forceRefresh}
+//           updateApp={this.updateApp}
+//           updateGameOver={this.updateGameOver}
+//           confirmMove={this.confirmMove}
+//           computerMove={this.computerMove}
+//           confirmationDisabled={confirmationDisabled}
+//         />
+//         <GameDetails
+//           game={game}
+//           moveBackward={this.moveBackward}
+//           moveForward={this.moveForward}
+//           moveJump={this.moveJump}
+//           confirmMove={this.confirmMove}
+//           cancelMove={this.cancelMove}
+//         />
+//       </main>
+//       <Footer />
+//       {getInformationModal()}
+//       {getHintModal()}
+//       {getGameOverModal()}
+//       {getResignationModal()}
+//     </div>
+//   );
+// };
 
 class App extends React.Component {
   constructor(props) {

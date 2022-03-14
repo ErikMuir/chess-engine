@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   squareSize,
   boardSize,
@@ -11,39 +11,13 @@ import Logger from '../../Logger';
 const logger = new Logger('PreviousLayer');
 const canvasId = 'previous-layer';
 
-class PreviousLayer extends React.Component {
-  constructor(props) {
-    super(props);
-    logger.trace('ctor');
-    this.state = {
-      ctx: null,
-      previousSquares: props.previousSquares,
-    };
-  }
+const PreviousLayer = ({ previousSquares }) => {
+  logger.trace('render');
 
-  componentDidMount() {
-    logger.trace('componentDidMount');
-    const canvas = document.getElementById(canvasId);
-    canvas.width = boardSize;
-    canvas.height = boardSize;
-    const ctx = canvas.getContext('2d');
-    this.setState({ ctx });
-  }
+  const [ctx, setCtx] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { previousSquares } = this.state;
-    if (previousSquares !== prevState.previousSquares) {
-      this.draw();
-    }
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    const { previousSquares } = props;
-    return previousSquares === state.previousSquares ? null : { previousSquares };
-  }
-
-  draw = () => {
-    const { ctx, previousSquares } = this.state;
+  const draw = () => {
+    if (!ctx) return;
     clearCanvas(ctx);
     previousSquares.forEach((sq) => {
       ctx.fillStyle = previousOverlay;
@@ -53,10 +27,16 @@ class PreviousLayer extends React.Component {
     });
   };
 
-  render() {
-    logger.trace('render');
-    return <canvas id={canvasId} />;
-  }
-}
+  useEffect(() => {
+    const canvas = document.getElementById(canvasId);
+    canvas.width = boardSize;
+    canvas.height = boardSize;
+    setCtx(canvas.getContext('2d'));
+  }, []);
+
+  useEffect(draw, [previousSquares]);
+
+  return <canvas id={canvasId} />;
+};
 
 export default PreviousLayer;

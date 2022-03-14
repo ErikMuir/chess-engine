@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import DragLayer from './DragLayer';
 import { boardSize } from '../../game/utils';
 import Logger from '../../Logger';
@@ -6,72 +6,47 @@ import Logger from '../../Logger';
 const logger = new Logger('InteractiveLayer');
 const canvasId = 'interactive-layer';
 
-class InteractiveLayer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      dragPiece: props.dragPiece,
-      dragX: null,
-      dragY: null,
-    };
-  }
+const InteractiveLayer = ({
+  dragPiece,
+  onMouseDown,
+  onMouseUp,
+  onMouseOut,
+}) => {
+  logger.trace('render');
 
-  componentDidMount() {
-    logger.trace('componentDidMount');
-    const { onMouseUp, onMouseOut } = this.props;
+  const [dragX, setDragX] = useState(null);
+  const [dragY, setDragY] = useState(null);
+
+  const onMouseMove = (e) => {
+    setDragX(e.offsetX);
+    setDragY(e.offsetY);
+  };
+
+  useEffect(() => {
     const canvas = document.getElementById(canvasId);
     canvas.width = boardSize;
     canvas.height = boardSize;
-    canvas.onmousedown = this.onMouseDownWrapper;
+    canvas.onmousedown = onMouseDown;
     canvas.onmouseup = onMouseUp;
     canvas.onmouseout = onMouseOut;
-    canvas.onmousemove = this.onMouseMove;
-  }
+    canvas.onmousemove = onMouseMove;
+  }, []);
 
-  static getDerivedStateFromProps(props, state) {
-    const { dragPiece } = props;
-    return dragPiece === state.dragPiece ? null : { dragPiece };
-  }
+  const dragLayer = dragPiece
+    ? (
+      <DragLayer
+        dragPiece={dragPiece}
+        dragX={dragX}
+        dragY={dragY}
+      />
+    ) : null;
 
-  onMouseDownWrapper = (event) => {
-    const { onMouseDown } = this.props;
-    this.setState({
-      dragX: event.offsetX,
-      dragY: event.offsetY,
-    });
-    onMouseDown(event);
-  };
-
-  onMouseMove = (event) => {
-    const { dragPiece } = this.state;
-    if (!dragPiece) return;
-    this.setState({
-      dragX: event.offsetX,
-      dragY: event.offsetY,
-    });
-  };
-
-  getDragLayer = () => {
-    const { dragPiece, dragX, dragY } = this.state;
-    return dragPiece
-      ? (
-        <DragLayer
-          dragPiece={dragPiece}
-          dragX={dragX}
-          dragY={dragY}
-        />
-      ) : null;
-  };
-
-  render() {
-    logger.trace('render');
-    return (
-      <>
-        {this.getDragLayer()}
-        <canvas id={canvasId} />
-      </>
-    );
-  }
-}
+  return (
+    <>
+      {dragLayer}
+      <canvas id={canvasId} />
+    </>
+  );
+};
 
 export default InteractiveLayer;
