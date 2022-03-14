@@ -24,8 +24,9 @@ A javascript chess engine with React GUI
 
 ## Tech Debt
 
+- use hooks everywhere, convert classes into pure functions
 - unit tests
-- consider redux or some other state management system?
+- consider redux, recoil, or some other state management system?
 
 ## Known Bugs
 
