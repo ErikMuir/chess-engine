@@ -1,13 +1,9 @@
 import React, { useEffect } from 'react';
 import { squareSize, boardSize } from '../../game/utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('SquaresLayer');
 const canvasId = 'squares-layer';
 
 const SquaresLayer = ({ squares }) => {
-  logger.trace('render');
-
   useEffect(() => {
     const canvas = document.getElementById(canvasId);
     canvas.width = boardSize;

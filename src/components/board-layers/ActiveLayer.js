@@ -6,14 +6,10 @@ import {
   overlayOpacity,
 } from '../../game/utils';
 import { clearCanvas } from '../../utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('ActiveLayer');
 const canvasId = 'active-layer';
 
 const ActiveLayer = ({ activeSquare }) => {
-  logger.trace('render');
-
   const [ctx, setCtx] = useState(null);
 
   const draw = () => {

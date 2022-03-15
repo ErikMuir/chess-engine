@@ -15,11 +15,9 @@
     "build:release": "npm run clean && set NODE_ENV=production && webpack --mode production",
     "clean": "rm -rf ./dist",
     "deploy": "npm run build:release && aws s3 sync dist/ s3://chess.muirdev.com --acl public-read",
-    "deploy:no-acl": "npm run build:release && aws s3 sync dist/ s3://chess.muirdev.com",
     "lint": "eslint",
     "start": "webpack serve --mode development --env development --hot --port 3000 --open",
     "start:debug": "webpack serve --mode development --env development --hot --port 3000 --open --env LOG_LEVEL=debug",
-    "start:trace": "webpack serve --mode development --env development --hot --port 3000 --open --env LOG_LEVEL=trace",
     "test": "jest ./tests"
   },
   "dependencies": {

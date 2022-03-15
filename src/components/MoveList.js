@@ -2,17 +2,11 @@
 import React, { useEffect, useRef } from 'react';
 import * as pieceColors from '../game/PieceColors';
 import { getMovesFromPgn } from '../game/utils';
-import Logger from '../Logger';
-
-const logger = new Logger('MoveList');
 
 const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
-  logger.trace('render');
-
   const currentMoveRef = useRef(null);
 
   const scrollToBottom = () => {
-    logger.trace('scrollToBottom');
     currentMoveRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -21,7 +15,6 @@ const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
   }, [pgn, currentMoveIndex]);
 
   const handleMoveJump = (e) => {
-    logger.trace('handleMoveJump');
     const moveIndex = parseInt(e.target.dataset.moveindex, 10);
     moveJump(moveIndex);
   };

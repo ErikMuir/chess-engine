@@ -12,6 +12,8 @@ module.exports = class Logger {
     this.name = name;
   }
 
+  static lastTimestamp = null;
+
   trace = (...data) => this.#log('trace', data);
 
   debug = (...data) => this.#log('debug', data);
@@ -25,15 +27,26 @@ module.exports = class Logger {
   fatal = (...data) => this.#log('fatal', data);
 
   #log = (logType, data) => {
+    // filter under threshhold
     const logLevel = process.env.LOG_LEVEL || 'info';
     if (logLevels[logType] < logLevels[logLevel]) {
       return;
     }
+
+    // filter unwanted loggers
     const loggers = process.env.LOGGERS;
     if (loggers && !loggers.split(',').includes(this.name)) {
       return;
     }
-    const time = new Date().toLocaleTimeString('en-GB');
-    console.log(time, this.name, ...data);
+
+    // log timestamp no more than once per second
+    const now = new Date();
+    if (!Logger.lastTimestamp || now - Logger.lastTimestamp >= 1000) {
+      console.log(now.toLocaleTimeString('en-GB'));
+      Logger.lastTimestamp = now;
+    }
+
+    // log
+    console.log(this.name, '>', ...data);
   };
 };

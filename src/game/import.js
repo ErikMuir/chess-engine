@@ -2,7 +2,7 @@ import Game from './Game';
 import Logger from '../Logger';
 import Move from './Move';
 
-const logger = new Logger('import');
+const log = new Logger('import');
 
 const importGameFromJson = ({
   playerColor,
@@ -11,7 +11,7 @@ const importGameFromJson = ({
   pgn,
 }) => {
   if (!moves || !moves.length) {
-    logger.trace('No moves provided. Using fen as starting position.');
+    log.info('No moves provided. Using fen as starting position.');
     return new Game({ playerColor, fen });
   }
 
@@ -37,7 +37,7 @@ const importGameFromJson = ({
 
   const resultingGameFen = game.fen;
   if (fen !== resultingGameFen) {
-    logger.trace('mismatched FENs', { fen, resultingGameFen });
+    log.error('mismatched FENs', { fen, resultingGameFen });
     throw new Error('Invalid game json');
   }
 

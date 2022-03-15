@@ -2,9 +2,6 @@ import React from 'react';
 import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import { iconColor } from '../game/utils';
-import Logger from '../Logger';
-
-const logger = new Logger('MoveNavigation');
 
 const MoveNavigation = ({
   currentMoveIndex,
@@ -12,16 +9,12 @@ const MoveNavigation = ({
   moveBackward,
   moveForward,
 }) => {
-  logger.trace('render');
-
   const handleBackward = (e) => {
-    logger.trace('handleBackward');
     moveBackward();
     e.currentTarget.blur();
   };
 
   const handleForward = (e) => {
-    logger.trace('handleForward');
     moveForward();
     e.currentTarget.blur();
   };

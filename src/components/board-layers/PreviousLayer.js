@@ -6,14 +6,10 @@ import {
   overlayOpacity,
 } from '../../game/utils';
 import { clearCanvas } from '../../utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('PreviousLayer');
 const canvasId = 'previous-layer';
 
 const PreviousLayer = ({ previousSquares }) => {
-  logger.trace('render');
-
   const [ctx, setCtx] = useState(null);
 
   const draw = () => {

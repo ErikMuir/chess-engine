@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Piece from '../game/Piece';
 import { pieceTypeFromPieceId } from '../game/PieceTypes';
 import { clearCanvas } from '../utils';
-import Logger from '../Logger';
 
-const logger = new Logger('CapturedPieces');
 const blackCanvasId = 'captured-black-pieces-canvas';
 const whiteCanvasId = 'captured-white-pieces-canvas';
 const pieceSize = 20;
@@ -52,8 +50,6 @@ const getCanvas = (canvasId, pieces) => {
 };
 
 const CapturedPieces = ({ blackPieces, whitePieces }) => {
-  logger.trace('render');
-
   const [blackCtx, setBlackCtx] = useState(null);
   const [whiteCtx, setWhiteCtx] = useState(null);
 

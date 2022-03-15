@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { boardSize, possibleOverlay, proportion } from '../../game/utils';
 import { clearCanvas } from '../../utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('PossibleLayer');
 const canvasId = 'possible-layer';
 
 const PossibleLayer = ({ possibleSquares }) => {
-  logger.trace('render');
-
   const [ctx, setCtx] = useState(null);
 
   const draw = () => {

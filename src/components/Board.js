@@ -17,12 +17,11 @@ import Square from '../game/Square';
 import { squareSize, boardSize, getFile } from '../game/utils';
 import Logger from '../Logger';
 
-const logger = new Logger('Board');
+const log = new Logger('Board');
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
-    logger.trace('ctor');
     const { game } = this.props;
     const squares = this.initSquares(game);
     this.state = {
@@ -51,6 +50,7 @@ class Board extends React.Component {
   }
 
   forceRefresh = () => {
+    log.debug('force refresh');
     const { squares } = this.state;
     const { game: { currentMoveIndex, moveHistory, capturedPieces } } = this.props;
     const previousSquares = [];
@@ -69,7 +69,7 @@ class Board extends React.Component {
   };
 
   initSquares = (game) => {
-    logger.trace('initSquares');
+    log.debug('init squares');
     const squares = new Array(64);
     for (let rank = 0; rank < 8; rank += 1) {
       for (let file = 0; file < 8; file += 1) {
@@ -84,7 +84,7 @@ class Board extends React.Component {
   };
 
   syncSquares = () => {
-    logger.trace('syncSquares');
+    log.debug('sync squares');
     const { squares } = this.state;
     const { game: { currentMoveIndex, fenHistory } } = this.props;
     const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
@@ -97,7 +97,7 @@ class Board extends React.Component {
   };
 
   onMouseDown = (event) => {
-    logger.trace('onMouseDown');
+    log.debug('onMouseDown');
     const { game } = this.props;
     if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
     const { squares, possibleSquares, activeSquare } = this.state;
@@ -118,7 +118,7 @@ class Board extends React.Component {
   };
 
   onMouseUp = (event) => {
-    logger.trace('onMouseUp');
+    log.debug('onMouseUp');
     const {
       game,
       updateApp,
@@ -164,7 +164,7 @@ class Board extends React.Component {
   onMouseOut = () => {
     const { activeSquare, dragPiece } = this.state;
     if (dragPiece) {
-      logger.trace('onMouseOut');
+      log.debug('onMouseOut');
       if (activeSquare) {
         activeSquare.piece = dragPiece;
       }
@@ -177,7 +177,6 @@ class Board extends React.Component {
   };
 
   onClickPawnPromotion = (event) => {
-    logger.trace('onClickPawnPromotion');
     const { promotionMove } = this.state;
     const { game, updateGameOver, computerMove } = this.props;
     const index = Math.floor(event.offsetX / squareSize);
@@ -192,7 +191,6 @@ class Board extends React.Component {
   };
 
   getEventSquare = (event) => {
-    logger.trace('getEventSquare');
     const { squares } = this.state;
     const rank = 7 - Math.floor(event.offsetY / squareSize);
     const file = Math.floor(event.offsetX / squareSize);
@@ -217,7 +215,7 @@ class Board extends React.Component {
   };
 
   doTempMove = (move) => {
-    logger.trace('doTempMove');
+    log.debug('do temp move');
     const { squares } = this.state;
     const { game } = this.props;
     game.tempMove = move;
@@ -247,7 +245,6 @@ class Board extends React.Component {
   };
 
   getLegalMove = (toSquare) => {
-    logger.trace('getLegalMove');
     const { activeSquare } = this.state;
     const { game } = this.props;
     return game.legalMoves
@@ -268,14 +265,14 @@ class Board extends React.Component {
   };
 
   render() {
-    logger.trace('render');
+    log.debug('render');
     const {
       squares,
       previousSquares,
       activeSquare,
       possibleSquares,
       dragPiece,
-      capturedPieces,
+      capturedPieces = [],
     } = this.state;
     const width = boardSize;
     const height = boardSize;

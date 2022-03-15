@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DragLayer from './DragLayer';
 import { boardSize } from '../../game/utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('InteractiveLayer');
 const canvasId = 'interactive-layer';
 
 const InteractiveLayer = ({
@@ -12,8 +10,6 @@ const InteractiveLayer = ({
   onMouseUp,
   onMouseOut,
 }) => {
-  logger.trace('render');
-
   const [dragX, setDragX] = useState(null);
   const [dragY, setDragY] = useState(null);
 

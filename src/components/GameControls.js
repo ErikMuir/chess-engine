@@ -13,7 +13,7 @@ import {
 import { boardSize, iconColor, disabledIconColor } from '../game/utils';
 import Logger from '../Logger';
 
-const logger = new Logger('Controls');
+const log = new Logger('Controls');
 const loadGameInputId = 'load-game-input';
 
 const GameControls = ({
@@ -27,17 +27,14 @@ const GameControls = ({
   showInformation,
   isGameOver,
 }) => {
-  logger.trace('render');
-
   const fileReader = new FileReader();
-  fileReader.onerror = () => logger.error(fileReader.error);
+  fileReader.onerror = () => log.error(fileReader.error);
   fileReader.onload = () => {
-    logger.trace('fileReaderOnLoad');
     try {
       const gameJson = JSON.parse(fileReader.result);
       importGame(gameJson);
     } catch (err) {
-      logger.error('Error loading game', err);
+      log.error('Error loading game', err);
       // TODO : inform user
     }
   };
@@ -46,20 +43,17 @@ const GameControls = ({
   const toggleConfirmationText = confirmationDisabled ? 'Enable move confirmation' : 'Disable move confirmation';
 
   const readFile = () => {
-    logger.trace('readFile');
     const loadGameInput = document.getElementById(loadGameInputId);
     const file = loadGameInput.files[0];
     if (file) fileReader.readAsText(file);
   };
 
   const handleNew = (e) => {
-    logger.trace('handleNew');
     newGame();
     e.currentTarget.blur();
   };
 
   const handleImport = (e) => {
-    logger.trace('handleImport');
     const loadGameInput = document.getElementById(loadGameInputId);
     loadGameInput.value = '';
     loadGameInput.click();
@@ -67,31 +61,26 @@ const GameControls = ({
   };
 
   const handleExport = (e) => {
-    logger.trace('handleExport');
     exportGame();
     e.currentTarget.blur();
   };
 
   const handleResign = (e) => {
-    logger.trace('handleResign');
     resign();
     e.currentTarget.blur();
   };
 
   const handleHint = (e) => {
-    logger.trace('handleHint');
     getHint();
     e.currentTarget.blur();
   };
 
   const handleToggleConfirmation = (e) => {
-    logger.trace('handleToggleConfirmation');
     toggleConfirmation();
     e.currentTarget.blur();
   };
 
   const handleInformation = (e) => {
-    logger.trace('handleInformation');
     showInformation();
     e.currentTarget.blur();
   };

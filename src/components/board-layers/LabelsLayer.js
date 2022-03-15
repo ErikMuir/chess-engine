@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { boardSize, proportion, squareSize } from '../../game/utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('LabelsLayer');
 const canvasId = 'labels-layer';
 
 const drawRank = (sq, ctx) => {
@@ -24,8 +22,6 @@ const drawFile = (sq, ctx) => {
 };
 
 const LabelsLayer = ({ squares }) => {
-  logger.trace('render');
-
   useEffect(() => {
     const canvas = document.getElementById(canvasId);
     canvas.width = boardSize;

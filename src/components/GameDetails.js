@@ -3,9 +3,6 @@ import MoveList from './MoveList';
 import MoveConfirmation from './MoveConfirmation';
 import MoveNavigation from './MoveNavigation';
 import { boardSize } from '../game/utils';
-import Logger from '../Logger';
-
-const logger = new Logger('GameDetails');
 
 const GameDetails = ({
   moveBackward,
@@ -20,8 +17,6 @@ const GameDetails = ({
     moveHistory,
   },
 }) => {
-  logger.trace('render');
-
   const controls = tempMove
     ? (
       <MoveConfirmation

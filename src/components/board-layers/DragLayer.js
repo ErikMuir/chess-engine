@@ -2,14 +2,10 @@ import React, { useEffect, useState } from 'react';
 import AnimatedCanvas from './AnimatedCanvas';
 import { boardSize, proportion } from '../../game/utils';
 import { clearCanvas } from '../../utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('DragLayer');
 const canvasId = 'drag-layer';
 
 const DragLayer = ({ dragPiece, dragX, dragY }) => {
-  logger.trace('render');
-
   const [ctx, setCtx] = useState(null);
 
   useEffect(() => {

@@ -3,18 +3,13 @@ import Modal from 'react-modal';
 import Piece from '../game/Piece';
 import { promotionTypes } from '../game/PieceTypes';
 import { modalContentStyle, modalOverlayStyle } from '../game/utils';
-import Logger from '../Logger';
 
-const logger = new Logger('PawnPromotion');
 const canvasId = 'promotion-canvas';
 const pieceSize = 80;
 const proportion = (ratio) => Math.floor(pieceSize * ratio);
 
 const PawnPromotion = ({ onClick, activePlayer }) => {
-  logger.trace('render');
-
   const onAfterOpen = () => {
-    logger.trace('onAfterOpen');
     const canvas = document.getElementById(canvasId);
     canvas.onclick = onClick;
     const ctx = canvas.getContext('2d');

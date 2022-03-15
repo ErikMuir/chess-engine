@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { proportion, boardSize } from '../../game/utils';
 import { clearCanvas } from '../../utils';
-import Logger from '../../Logger';
 
-const logger = new Logger('PiecesLayer');
 const canvasId = 'pieces-layer';
 
 const PiecesLayer = ({ piecesSquares }) => {
-  logger.trace('render');
-
   const [ctx, setCtx] = useState(null);
 
   const draw = () => {
