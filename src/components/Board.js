@@ -1,4 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+  useRecoilCallback,
+} from 'recoil';
 import CapturedPieces from './CapturedPieces';
 import ActiveLayer from './board-layers/ActiveLayer';
 import InteractiveLayer from './board-layers/InteractiveLayer';
@@ -8,300 +14,252 @@ import PossibleLayer from './board-layers/PossibleLayer';
 import PreviousLayer from './board-layers/PreviousLayer';
 import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
+import activeSquareState from '../state/atoms/activeSquareState';
+import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
+import dragPieceState from '../state/atoms/dragPieceState';
+import gameOverModalState from '../state/atoms/gameOverModalState';
+import gameState from '../state/atoms/gameState';
+import possibleSquaresState from '../state/atoms/possibleSquaresState';
+import previousSquaresState from '../state/atoms/previousSquaresState';
+import promotionMoveState from '../state/atoms/promotionMoveState';
+import squaresState from '../state/atoms/squaresState';
+import tempMoveState from '../state/atoms/tempMoveState';
+import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
 import Game from '../engine/Game';
 import MoveType from '../engine/MoveType';
-import { black, white, pieceColorFromPieceId } from '../engine/PieceColors';
+import { white, pieceColorFromPieceId } from '../engine/PieceColors';
 import { promotionTypes } from '../engine/PieceTypes';
 import Piece from '../engine/Piece';
 import Square from '../engine/Square';
-import { squareSize, boardSize, getFile } from '../engine/utils';
+import {
+  squareSize,
+  boardSize,
+  getFile,
+  getSquareIndexFromEvent,
+} from '../engine/utils';
 import Logger from '../Logger';
 
 const log = new Logger('Board');
 
-class Board extends React.Component {
-  constructor(props) {
-    super(props);
-    const { game } = this.props;
-    const squares = this.initSquares(game);
-    this.state = {
-      squares,
-      activeSquare: null,
-      possibleSquares: [],
-      previousSquares: [],
-      dragPiece: null,
-      deselect: false,
-      promotionMove: null,
-      capturedPieces: game.capturedPieces,
-    };
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onMouseOut = this.onMouseOut.bind(this);
-    this.onClickPawnPromotion = this.onClickPawnPromotion.bind(this);
-  }
+const Board = ({ confirmMove, computerMove, activePlayer }) => {
+  const [deselect, setDeselect] = useState(false);
 
-  componentDidUpdate(prevProps) {
-    const { forceRefresh } = this.props;
-    const isForceRefresh = forceRefresh !== prevProps.forceRefresh;
-    if (isForceRefresh) {
-      this.forceRefresh();
-      this.syncSquares();
-    }
-  }
+  const game = useRecoilValue(gameState);
+  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
 
-  forceRefresh = () => {
-    log.debug('force refresh');
-    const { squares } = this.state;
-    const { game: { currentMoveIndex, moveHistory, capturedPieces } } = this.props;
-    const previousSquares = [];
-    if (currentMoveIndex > 0) {
-      const previousMove = moveHistory[currentMoveIndex - 1];
-      previousSquares.push(squares[previousMove.fromIndex]);
-      previousSquares.push(squares[previousMove.toIndex]);
-    }
-    this.setState({
-      activeSquare: null,
-      possibleSquares: [],
-      previousSquares,
-      capturedPieces,
-      squares: [...squares],
-    });
-  };
+  const setShowGameOverModal = useSetRecoilState(gameOverModalState);
+  const setPreviousSquares = useSetRecoilState(previousSquaresState);
+  const setSquares = useSetRecoilState(squaresState);
 
-  initSquares = (game) => {
-    log.debug('init squares');
-    const squares = new Array(64);
+  const [activeSquare, setActiveSquare] = useRecoilState(activeSquareState);
+  const [possibleSquares, setPossibleSquares] = useRecoilState(possibleSquaresState);
+  const [dragPiece, setDragPiece] = useRecoilState(dragPieceState);
+  const [promotionMove, setPromotionMove] = useRecoilState(promotionMoveState);
+  const [tempMove, setTempMove] = useRecoilState(tempMoveState);
+
+  const syncSquares = () => {
+    log.debug('sync');
+    const { fenHistory } = game;
+    const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
+    const newSquares = [];
     for (let rank = 0; rank < 8; rank += 1) {
       for (let file = 0; file < 8; file += 1) {
         const index = rank * 8 + file;
         const square = new Square(file, rank);
-        const pieceId = game.squares[index];
+        const pieceId = currentGame.squares[index];
         square.piece = pieceId ? Piece.fromPieceId(pieceId) : null;
-        squares[index] = square;
+        newSquares.push(square);
       }
     }
-    return squares;
+    setSquares(newSquares);
   };
 
-  syncSquares = () => {
-    log.debug('sync squares');
-    const { squares } = this.state;
-    const { game: { currentMoveIndex, fenHistory } } = this.props;
-    const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
-    const newSquares = [...squares];
-    for (let i = 0; i < 64; i += 1) {
-      const pieceId = currentGame.squares[i];
-      newSquares[i].piece = pieceId ? Piece.fromPieceId(pieceId) : null;
-    }
-    this.setState({ squares: newSquares, possibleSquares: [] });
-  };
+  useEffect(() => {
+    if (!tempMove) syncSquares();
+  }, [tempMove, currentMoveIndex]);
 
-  onMouseDown = (event) => {
-    log.debug('onMouseDown');
-    const { game } = this.props;
-    if (game.isGameOver || game.tempMove || game.activePlayer !== game.playerColor) return;
-    const { squares, possibleSquares, activeSquare } = this.state;
-    const square = this.getEventSquare(event);
-    const newState = {};
-    if (activeSquare && !possibleSquares.includes(square)) {
-      newState.deselect = true;
-    }
-    if (square.piece && square.piece.color === game.activePlayer) {
-      newState.activeSquare = square;
-      newState.dragPiece = square.piece;
-      newState.possibleSquares = game.legalMoves
-        .filter((move) => move.fromIndex === square.index)
-        .map((move) => squares[move.toIndex]);
-      square.piece = null;
-    }
-    this.setState(newState);
-  };
-
-  onMouseUp = (event) => {
-    log.debug('onMouseUp');
-    const {
-      game,
-      updateApp,
-      confirmMove,
-      confirmationDisabled,
-    } = this.props;
-    const {
-      activeSquare,
-      dragPiece,
-      deselect,
-      possibleSquares,
-    } = this.state;
-    if (!activeSquare) return;
-
-    if (dragPiece) {
-      activeSquare.piece = dragPiece;
-      this.setState({ dragPiece: null });
-    }
-
-    const square = this.getEventSquare(event);
-    if (deselect && !possibleSquares.includes(square) && !dragPiece) {
-      this.setState({
-        activeSquare: null,
-        possibleSquares: [],
-        deselect: false,
+  const doTempMove = useRecoilCallback(({ snapshot }) => async (move) => {
+    log.debug('temp move');
+    setTempMove(move);
+    const currentSquares = await snapshot.getPromise(squaresState);
+    let newSquares = currentSquares
+      .map((sq) => {
+        switch (sq.index) {
+          case move.fromIndex:
+            return new Square(sq.file, sq.rank);
+          case move.toIndex: {
+            const square = new Square(sq.file, sq.rank);
+            square.piece = Piece.fromPieceId(move.piece);
+            return square;
+          }
+          default:
+            return sq;
+        }
       });
-      return;
-    }
-
-    const move = this.getLegalMove(square);
-    if (!move) return;
-
-    this.doTempMove(move);
-    updateApp(game);
-
-    if (move.isPawnPromotion) {
-      this.setState({ promotionMove: move });
-    } else if (confirmationDisabled) {
-      confirmMove();
-    }
-  };
-
-  onMouseOut = () => {
-    const { activeSquare, dragPiece } = this.state;
-    if (dragPiece) {
-      log.debug('onMouseOut');
-      if (activeSquare) {
-        activeSquare.piece = dragPiece;
-      }
-      this.setState({
-        activeSquare: null,
-        possibleSquares: [],
-        dragPiece: null,
-      });
-    }
-  };
-
-  onClickPawnPromotion = (event) => {
-    const { promotionMove } = this.state;
-    const { game, updateGameOver, computerMove } = this.props;
-    const index = Math.floor(event.offsetX / squareSize);
-    promotionMove.pawnPromotionType = promotionTypes[index];
-    this.setState({ promotionMove: null });
-    game.confirmMove();
-    this.syncSquares();
-    updateGameOver();
-    if (!game.isGameOver) {
-      computerMove();
-    }
-  };
-
-  getEventSquare = (event) => {
-    const { squares } = this.state;
-    const rank = 7 - Math.floor(event.offsetY / squareSize);
-    const file = Math.floor(event.offsetX / squareSize);
-    return squares[rank * 8 + file];
-  };
-
-  handleEnPassant = (move, newSquares) => {
-    const offset = pieceColorFromPieceId(move.piece) === white ? -8 : 8;
-    const captureSquareIndex = move.toIndex + offset;
-    newSquares[captureSquareIndex].piece = null;
-  };
-
-  handleCastle = (move, newSquares) => {
-    const isKingSide = getFile(move.toIndex) === 6;
-    const rookRank = pieceColorFromPieceId(move.piece) === white ? 0 : 7;
-    const rookFile = isKingSide ? 7 : 0;
-    const targetFile = isKingSide ? 5 : 3;
-    const fromIndex = rookRank * 8 + rookFile;
-    const toIndex = rookRank * 8 + targetFile;
-    newSquares[toIndex].piece = newSquares[fromIndex].piece;
-    newSquares[fromIndex].piece = null;
-  };
-
-  doTempMove = (move) => {
-    log.debug('do temp move');
-    const { squares } = this.state;
-    const { game } = this.props;
-    game.tempMove = move;
-    const newSquares = [...squares];
-    newSquares[move.fromIndex].piece = null;
-    newSquares[move.toIndex].piece = Piece.fromPieceId(move.piece);
     switch (move.type) {
-      case MoveType.enPassant:
-        this.handleEnPassant(move, newSquares);
+      case MoveType.enPassant: {
+        const offset = pieceColorFromPieceId(move.piece) === white ? -8 : 8;
+        const captureSquareIndex = move.toIndex + offset;
+        newSquares = newSquares
+          .map((sq) => (sq.index === captureSquareIndex ? new Square(sq.file, sq.rank) : sq));
+      }
         break;
       case MoveType.kingSideCastle:
-      case MoveType.queenSideCastle:
-        this.handleCastle(move, newSquares);
+      case MoveType.queenSideCastle: {
+        const isKingSide = getFile(move.toIndex) === 6;
+        const rookRank = pieceColorFromPieceId(move.piece) === white ? 0 : 7;
+        const rookFile = isKingSide ? 7 : 0;
+        const targetFile = isKingSide ? 5 : 3;
+        const fromIndex = rookRank * 8 + rookFile;
+        const toIndex = rookRank * 8 + targetFile;
+        const { piece } = newSquares[fromIndex];
+        newSquares = newSquares
+          .map((sq) => {
+            switch (sq.index) {
+              case toIndex: {
+                const square = new Square(sq.file, sq.rank);
+                square.piece = piece;
+                return square;
+              }
+              case fromIndex:
+                return new Square(sq.file, sq.rank);
+              default:
+                return sq;
+            }
+          });
+      }
         break;
       default:
         break;
     }
-    this.setState({
-      squares: newSquares,
-      activeSquare: null,
-      possibleSquares: [],
-      previousSquares: [
-        squares[move.fromIndex],
-        squares[move.toIndex],
-      ],
-    });
+    setSquares(newSquares);
+    setActiveSquare(null);
+    setPossibleSquares([]);
+    setPreviousSquares([
+      currentSquares[move.fromIndex],
+      currentSquares[move.toIndex],
+    ]);
+  }, []);
+
+  const onMouseDown = useRecoilCallback(({ snapshot }) => async (e) => {
+    log.debug('mouse down');
+    if (tempMove || game.isGameOver || game.activePlayer !== game.playerColor) return;
+    const currentSquares = await snapshot.getPromise(squaresState);
+    const square = currentSquares[getSquareIndexFromEvent(e)];
+    if (activeSquare && !possibleSquares.includes(square)) {
+      setDeselect(true);
+    }
+    if (square.piece && square.piece.color === game.activePlayer) {
+      setActiveSquare(square);
+      setDragPiece(square.piece);
+      setPossibleSquares(game.legalMoves
+        .filter((move) => move.fromIndex === square.index)
+        .map((move) => currentSquares[move.toIndex]));
+      const newSquares = [...currentSquares];
+      newSquares[square.index] = new Square(square.file, square.rank);
+      setSquares(newSquares);
+    }
+  }, []);
+
+  const onMouseUp = useRecoilCallback(({ snapshot }) => async (e) => {
+    log.debug('mouse up');
+    const currentActiveSquare = await snapshot.getPromise(activeSquareState);
+    if (!currentActiveSquare) return;
+
+    const currentSquares = await snapshot.getPromise(squaresState);
+    const currentDragPiece = await snapshot.getPromise(dragPieceState);
+    if (currentDragPiece) {
+      const newSquares = currentSquares.map((sq) => {
+        if (sq.index !== currentActiveSquare.index) return sq;
+        const newSquare = new Square(sq.file, sq.rank);
+        newSquare.piece = currentDragPiece;
+        return newSquare;
+      });
+      setSquares(newSquares);
+      setDragPiece(null);
+    }
+
+    const currentPossibleSquares = await snapshot.getPromise(possibleSquaresState);
+    const square = currentSquares[getSquareIndexFromEvent(e)];
+    if (deselect && !currentPossibleSquares.includes(square)) {
+      setActiveSquare(null);
+      setPossibleSquares([]);
+      setDeselect(false);
+      return;
+    }
+
+    const move = game.legalMoves
+      .find((legalMove) => legalMove.fromIndex === currentActiveSquare.index
+        && legalMove.toIndex === square.index);
+    if (!move) return;
+
+    doTempMove(move);
+
+    if (move.isPawnPromotion) {
+      setPromotionMove(move);
+      return;
+    }
+
+    const currentIsConfirmationDisabled = await snapshot.getPromise(confirmationDisabledState);
+    if (currentIsConfirmationDisabled) {
+      confirmMove();
+    }
+  }, []);
+
+  const onMouseOut = () => {
+    if (dragPiece) {
+      if (activeSquare) {
+        activeSquare.piece = dragPiece;
+      }
+      setActiveSquare(null);
+      setPossibleSquares([]);
+      setDragPiece(null);
+    }
   };
 
-  getLegalMove = (toSquare) => {
-    const { activeSquare } = this.state;
-    const { game } = this.props;
-    return game.legalMoves
-      .find((move) => move.fromIndex === activeSquare.index
-        && move.toIndex === toSquare.index);
+  const onClickPawnPromotion = (e) => {
+    const index = Math.floor(e.offsetX / squareSize);
+    promotionMove.pawnPromotionType = promotionTypes[index];
+    setPromotionMove(null);
+    confirmMove(tempMove);
+    setTempMove(null);
+    if (game.isGameOver) {
+      setShowGameOverModal(true);
+    } else {
+      computerMove();
+    }
   };
 
-  getPromotionModal = () => {
-    const { promotionMove } = this.state;
-    const { game } = this.props;
-    return promotionMove
-      ? (
-        <PawnPromotion
-          activePlayer={game.activePlayer}
-          onClick={this.onClickPawnPromotion}
+  const width = boardSize;
+  const height = boardSize;
+  const flexBasis = boardSize;
+  const promotionModal = promotionMove
+    ? (
+      <PawnPromotion
+        onClick={onClickPawnPromotion}
+        activePlayer={activePlayer}
+      />
+    ) : null;
+
+  return (
+    <div className="board">
+      <div className="canvas-container" style={{ width, height, flexBasis }}>
+        <SquaresLayer />
+        <LabelsLayer />
+        <PreviousLayer />
+        <ActiveLayer />
+        <PiecesLayer />
+        <PossibleLayer />
+        <InteractiveLayer
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseOut={onMouseOut}
         />
-      ) : null;
-  };
-
-  render() {
-    log.debug('render');
-    const {
-      squares,
-      previousSquares,
-      activeSquare,
-      possibleSquares,
-      dragPiece,
-      capturedPieces = [],
-    } = this.state;
-    const width = boardSize;
-    const height = boardSize;
-    const flexBasis = boardSize;
-    const piecesSquares = squares.filter((sq) => sq.piece);
-    const blackPieces = capturedPieces.filter((pieceId) => pieceColorFromPieceId(pieceId) === black);
-    const whitePieces = capturedPieces.filter((pieceId) => pieceColorFromPieceId(pieceId) === white);
-
-    return (
-      <div className="board">
-        <div className="canvas-container" style={{ width, height, flexBasis }}>
-          <SquaresLayer squares={squares} />
-          <LabelsLayer squares={squares} />
-          <PreviousLayer previousSquares={previousSquares} />
-          <ActiveLayer activeSquare={activeSquare} />
-          <PiecesLayer piecesSquares={piecesSquares} />
-          <PossibleLayer possibleSquares={possibleSquares} />
-          <InteractiveLayer
-            dragPiece={dragPiece}
-            onMouseDown={this.onMouseDown}
-            onMouseUp={this.onMouseUp}
-            onMouseOut={this.onMouseOut}
-          />
-        </div>
-        <CapturedPieces blackPieces={blackPieces} whitePieces={whitePieces} />
-        {this.getPromotionModal()}
       </div>
-    );
-  }
-}
+      <CapturedPieces />
+      {promotionModal}
+    </div>
+  );
+};
 
 export default Board;

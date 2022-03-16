@@ -24,9 +24,8 @@ A javascript chess engine with React GUI
 
 ## Tech Debt
 
-- use hooks everywhere, convert classes into pure functions
+- move currentMoveIndex from Game to Board
 - unit tests
-- consider redux, recoil, or some other state management system?
 
 ## Known Bugs
 

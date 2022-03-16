@@ -54,12 +54,12 @@ export default class Game {
     this.isStalemate = false;
     this.isResignation = false;
     this.isDraw = false;
-    this.tempMove = null;
   };
 
-  debug = (msg) => {
+  debug = (msg, obj) => {
     if (this.preventRecursion) return;
-    log.debug(msg);
+    if (obj) log.debug(msg, obj);
+    else log.debug(msg);
   };
 
   get isGameOver() {
@@ -89,19 +89,13 @@ export default class Game {
     return FEN.get(this);
   }
 
-  get capturedPieces() {
-    return this.moveHistory
-      .slice(0, this.currentMoveIndex)
-      .filter((move) => move.capturePiece)
-      .map((move) => move.capturePiece);
-  }
-
   resign = () => {
     this.isResignation = true;
     const msg = this.activePlayer === white
       ? '0-1 (white resigns)'
       : '1-0 (black resigns)';
     this.pgn.push(msg);
+    return this;
   };
 
   getMovePiece = (move) => (move.isPawnPromotion
@@ -126,7 +120,7 @@ export default class Game {
   };
 
   doMove = (move) => {
-    this.debug('do move');
+    this.debug('do move', { move });
     this.squares[move.fromIndex] = undefined;
     this.squares[move.toIndex] = this.getMovePiece(move);
     switch (move.type) {
@@ -143,6 +137,7 @@ export default class Game {
     if (!this.preventRecursion) {
       this.postMoveActions(move);
     }
+    return this;
   };
 
   postMoveActions = (move) => {
@@ -248,25 +243,17 @@ export default class Game {
 
   moveBackward = () => {
     if (this.currentMoveIndex > 0) this.currentMoveIndex -= 1;
+    return this;
   };
 
   moveForward = () => {
     if (this.currentMoveIndex < this.fenHistory.length - 1) this.currentMoveIndex += 1;
+    return this;
   };
 
   moveJump = (moveIndex) => {
     this.currentMoveIndex = moveIndex;
-  };
-
-  confirmMove = () => {
-    if (this.tempMove) {
-      this.doMove(this.tempMove);
-      this.tempMove = null;
-    }
-  };
-
-  cancelMove = () => {
-    this.tempMove = null;
+    return this;
   };
 
   getScore = (color) => this.squares

@@ -1,7 +1,9 @@
 import React from 'react';
+import { useRecoilValue } from 'recoil';
 import MoveList from './MoveList';
 import MoveConfirmation from './MoveConfirmation';
 import MoveNavigation from './MoveNavigation';
+import tempMoveState from '../state/atoms/tempMoveState';
 import { boardSize } from '../engine/utils';
 
 const GameDetails = ({
@@ -10,32 +12,16 @@ const GameDetails = ({
   moveJump,
   confirmMove,
   cancelMove,
-  game: {
-    tempMove,
-    pgn,
-    currentMoveIndex,
-    moveHistory,
-  },
 }) => {
+  const tempMove = useRecoilValue(tempMoveState);
+
   const controls = tempMove
-    ? (
-      <MoveConfirmation
-        confirmMove={confirmMove}
-        cancelMove={cancelMove}
-      />
-    )
-    : (
-      <MoveNavigation
-        currentMoveIndex={currentMoveIndex}
-        moveCount={moveHistory.length}
-        moveBackward={moveBackward}
-        moveForward={moveForward}
-      />
-    );
+    ? <MoveConfirmation confirmMove={confirmMove} cancelMove={cancelMove} />
+    : <MoveNavigation moveBackward={moveBackward} moveForward={moveForward} />;
 
   return (
     <div className="aside game-details" style={{ height: boardSize }}>
-      <MoveList pgn={pgn} currentMoveIndex={currentMoveIndex} moveJump={moveJump} />
+      <MoveList moveJump={moveJump} />
       <div className="move-controls">{controls}</div>
     </div>
   );

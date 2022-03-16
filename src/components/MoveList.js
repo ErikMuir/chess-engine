@@ -1,10 +1,13 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
+import { useRecoilValue } from 'recoil';
+import gameState from '../state/atoms/gameState';
 import * as pieceColors from '../engine/PieceColors';
 import { getMovesFromPgn } from '../engine/utils';
 
-const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
+const MoveList = ({ moveJump }) => {
   const currentMoveRef = useRef(null);
+  const { pgn, currentMoveIndex } = useRecoilValue(gameState);
 
   const scrollToBottom = () => {
     currentMoveRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -1,12 +1,15 @@
 import React from 'react';
+import { useRecoilValue } from 'recoil';
 import {
   mdiWeb,
   mdiEmail,
   mdiGithub,
 } from '@mdi/js';
 import Icon from '@mdi/react';
+import squaresState from '../state/atoms/squaresState';
 
 const Footer = () => {
+  const squares = useRecoilValue(squaresState);
   const currentYear = new Date().getFullYear();
   const copyright = `© Copyright ${currentYear} MuirDev`;
   return (
@@ -22,6 +25,7 @@ const Footer = () => {
         <a href="https://github.com/ErikMuir/chess-engine" target="_blank" rel="noreferrer">
           <Icon path={mdiGithub} size={0.7} color="rgb(89, 89, 89)" />
         </a>
+        <button type="button" onClick={() => console.log({ squares })}>.</button>
       </div>
     </footer>
   );

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
 import Piece from '../engine/Piece';
 import { pieceTypeFromPieceId } from '../engine/PieceTypes';
+import capturedPiecesState from '../state/selectors/capturedPiecesState';
 import { clearCanvas } from '../utils';
 
 const blackCanvasId = 'captured-black-pieces-canvas';
@@ -49,9 +51,10 @@ const getCanvas = (canvasId, pieces) => {
   );
 };
 
-const CapturedPieces = ({ blackPieces, whitePieces }) => {
+const CapturedPieces = () => {
   const [blackCtx, setBlackCtx] = useState(null);
   const [whiteCtx, setWhiteCtx] = useState(null);
+  const { blackPieces, whitePieces } = useRecoilValue(capturedPiecesState);
 
   const draw = () => {
     if (!blackCtx || !whiteCtx) return;

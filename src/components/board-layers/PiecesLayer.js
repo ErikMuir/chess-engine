@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import squaresState from '../../state/atoms/squaresState';
 import { proportion, boardSize } from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'pieces-layer';
 
-const PiecesLayer = ({ piecesSquares }) => {
+const PiecesLayer = () => {
   const [ctx, setCtx] = useState(null);
+  const squares = useRecoilValue(squaresState);
+  const [piecesSquares, setPiecesSquares] = useState(squares.filter((sq) => sq.piece));
 
   const draw = () => {
     if (!ctx) return;
     clearCanvas(ctx);
-    piecesSquares
-      .filter((sq) => sq.piece)
-      .forEach((sq) => {
-        const offset = proportion(0.1);
-        const size = proportion(0.8);
-        const x = sq.xPos + offset;
-        const y = sq.yPos + offset;
-        sq.piece.getImage()
-          .then((img) => ctx.drawImage(img, x, y, size, size));
-      });
+    piecesSquares.forEach((sq) => {
+      const offset = proportion(0.1);
+      const size = proportion(0.8);
+      const x = sq.xPos + offset;
+      const y = sq.yPos + offset;
+      sq.piece.getImage()
+        .then((img) => ctx.drawImage(img, x, y, size, size));
+    });
   };
 
   useEffect(() => {
@@ -30,6 +32,10 @@ const PiecesLayer = ({ piecesSquares }) => {
   }, []);
 
   useEffect(draw, [ctx]);
+
+  useEffect(() => {
+    setPiecesSquares(squares.filter((sq) => sq.piece));
+  }, [squares]);
 
   useEffect(draw, [piecesSquares]);
 

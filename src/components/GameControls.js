@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRecoilValue } from 'recoil';
 import Icon from '@mdi/react';
 import {
   mdiFlag,
@@ -10,6 +11,8 @@ import {
   mdiLightbulbOn,
   mdiInformation,
 } from '@mdi/js';
+import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
+import gameOverState from '../state/selectors/gameOverState';
 import { boardSize, iconColor, disabledIconColor } from '../engine/utils';
 import Logger from '../Logger';
 
@@ -23,10 +26,11 @@ const GameControls = ({
   resign,
   getHint,
   toggleConfirmation,
-  confirmationDisabled,
   showInformation,
-  isGameOver,
 }) => {
+  const isGameOver = useRecoilValue(gameOverState);
+  const isConfirmationDisabled = useRecoilValue(confirmationDisabledState);
+
   const fileReader = new FileReader();
   fileReader.onerror = () => log.error(fileReader.error);
   fileReader.onload = () => {
@@ -39,8 +43,8 @@ const GameControls = ({
     }
   };
 
-  const toggleConfirmationIcon = confirmationDisabled ? mdiCheckCircleOutline : mdiCheckCircle;
-  const toggleConfirmationText = confirmationDisabled ? 'Enable move confirmation' : 'Disable move confirmation';
+  const toggleConfirmationIcon = isConfirmationDisabled ? mdiCheckCircleOutline : mdiCheckCircle;
+  const toggleConfirmationText = isConfirmationDisabled ? 'Enable move confirmation' : 'Disable move confirmation';
 
   const readFile = () => {
     const loadGameInput = document.getElementById(loadGameInputId);

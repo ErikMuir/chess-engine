@@ -89,6 +89,11 @@ const getCoordinatesFromSquareIndex = (index) => {
   const file = getFile(index);
   return `${'abcdefgh'[file]}${rank + 1}`;
 };
+const getSquareIndexFromEvent = (e) => {
+  const rank = 7 - Math.floor(e.offsetY / squareSize);
+  const file = Math.floor(e.offsetX / squareSize);
+  return rank * 8 + file;
+};
 const getMovesFromPgn = (pgn) => {
   const moves = [];
   if (!pgn || !pgn.length) return moves;
@@ -160,5 +165,6 @@ export {
   getRank,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
+  getSquareIndexFromEvent,
   getMovesFromPgn,
 };

@@ -1,4 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import {
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState,
+  useRecoilCallback,
+} from 'recoil';
 import Modal from 'react-modal';
 import FileSaver from 'file-saver';
 import Board from './Board';
@@ -10,6 +16,17 @@ import Information from './Information';
 import Hint from './Hint';
 import GameOver from './GameOver';
 import Logger from '../Logger';
+import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
+import gameState from '../state/atoms/gameState';
+import gameOverModalState from '../state/atoms/gameOverModalState';
+import hintState from '../state/atoms/hintState';
+import informationModalState from '../state/atoms/informationModalState';
+import previousSquaresState from '../state/atoms/previousSquaresState';
+import resignationModalState from '../state/atoms/resignationModalState';
+import squaresState from '../state/atoms/squaresState';
+import tempMoveState from '../state/atoms/tempMoveState';
+import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
+import gameOverState from '../state/selectors/gameOverState';
 import Game from '../engine/Game';
 import PGN from '../engine/PGN';
 import { importGameFromJson } from '../engine/import';
@@ -21,262 +38,181 @@ import '../styles/modal.css';
 Modal.setAppElement('#app');
 const log = new Logger('App');
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      game: new Game(),
-      hint: null,
-      showGameOverModal: false,
-      showResignationModal: false,
-      confirmationDisabled: false,
-      showInformationModal: false,
-      forceRefresh: 0,
-    };
-    this.newGame = this.newGame.bind(this);
-    this.importGame = this.importGame.bind(this);
-    this.exportGame = this.exportGame.bind(this);
-    this.resign = this.resign.bind(this);
-    this.getHint = this.getHint.bind(this);
-    this.showInformation = this.showInformation.bind(this);
-    this.confirmResignation = this.confirmResignation.bind(this);
-    this.closeResignationModal = this.closeResignationModal.bind(this);
-    this.toggleConfirmation = this.toggleConfirmation.bind(this);
-    this.moveBackward = this.moveBackward.bind(this);
-    this.moveForward = this.moveForward.bind(this);
-    this.moveJump = this.moveJump.bind(this);
-    this.confirmMove = this.confirmMove.bind(this);
-    this.cancelMove = this.cancelMove.bind(this);
-    this.updateApp = this.updateApp.bind(this);
-    this.updateGameOver = this.updateGameOver.bind(this);
-    this.computerMove = this.computerMove.bind(this);
-    this.closeHintModal = this.closeHintModal.bind(this);
-    this.closeInformationModal = this.closeInformationModal.bind(this);
-    this.closeGameOverModal = this.closeGameOverModal.bind(this);
-  }
+const App = () => {
+  const [game, setGame] = useRecoilState(gameState);
+  const [hint, setHint] = useRecoilState(hintState);
+  const [showGameOverModal, setShowGameOverModal] = useRecoilState(gameOverModalState);
+  const [showResignationModal, setShowResignationModal] = useRecoilState(resignationModalState);
+  const [showInformationModal, setShowInformationModal] = useRecoilState(informationModalState);
+  const [confirmationDisabled, setConfirmationDisabled] = useRecoilState(confirmationDisabledState);
+  const [tempMove, setTempMove] = useRecoilState(tempMoveState);
+  const isGameOver = useRecoilValue(gameOverState);
+  const setPreviousSquares = useSetRecoilState(previousSquaresState);
+  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
 
-  closeHintModal = () => {
-    this.setState({ hint: null });
+  useEffect(() => {
+    if (isGameOver) {
+      setShowGameOverModal(true);
+    }
+  }, [game]);
+
+  const cloneGame = (gameToClone) => new Game(gameToClone || game);
+
+  const closeHintModal = () => {
+    setHint(null);
   };
 
-  closeInformationModal = () => {
-    this.setState({ showInformationModal: false });
+  const closeInformationModal = () => {
+    setShowInformationModal(false);
   };
 
-  closeGameOverModal = () => {
-    this.setState({ showGameOverModal: false });
+  const closeGameOverModal = () => {
+    setShowGameOverModal(false);
   };
 
-  closeResignationModal = () => {
-    this.setState({ showResignationModal: false });
+  const closeResignationModal = () => {
+    setShowResignationModal(false);
   };
 
-  newGame = () => {
-    log.debug('new game');
-    this.setState({ game: new Game() });
-    this.forceRefreshHack();
+  const newGame = () => {
+    setGame(new Game());
   };
 
-  importGame = (gameJson) => {
-    log.debug('import game');
-    const game = importGameFromJson(gameJson);
-    this.setState({ game });
-    this.forceRefreshHack();
+  const importGame = (gameJson) => {
+    const importedGame = importGameFromJson(gameJson);
+    setGame(importedGame);
   };
 
-  exportGame = () => {
-    log.debug('export game');
-    const { game } = this.state;
+  const exportGame = () => {
     const fileName = `chess-${new Date().toISOString()}.json`;
     const blob = new Blob([game.json], { type: 'application/json' });
     FileSaver.saveAs(blob, fileName, { autoBom: true });
   };
 
-  resign = () => {
-    this.setState({ showResignationModal: true });
+  const resign = () => {
+    setShowResignationModal(true);
   };
 
-  confirmResignation = () => {
-    const { game } = this.state;
-    this.closeResignationModal();
-    game.resign();
-    this.updateApp(game);
-    this.updateGameOver();
+  const confirmResignation = () => {
+    closeResignationModal();
+    const updatedGame = game.resign();
+    setGame(updatedGame);
   };
 
-  getHint = () => {
-    const { game } = this.state;
+  const getHint = () => {
     const move = getMove(game);
-    const hint = PGN.get(move, game.legalMoves);
-    this.setState({ hint });
+    setHint(PGN.get(move, game.legalMoves));
   };
 
-  toggleConfirmation = () => {
-    const { confirmationDisabled } = this.state;
-    this.setState({ confirmationDisabled: !confirmationDisabled });
+  const toggleConfirmation = () => {
+    setConfirmationDisabled(!confirmationDisabled);
   };
 
-  showInformation = () => {
-    this.setState({ showInformationModal: true });
+  const showInformation = () => {
+    setShowInformationModal(true);
   };
 
-  moveBackward = () => {
-    log.debug('navigate move backward');
-    const { game } = this.state;
-    game.moveBackward();
-    this.updateApp(game);
-    this.forceRefreshHack();
+  const moveBackward = () => {
+    const updatedGame = game.moveBackward();
+    setGame(updatedGame);
   };
 
-  moveForward = () => {
-    log.debug('navigate move forward');
-    const { game } = this.state;
-    game.moveForward();
-    this.updateApp(game);
-    this.forceRefreshHack();
+  const moveForward = () => {
+    const updatedGame = game.moveForward();
+    setGame(updatedGame);
   };
 
-  moveJump = (moveIndex) => {
-    log.debug('navigate move jump');
-    const { game } = this.state;
-    game.moveJump(moveIndex);
-    this.updateApp(game);
-    this.forceRefreshHack();
+  const moveJump = (moveIndex) => {
+    const updatedGame = game.moveJump(moveIndex);
+    setGame(updatedGame);
   };
 
-  confirmMove = () => {
-    log.debug('confirm move');
-    const { game } = this.state;
-
-    game.confirmMove();
-    this.updateApp(game);
-    this.forceRefreshHack();
-    this.updateGameOver();
-
-    if (!game.isGameOver) {
-      this.computerMove();
-    }
-  };
-
-  cancelMove = () => {
-    log.debug('cancel move');
-    const { game } = this.state;
-    game.cancelMove();
-    this.updateApp(game);
-    this.forceRefreshHack();
-  };
-
-  updateApp = (game) => {
-    log.debug('update app game');
-    this.setState({ game });
-  };
-
-  updateGameOver = () => {
-    const { game } = this.state;
-    this.setState({ showGameOverModal: game.isGameOver });
-  };
-
-  forceRefreshHack = () => {
-    log.debug('*** force refresh hack ***');
-    const { forceRefresh } = this.state;
-    const newForceRefresh = forceRefresh + 1;
-    this.setState({ forceRefresh: newForceRefresh });
-  };
-
-  computerMove = () => {
-    log.debug('computer move');
-    const { game } = this.state;
-    const move = getMove(game);
+  const computerMove = (currentGame) => {
     // wait 1 second to simulate the computer "thinking"
     sleep(1000).then(() => {
-      game.doMove(move);
-      this.updateApp(game);
-      this.updateGameOver();
-      this.forceRefreshHack();
+      log.debug('computer move');
+      const move = getMove(currentGame);
+      const updatedGame = cloneGame(currentGame).doMove(move);
+      setGame(updatedGame);
     });
   };
 
-  getInformationModal = () => {
-    const { showInformationModal } = this.state;
-    return showInformationModal
-      ? <Information closeInformationModal={this.closeInformationModal} />
-      : null;
+  const confirmMove = () => {
+    const updatedGame = cloneGame().doMove(tempMove);
+    setGame(updatedGame);
+    setTempMove(null);
+
+    if (!isGameOver) {
+      computerMove(updatedGame);
+    }
   };
 
-  getHintModal = () => {
-    const { hint } = this.state;
-    return hint
-      ? <Hint hint={hint} closeHintModal={this.closeHintModal} />
-      : null;
-  };
+  const cancelMove = useRecoilCallback(({ snapshot }) => async () => {
+    setTempMove(null);
+    const currentSquares = await snapshot.getPromise(squaresState);
+    const move = game.moveHistory[currentMoveIndex];
+    const previousSquares = move
+      ? [
+        currentSquares[move.fromIndex],
+        currentSquares[move.toIndex],
+      ] : [];
+    setPreviousSquares(previousSquares);
+  }, []);
 
-  getGameOverModal = () => {
-    const { game, showGameOverModal } = this.state;
-    return showGameOverModal
-      ? (
-        <GameOver
-          game={game}
-          closeGameOverModal={this.closeGameOverModal}
+  const informationModal = showInformationModal
+    ? <Information closeInformationModal={closeInformationModal} />
+    : null;
+
+  const hintModal = hint
+    ? <Hint closeHintModal={closeHintModal} />
+    : null;
+
+  const gameOverModal = showGameOverModal
+    ? <GameOver closeGameOverModal={closeGameOverModal} />
+    : null;
+
+  const resignationModal = showResignationModal
+    ? (
+      <ConfirmModal
+        displayText="Are you sure you want to resign?"
+        confirm={confirmResignation}
+        cancel={closeResignationModal}
+      />
+    ) : null;
+
+  return (
+    <div className="app-container">
+      <header className="app-header" />
+      <main className="app-main">
+        <GameControls
+          newGame={newGame}
+          importGame={importGame}
+          exportGame={exportGame}
+          resign={resign}
+          getHint={getHint}
+          toggleConfirmation={toggleConfirmation}
+          showInformation={showInformation}
         />
-      ) : null;
-  };
-
-  getResignationModal = () => {
-    const { showResignationModal } = this.state;
-    return showResignationModal
-      ? (
-        <ConfirmModal
-          displayText="Are you sure you want to resign?"
-          confirm={this.confirmResignation}
-          cancel={this.closeResignationModal}
+        <Board
+          confirmMove={confirmMove}
+          computerMove={computerMove}
+          activePlayer={game.activePlayer}
         />
-      ) : null;
-  };
-
-  render() {
-    log.debug('render');
-    const { game, forceRefresh, confirmationDisabled } = this.state;
-    return (
-      <div className="app-container">
-        <header className="app-header" />
-        <main className="app-main">
-          <GameControls
-            newGame={this.newGame}
-            importGame={this.importGame}
-            exportGame={this.exportGame}
-            resign={this.resign}
-            getHint={this.getHint}
-            toggleConfirmation={this.toggleConfirmation}
-            confirmationDisabled={confirmationDisabled}
-            showInformation={this.showInformation}
-            isGameOver={game.isGameOver}
-          />
-          <Board
-            game={game}
-            forceRefresh={forceRefresh}
-            updateApp={this.updateApp}
-            updateGameOver={this.updateGameOver}
-            confirmMove={this.confirmMove}
-            computerMove={this.computerMove}
-            confirmationDisabled={confirmationDisabled}
-          />
-          <GameDetails
-            game={game}
-            moveBackward={this.moveBackward}
-            moveForward={this.moveForward}
-            moveJump={this.moveJump}
-            confirmMove={this.confirmMove}
-            cancelMove={this.cancelMove}
-          />
-        </main>
-        <Footer />
-        {this.getInformationModal()}
-        {this.getHintModal()}
-        {this.getGameOverModal()}
-        {this.getResignationModal()}
-      </div>
-    );
-  }
-}
+        <GameDetails
+          moveBackward={moveBackward}
+          moveForward={moveForward}
+          moveJump={moveJump}
+          confirmMove={confirmMove}
+          cancelMove={cancelMove}
+        />
+      </main>
+      <Footer />
+      {informationModal}
+      {hintModal}
+      {gameOverModal}
+      {resignationModal}
+    </div>
+  );
+};
 
 export default App;

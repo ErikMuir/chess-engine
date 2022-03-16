@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import activeSquareState from '../../state/atoms/activeSquareState';
 import {
   squareSize,
   boardSize,
@@ -9,8 +11,9 @@ import { clearCanvas } from '../../utils';
 
 const canvasId = 'active-layer';
 
-const ActiveLayer = ({ activeSquare }) => {
+const ActiveLayer = () => {
   const [ctx, setCtx] = useState(null);
+  const activeSquare = useRecoilValue(activeSquareState);
 
   const draw = () => {
     if (!ctx) return;

@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import squaresState from '../../state/atoms/squaresState';
 import { boardSize, proportion, squareSize } from '../../engine/utils';
 
 const canvasId = 'labels-layer';
@@ -21,17 +23,27 @@ const drawFile = (sq, ctx) => {
   ctx.fillText(fileText, x, y);
 };
 
-const LabelsLayer = ({ squares }) => {
-  useEffect(() => {
-    const canvas = document.getElementById(canvasId);
-    canvas.width = boardSize;
-    canvas.height = boardSize;
-    const ctx = canvas.getContext('2d');
+const LabelsLayer = () => {
+  const [ctx, setCtx] = useState(null);
+  const squares = useRecoilValue(squaresState);
+
+  const draw = () => {
+    if (!ctx) return;
     squares.forEach((sq) => {
       if (sq.file === 0) drawRank(sq, ctx);
       if (sq.rank === 0) drawFile(sq, ctx);
     });
+  };
+
+  useEffect(() => {
+    const canvas = document.getElementById(canvasId);
+    canvas.width = boardSize;
+    canvas.height = boardSize;
+    setCtx(canvas.getContext('2d'));
+    draw();
   }, []);
+
+  useEffect(draw, [squares]);
 
   return <canvas id={canvasId} />;
 };

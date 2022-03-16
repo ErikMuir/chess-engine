@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import possibleSquaresState from '../../state/atoms/possibleSquaresState';
 import { boardSize, possibleOverlay, proportion } from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'possible-layer';
 
-const PossibleLayer = ({ possibleSquares }) => {
+const PossibleLayer = () => {
   const [ctx, setCtx] = useState(null);
+  const possibleSquares = useRecoilValue(possibleSquaresState);
 
   const draw = () => {
     if (!ctx) return;

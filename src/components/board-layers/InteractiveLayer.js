@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
 import DragLayer from './DragLayer';
+import dragPieceState from '../../state/atoms/dragPieceState';
 import { boardSize } from '../../engine/utils';
 
 const canvasId = 'interactive-layer';
 
 const InteractiveLayer = ({
-  dragPiece,
   onMouseDown,
   onMouseUp,
   onMouseOut,
 }) => {
   const [dragX, setDragX] = useState(null);
   const [dragY, setDragY] = useState(null);
+  const dragPiece = useRecoilValue(dragPieceState);
 
   const onMouseMove = (e) => {
     setDragX(e.offsetX);
@@ -29,13 +31,8 @@ const InteractiveLayer = ({
   }, []);
 
   const dragLayer = dragPiece
-    ? (
-      <DragLayer
-        dragPiece={dragPiece}
-        dragX={dragX}
-        dragY={dragY}
-      />
-    ) : null;
+    ? <DragLayer dragPiece={dragPiece} dragX={dragX} dragY={dragY} />
+    : null;
 
   return (
     <>

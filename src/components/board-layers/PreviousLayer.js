@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import previousSquaresState from '../../state/atoms/previousSquaresState';
 import {
   squareSize,
   boardSize,
@@ -9,8 +11,9 @@ import { clearCanvas } from '../../utils';
 
 const canvasId = 'previous-layer';
 
-const PreviousLayer = ({ previousSquares }) => {
+const PreviousLayer = () => {
   const [ctx, setCtx] = useState(null);
+  const previousSquares = useRecoilValue(previousSquaresState);
 
   const draw = () => {
     if (!ctx) return;

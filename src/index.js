@@ -1,5 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { RecoilRoot } from 'recoil';
 import App from './components/App';
+import RecoilObserver from './RecoilObserver';
 
-ReactDOM.render(<App />, document.getElementById('app'));
+const app = (
+  <RecoilRoot>
+    <RecoilObserver />
+    <App />
+  </RecoilRoot>
+);
+
+ReactDOM.render(app, document.getElementById('app'));
