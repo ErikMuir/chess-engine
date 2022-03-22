@@ -2,7 +2,7 @@ import React from 'react';
 import MoveList from './MoveList';
 import MoveConfirmation from './MoveConfirmation';
 import MoveNavigation from './MoveNavigation';
-import { boardSize } from '../game/utils';
+import { boardSize } from '../engine/utils';
 
 const GameDetails = ({
   moveBackward,

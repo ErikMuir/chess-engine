@@ -15,7 +15,7 @@ import {
   queen,
   pieceTypeFromPieceId,
 } from './PieceTypes';
-import { getPseudoLegalMoves, getLegalMoves } from './engine';
+import { getPseudoLegalMoves, getLegalMoves } from './moveGeneration';
 import { getFile, startPosition } from './utils';
 import Logger from '../Logger';
 

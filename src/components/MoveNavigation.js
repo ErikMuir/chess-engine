@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
-import { iconColor } from '../game/utils';
+import { iconColor } from '../engine/utils';
 
 const MoveNavigation = ({
   currentMoveIndex,

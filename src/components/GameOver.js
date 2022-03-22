@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { getColorString, oppositeColor } from '../game/PieceColors';
-import { modalOverlayStyle, modalContentStyle } from '../game/utils';
+import { getColorString, oppositeColor } from '../engine/PieceColors';
+import { modalOverlayStyle, modalContentStyle } from '../engine/utils';
 
 const getMessage = ({
   isResignation, isCheckmate, activePlayer, fullMoveNumber,

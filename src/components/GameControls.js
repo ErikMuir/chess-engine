@@ -10,7 +10,7 @@ import {
   mdiLightbulbOn,
   mdiInformation,
 } from '@mdi/js';
-import { boardSize, iconColor, disabledIconColor } from '../game/utils';
+import { boardSize, iconColor, disabledIconColor } from '../engine/utils';
 import Logger from '../Logger';
 
 const log = new Logger('Controls');

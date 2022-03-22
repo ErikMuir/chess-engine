@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
-import * as pieceColors from '../game/PieceColors';
-import { getMovesFromPgn } from '../game/utils';
+import * as pieceColors from '../engine/PieceColors';
+import { getMovesFromPgn } from '../engine/utils';
 
 const MoveList = ({ pgn, currentMoveIndex, moveJump }) => {
   const currentMoveRef = useRef(null);

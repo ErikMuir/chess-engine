@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { boardSize, possibleOverlay, proportion } from '../../game/utils';
+import { boardSize, possibleOverlay, proportion } from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'possible-layer';

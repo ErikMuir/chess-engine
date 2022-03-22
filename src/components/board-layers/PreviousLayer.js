@@ -4,7 +4,7 @@ import {
   boardSize,
   previousOverlay,
   overlayOpacity,
-} from '../../game/utils';
+} from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'previous-layer';

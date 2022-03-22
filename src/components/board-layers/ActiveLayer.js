@@ -4,7 +4,7 @@ import {
   boardSize,
   activeOverlay,
   overlayOpacity,
-} from '../../game/utils';
+} from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'active-layer';

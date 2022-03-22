@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AnimatedCanvas from './AnimatedCanvas';
-import { boardSize, proportion } from '../../game/utils';
+import { boardSize, proportion } from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'drag-layer';

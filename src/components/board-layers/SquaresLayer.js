@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { squareSize, boardSize } from '../../game/utils';
+import { squareSize, boardSize } from '../../engine/utils';
 
 const canvasId = 'squares-layer';
 

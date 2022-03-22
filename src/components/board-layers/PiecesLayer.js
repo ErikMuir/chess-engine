@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { proportion, boardSize } from '../../game/utils';
+import { proportion, boardSize } from '../../engine/utils';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'pieces-layer';

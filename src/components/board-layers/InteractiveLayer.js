@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DragLayer from './DragLayer';
-import { boardSize } from '../../game/utils';
+import { boardSize } from '../../engine/utils';
 
 const canvasId = 'interactive-layer';
 

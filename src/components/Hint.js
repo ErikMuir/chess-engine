@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { modalOverlayStyle, modalContentStyle } from '../game/utils';
+import { modalOverlayStyle, modalContentStyle } from '../engine/utils';
 
 const Hint = ({ hint, closeHintModal }) => (
   <Modal

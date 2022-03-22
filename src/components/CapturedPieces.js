@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import Piece from '../game/Piece';
-import { pieceTypeFromPieceId } from '../game/PieceTypes';
+import Piece from '../engine/Piece';
+import { pieceTypeFromPieceId } from '../engine/PieceTypes';
 import { clearCanvas } from '../utils';
 
 const blackCanvasId = 'captured-black-pieces-canvas';
