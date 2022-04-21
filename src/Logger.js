@@ -47,6 +47,6 @@ module.exports = class Logger {
     }
 
     // log
-    console.log(this.name, '>', ...data);
+    console.log(`[${this.name}]`, ...data);
   };
 };

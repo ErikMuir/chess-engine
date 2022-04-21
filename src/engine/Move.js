@@ -13,6 +13,8 @@ class Move {
       ? oppositeColor(this.pieceColor) | pawn.id
       : squares[toIndex];
     this.pawnPromotionType = queen; // hack for legal move generation
+    this.isCheck = false;
+    this.isCheckmate = false;
   }
 
   get pieceType() {
@@ -29,6 +31,25 @@ class Move {
     const isPromotionRank = getRank(this.toIndex) === promotionRank;
     return isPawn && isPromotionRank;
   }
+
+  static clone = ({
+    type,
+    fromIndex,
+    toIndex,
+    piece,
+    capturePiece,
+    isCheck,
+    isCheckmate,
+    pawnPromotionType,
+  }) => {
+    const newMove = new Move(type, fromIndex, toIndex, []);
+    newMove.piece = piece;
+    newMove.capturePiece = capturePiece;
+    newMove.isCheck = isCheck;
+    newMove.isCheckmate = isCheckmate;
+    newMove.pawnPromotionType = pawnPromotionType;
+    return newMove;
+  };
 }
 
 export default Move;

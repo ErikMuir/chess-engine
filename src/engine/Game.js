@@ -1,5 +1,6 @@
 /* eslint-disable import/no-cycle */
 import FEN from './FEN';
+import Move from './Move';
 import MoveType from './MoveType';
 import PGN from './PGN';
 import Piece from './Piece';
@@ -27,16 +28,11 @@ export default class Game {
     fen = startPosition,
     playerColor = white,
     preventRecursion = false,
+    pgn = [],
   } = {}) {
-    this.initProps(playerColor, preventRecursion);
-    FEN.load(fen, this);
-    this.archiveFen();
-    this.generateMoves();
-  }
-
-  initProps = (playerColor, preventRecursion) => {
     this.playerColor = playerColor;
     this.preventRecursion = preventRecursion;
+    this.pgn = pgn;
     this.squares = new Array(64);
     this.activePlayer = null;
     this.isCapture = false;
@@ -47,14 +43,16 @@ export default class Game {
     this.currentMoveIndex = 0;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
-    this.pgn = [];
     this.moveHistory = [];
     this.fenHistory = [];
     this.isCheckmate = false;
     this.isStalemate = false;
     this.isResignation = false;
     this.isDraw = false;
-  };
+    FEN.load(fen, this);
+    this.archiveFen();
+    this.generateMoves();
+  }
 
   debug = (msg, obj) => {
     if (this.preventRecursion) return;
@@ -134,10 +132,9 @@ export default class Game {
       default:
         break;
     }
-    if (!this.preventRecursion) {
-      this.postMoveActions(move);
-    }
-    return this;
+    return this.preventRecursion
+      ? this
+      : this.postMoveActions(move);
   };
 
   postMoveActions = (move) => {
@@ -149,10 +146,12 @@ export default class Game {
     this.generateMoves();
     this.updateFullMoveNumber(move);
     this.handleMates();
-    this.updateMove(move);
+    // this.updateMove(move);
+    move = this.updateMove(move);
     this.appendToPgn(move, [...this.legalMoves]);
     this.archiveMove(move);
     this.archiveFen();
+    return this;
   };
 
   setEnPassantTargetSquare = (move) => {
@@ -215,14 +214,22 @@ export default class Game {
     }
   };
 
+  // updateMove = (move) => {
+  //   if (this.isCheck) move.isCheck = true;
+  //   if (this.isCheckmate) move.isCheckmate = true;
+  // };
+
   updateMove = (move) => {
-    if (this.isCheck) move.isCheck = true;
-    if (this.isCheckmate) move.isCheckmate = true;
+    const newMove = Move.clone(move);
+    if (this.isCheck) newMove.isCheck = true;
+    if (this.isCheckmate) newMove.isCheckmate = true;
+    return newMove;
   };
 
   appendToPgn = (move, legalMoves) => {
+    this.debug('appendToPgn', { pgn: this.pgn });
     const moveSymbol = PGN.get(move, legalMoves);
-    this.pgn.push(moveSymbol);
+    this.pgn = [...this.pgn, moveSymbol];
     if (this.isStalemate) {
       this.pgn.push('½-½ (stalemate)');
     }

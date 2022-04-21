@@ -2,12 +2,18 @@
 import React, { useEffect, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import gameState from '../state/atoms/gameState';
+import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
 import * as pieceColors from '../engine/PieceColors';
 import { getMovesFromPgn } from '../engine/utils';
+import Logger from '../Logger';
+
+const log = new Logger('MoveList');
 
 const MoveList = ({ moveJump }) => {
   const currentMoveRef = useRef(null);
-  const { pgn, currentMoveIndex } = useRecoilValue(gameState);
+  const { pgn } = useRecoilValue(gameState);
+  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
+  log.debug({ pgn, currentMoveIndex });
 
   const scrollToBottom = () => {
     currentMoveRef.current?.scrollIntoView({ behavior: 'smooth' });

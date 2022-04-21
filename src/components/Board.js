@@ -20,41 +20,38 @@ import dragPieceState from '../state/atoms/dragPieceState';
 import gameOverModalState from '../state/atoms/gameOverModalState';
 import gameState from '../state/atoms/gameState';
 import possibleSquaresState from '../state/atoms/possibleSquaresState';
-import previousSquaresState from '../state/atoms/previousSquaresState';
-import promotionMoveState from '../state/atoms/promotionMoveState';
+import promotionModalState from '../state/atoms/promotionModalState';
 import squaresState from '../state/atoms/squaresState';
 import tempMoveState from '../state/atoms/tempMoveState';
 import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
 import Game from '../engine/Game';
-import MoveType from '../engine/MoveType';
-import { white, pieceColorFromPieceId } from '../engine/PieceColors';
+import Move from '../engine/Move';
 import { promotionTypes } from '../engine/PieceTypes';
 import Piece from '../engine/Piece';
 import Square from '../engine/Square';
-import {
-  squareSize,
-  boardSize,
-  getFile,
-  getSquareIndexFromEvent,
-} from '../engine/utils';
+import { squareSize, boardSize, getSquareIndexFromEvent } from '../engine/utils';
 import Logger from '../Logger';
 
 const log = new Logger('Board');
 
-const Board = ({ confirmMove, computerMove, activePlayer }) => {
+const Board = ({
+  doTempMove,
+  confirmMove,
+  computerMove,
+  activePlayer,
+}) => {
   const [deselect, setDeselect] = useState(false);
 
   const game = useRecoilValue(gameState);
   const currentMoveIndex = useRecoilValue(currentMoveIndexState);
 
   const setShowGameOverModal = useSetRecoilState(gameOverModalState);
-  const setPreviousSquares = useSetRecoilState(previousSquaresState);
   const setSquares = useSetRecoilState(squaresState);
 
   const [activeSquare, setActiveSquare] = useRecoilState(activeSquareState);
   const [possibleSquares, setPossibleSquares] = useRecoilState(possibleSquaresState);
   const [dragPiece, setDragPiece] = useRecoilState(dragPieceState);
-  const [promotionMove, setPromotionMove] = useRecoilState(promotionMoveState);
+  const [showPromotionModal, setShowPromotionModal] = useRecoilState(promotionModalState);
   const [tempMove, setTempMove] = useRecoilState(tempMoveState);
 
   const syncSquares = () => {
@@ -76,83 +73,21 @@ const Board = ({ confirmMove, computerMove, activePlayer }) => {
 
   useEffect(() => {
     if (!tempMove) syncSquares();
-  }, [tempMove, currentMoveIndex]);
-
-  const doTempMove = useRecoilCallback(({ snapshot }) => async (move) => {
-    log.debug('temp move');
-    setTempMove(move);
-    const currentSquares = await snapshot.getPromise(squaresState);
-    let newSquares = currentSquares
-      .map((sq) => {
-        switch (sq.index) {
-          case move.fromIndex:
-            return new Square(sq.file, sq.rank);
-          case move.toIndex: {
-            const square = new Square(sq.file, sq.rank);
-            square.piece = Piece.fromPieceId(move.piece);
-            return square;
-          }
-          default:
-            return sq;
-        }
-      });
-    switch (move.type) {
-      case MoveType.enPassant: {
-        const offset = pieceColorFromPieceId(move.piece) === white ? -8 : 8;
-        const captureSquareIndex = move.toIndex + offset;
-        newSquares = newSquares
-          .map((sq) => (sq.index === captureSquareIndex ? new Square(sq.file, sq.rank) : sq));
-      }
-        break;
-      case MoveType.kingSideCastle:
-      case MoveType.queenSideCastle: {
-        const isKingSide = getFile(move.toIndex) === 6;
-        const rookRank = pieceColorFromPieceId(move.piece) === white ? 0 : 7;
-        const rookFile = isKingSide ? 7 : 0;
-        const targetFile = isKingSide ? 5 : 3;
-        const fromIndex = rookRank * 8 + rookFile;
-        const toIndex = rookRank * 8 + targetFile;
-        const { piece } = newSquares[fromIndex];
-        newSquares = newSquares
-          .map((sq) => {
-            switch (sq.index) {
-              case toIndex: {
-                const square = new Square(sq.file, sq.rank);
-                square.piece = piece;
-                return square;
-              }
-              case fromIndex:
-                return new Square(sq.file, sq.rank);
-              default:
-                return sq;
-            }
-          });
-      }
-        break;
-      default:
-        break;
-    }
-    setSquares(newSquares);
-    setActiveSquare(null);
-    setPossibleSquares([]);
-    setPreviousSquares([
-      currentSquares[move.fromIndex],
-      currentSquares[move.toIndex],
-    ]);
-  }, []);
+  }, [tempMove, currentMoveIndex, game]);
 
   const onMouseDown = useRecoilCallback(({ snapshot }) => async (e) => {
     log.debug('mouse down');
-    if (tempMove || game.isGameOver || game.activePlayer !== game.playerColor) return;
+    const currentGame = await snapshot.getPromise(gameState);
+    if (tempMove || currentGame.isGameOver || currentGame.activePlayer !== currentGame.playerColor) return;
     const currentSquares = await snapshot.getPromise(squaresState);
     const square = currentSquares[getSquareIndexFromEvent(e)];
     if (activeSquare && !possibleSquares.includes(square)) {
       setDeselect(true);
     }
-    if (square.piece && square.piece.color === game.activePlayer) {
+    if (square.piece && square.piece.color === currentGame.activePlayer) {
       setActiveSquare(square);
       setDragPiece(square.piece);
-      setPossibleSquares(game.legalMoves
+      setPossibleSquares(currentGame.legalMoves
         .filter((move) => move.fromIndex === square.index)
         .map((move) => currentSquares[move.toIndex]));
       const newSquares = [...currentSquares];
@@ -167,10 +102,11 @@ const Board = ({ confirmMove, computerMove, activePlayer }) => {
     if (!currentActiveSquare) return;
 
     const currentSquares = await snapshot.getPromise(squaresState);
+    const targetSquare = currentSquares[getSquareIndexFromEvent(e)];
     const currentDragPiece = await snapshot.getPromise(dragPieceState);
     if (currentDragPiece) {
       const newSquares = currentSquares.map((sq) => {
-        if (sq.index !== currentActiveSquare.index) return sq;
+        if (sq.index !== targetSquare.index) return sq;
         const newSquare = new Square(sq.file, sq.rank);
         newSquare.piece = currentDragPiece;
         return newSquare;
@@ -180,23 +116,23 @@ const Board = ({ confirmMove, computerMove, activePlayer }) => {
     }
 
     const currentPossibleSquares = await snapshot.getPromise(possibleSquaresState);
-    const square = currentSquares[getSquareIndexFromEvent(e)];
-    if (deselect && !currentPossibleSquares.includes(square)) {
+    if (deselect && !currentPossibleSquares.includes(targetSquare)) {
       setActiveSquare(null);
       setPossibleSquares([]);
       setDeselect(false);
       return;
     }
 
-    const move = game.legalMoves
+    const currentGame = await snapshot.getPromise(gameState);
+    const move = currentGame.legalMoves
       .find((legalMove) => legalMove.fromIndex === currentActiveSquare.index
-        && legalMove.toIndex === square.index);
+        && legalMove.toIndex === targetSquare.index);
     if (!move) return;
 
     doTempMove(move);
 
     if (move.isPawnPromotion) {
-      setPromotionMove(move);
+      setShowPromotionModal(true);
       return;
     }
 
@@ -217,23 +153,26 @@ const Board = ({ confirmMove, computerMove, activePlayer }) => {
     }
   };
 
-  const onClickPawnPromotion = (e) => {
+  const onClickPawnPromotion = useRecoilCallback(({ snapshot }) => async (e) => {
     const index = Math.floor(e.offsetX / squareSize);
-    promotionMove.pawnPromotionType = promotionTypes[index];
-    setPromotionMove(null);
-    confirmMove(tempMove);
-    setTempMove(null);
-    if (game.isGameOver) {
+    const currentTempMove = await snapshot.getPromise(tempMoveState);
+    const newTempMove = Move.clone(currentTempMove);
+    newTempMove.pawnPromotionType = promotionTypes[index];
+    setTempMove(newTempMove);
+    setShowPromotionModal(false);
+    confirmMove();
+    const currentGame = await snapshot.getPromise(gameState);
+    if (currentGame.isGameOver) {
       setShowGameOverModal(true);
     } else {
       computerMove();
     }
-  };
+  }, []);
 
   const width = boardSize;
   const height = boardSize;
   const flexBasis = boardSize;
-  const promotionModal = promotionMove
+  const promotionModal = showPromotionModal
     ? (
       <PawnPromotion
         onClick={onClickPawnPromotion}
