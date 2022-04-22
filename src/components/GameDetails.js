@@ -7,9 +7,6 @@ import tempMoveState from '../state/atoms/tempMoveState';
 import { boardSize } from '../engine/utils';
 
 const GameDetails = ({
-  moveBackward,
-  moveForward,
-  moveJump,
   confirmMove,
   cancelMove,
 }) => {
@@ -17,11 +14,11 @@ const GameDetails = ({
 
   const controls = tempMove
     ? <MoveConfirmation confirmMove={confirmMove} cancelMove={cancelMove} />
-    : <MoveNavigation moveBackward={moveBackward} moveForward={moveForward} />;
+    : <MoveNavigation />;
 
   return (
     <div className="aside game-details" style={{ height: boardSize }}>
-      <MoveList moveJump={moveJump} />
+      <MoveList />
       <div className="move-controls">{controls}</div>
     </div>
   );

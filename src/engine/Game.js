@@ -24,15 +24,22 @@ const log = new Logger('Game');
 const schema = '0.1.1';
 
 export default class Game {
+  static clone = (gameToClone) => new Game(gameToClone);
+
   constructor({
     fen = startPosition,
     playerColor = white,
     preventRecursion = false,
     pgn = [],
+    fenHistory = [],
+    moveHistory = [],
+    moveIndex = 0,
   } = {}) {
     this.playerColor = playerColor;
     this.preventRecursion = preventRecursion;
     this.pgn = pgn;
+    this.fenHistory = fenHistory;
+    this.moveHistory = moveHistory;
     this.squares = new Array(64);
     this.activePlayer = null;
     this.isCapture = false;
@@ -40,17 +47,21 @@ export default class Game {
     this.castlingAvailability = [];
     this.halfMoveClock = null;
     this.fullMoveNumber = null;
-    this.currentMoveIndex = 0;
     this.pseudoLegalMoves = [];
     this.legalMoves = [];
-    this.moveHistory = [];
-    this.fenHistory = [];
     this.isCheckmate = false;
     this.isStalemate = false;
     this.isResignation = false;
     this.isDraw = false;
-    FEN.load(fen, this);
-    this.archiveFen();
+
+    const currentFen = fenHistory.length
+      ? fenHistory[moveIndex || fenHistory.length - 1]
+      : fen;
+    FEN.load(currentFen, this);
+    if (!fenHistory.length) {
+      this.archiveFen();
+    }
+
     this.generateMoves();
   }
 
@@ -196,9 +207,6 @@ export default class Game {
 
   updateFullMoveNumber = (move) => {
     const movePieceColor = pieceColorFromPieceId(move.piece);
-    if (!this.isResignation) {
-      this.currentMoveIndex += 1;
-    }
     if (!this.isGameOver && movePieceColor === black) {
       this.fullMoveNumber += 1;
     }
@@ -221,39 +229,23 @@ export default class Game {
   };
 
   appendToPgn = (move, legalMoves) => {
-    const moveSymbol = PGN.get(move, legalMoves);
+    const moveSymbol = this.isStalemate
+      ? '½-½ (stalemate)'
+      : PGN.get(move, legalMoves);
     this.pgn = [...this.pgn, moveSymbol];
-    if (this.isStalemate) {
-      this.pgn.push('½-½ (stalemate)');
-    }
   };
 
   archiveMove = (move) => {
-    this.moveHistory.push(move);
+    this.moveHistory = [...this.moveHistory, move];
   };
 
   archiveFen = () => {
-    this.fenHistory.push(this.fen);
+    this.fenHistory = [...this.fenHistory, this.fen];
   };
 
   testForCheck = (color = this.activePlayer) => {
     const playerKing = color | king.id;
     return this.pseudoLegalMoves.some((move) => move.capturePiece === playerKing);
-  };
-
-  moveBackward = () => {
-    if (this.currentMoveIndex > 0) this.currentMoveIndex -= 1;
-    return this;
-  };
-
-  moveForward = () => {
-    if (this.currentMoveIndex < this.fenHistory.length - 1) this.currentMoveIndex += 1;
-    return this;
-  };
-
-  moveJump = (moveIndex) => {
-    this.currentMoveIndex = moveIndex;
-    return this;
   };
 
   getScore = (color) => this.squares

@@ -19,11 +19,12 @@ import confirmationDisabledState from '../state/atoms/confirmationDisabledState'
 import dragPieceState from '../state/atoms/dragPieceState';
 import gameOverModalState from '../state/atoms/gameOverModalState';
 import gameState from '../state/atoms/gameState';
+import moveIndexState from '../state/atoms/moveIndexState';
 import possibleSquaresState from '../state/atoms/possibleSquaresState';
 import promotionModalState from '../state/atoms/promotionModalState';
 import squaresState from '../state/atoms/squaresState';
 import tempMoveState from '../state/atoms/tempMoveState';
-import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
+import fenHistoryState from '../state/selectors/fenHistoryState';
 import Game from '../engine/Game';
 import Move from '../engine/Move';
 import { promotionTypes } from '../engine/PieceTypes';
@@ -42,8 +43,8 @@ const Board = ({
 }) => {
   const [deselect, setDeselect] = useState(false);
 
-  const game = useRecoilValue(gameState);
-  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
+  const moveIndex = useRecoilValue(moveIndexState);
+  const fenHistory = useRecoilValue(fenHistoryState);
 
   const setShowGameOverModal = useSetRecoilState(gameOverModalState);
   const setSquares = useSetRecoilState(squaresState);
@@ -56,8 +57,8 @@ const Board = ({
 
   const syncSquares = () => {
     log.debug('sync');
-    const { fenHistory } = game;
-    const currentGame = new Game({ fen: fenHistory[currentMoveIndex] });
+    const fen = fenHistory[moveIndex];
+    const currentGame = new Game({ fen });
     const newSquares = [];
     for (let rank = 0; rank < 8; rank += 1) {
       for (let file = 0; file < 8; file += 1) {
@@ -73,7 +74,7 @@ const Board = ({
 
   useEffect(() => {
     if (!tempMove) syncSquares();
-  }, [tempMove, currentMoveIndex, game]);
+  }, [tempMove, moveIndex]);
 
   const onMouseDown = useRecoilCallback(({ snapshot }) => async (e) => {
     log.debug('mouse down');

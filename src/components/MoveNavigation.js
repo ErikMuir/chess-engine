@@ -1,25 +1,27 @@
 import React from 'react';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import gameState from '../state/atoms/gameState';
+import moveIndexState from '../state/atoms/moveIndexState';
 import { iconColor } from '../engine/utils';
 
-const MoveNavigation = ({ moveBackward, moveForward }) => {
-  const { currentMoveIndex, moveHistory } = useRecoilValue(gameState);
+const MoveNavigation = () => {
+  const { moveHistory } = useRecoilValue(gameState);
+  const [moveIndex, setMoveIndex] = useRecoilState(moveIndexState);
 
   const handleBackward = (e) => {
-    moveBackward();
+    setMoveIndex(moveIndex - 1);
     e.currentTarget.blur();
   };
 
   const handleForward = (e) => {
-    moveForward();
+    setMoveIndex(moveIndex + 1);
     e.currentTarget.blur();
   };
 
-  const backwardDisabled = currentMoveIndex === 0;
-  const forwardDisabled = currentMoveIndex === moveHistory.length;
+  const backwardDisabled = moveIndex === 0;
+  const forwardDisabled = moveIndex === moveHistory.length;
   return (
     <div className="move-navigation">
       <div>

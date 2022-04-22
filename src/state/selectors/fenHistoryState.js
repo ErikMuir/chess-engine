@@ -1,12 +1,12 @@
 import { selector } from 'recoil';
 import gameState from '../atoms/gameState';
 
-const currentMoveIndexState = selector({
-  key: 'currentMoveIndexState',
+const fenHistoryState = selector({
+  key: 'fenHistoryState',
   get: ({ get }) => {
     const game = get(gameState);
-    return game.currentMoveIndex;
+    return game.fenHistory;
   },
 });
 
-export default currentMoveIndexState;
+export default fenHistoryState;

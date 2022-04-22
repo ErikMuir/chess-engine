@@ -32,7 +32,6 @@ A javascript chess engine with React GUI
 <!-- - _none_ -->
 - captured pieces keep disappearing
 - onClickPawnPromotion might be broken?
-- move navigation / currentMoveIndex
 
 ## Attributions
 

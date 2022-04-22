@@ -1,31 +1,29 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import gameState from '../state/atoms/gameState';
-import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
+import moveIndexState from '../state/atoms/moveIndexState';
 import * as pieceColors from '../engine/PieceColors';
 import { getMovesFromPgn } from '../engine/utils';
 import Logger from '../Logger';
 
 const log = new Logger('MoveList');
 
-const MoveList = ({ moveJump }) => {
+const MoveList = () => {
   const currentMoveRef = useRef(null);
   const { pgn } = useRecoilValue(gameState);
-  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
-  log.debug({ pgn, currentMoveIndex });
+  const [moveIndex, setMoveIndex] = useRecoilState(moveIndexState);
+  log.debug({ pgn, moveIndex });
 
   const scrollToBottom = () => {
     currentMoveRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [pgn, currentMoveIndex]);
+  useEffect(scrollToBottom, [moveIndex]);
 
   const handleMoveJump = (e) => {
-    const moveIndex = parseInt(e.target.dataset.moveindex, 10);
-    moveJump(moveIndex);
+    const toIndex = parseInt(e.target.dataset.moveindex, 10);
+    setMoveIndex(toIndex);
   };
 
   const getMove = (move, moveNumber) => {
@@ -35,15 +33,15 @@ const MoveList = ({ moveJump }) => {
       const pgnMove = pieceColor === pieceColors.white
         ? white || score : white
           ? black || score : null;
-      const moveIndex = pieceColor === pieceColors.white
+      const index = pieceColor === pieceColors.white
         ? (moveNumber * 2) - 1
         : moveNumber * 2;
-      return moveIndex === currentMoveIndex
+      return index === moveIndex
         ? (
           <button
             type="button"
             onClick={handleMoveJump}
-            data-moveindex={moveIndex}
+            data-moveindex={index}
             className="current-move"
             ref={currentMoveRef}
           >
@@ -54,7 +52,7 @@ const MoveList = ({ moveJump }) => {
           <button
             type="button"
             onClick={handleMoveJump}
-            data-moveindex={moveIndex}
+            data-moveindex={index}
           >
             {pgnMove}
           </button>

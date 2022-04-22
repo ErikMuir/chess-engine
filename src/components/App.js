@@ -24,12 +24,12 @@ import gameState from '../state/atoms/gameState';
 import gameOverModalState from '../state/atoms/gameOverModalState';
 import hintState from '../state/atoms/hintState';
 import informationModalState from '../state/atoms/informationModalState';
+import moveIndexState from '../state/atoms/moveIndexState';
 import possibleSquaresState from '../state/atoms/possibleSquaresState';
 import previousSquaresState from '../state/atoms/previousSquaresState';
 import resignationModalState from '../state/atoms/resignationModalState';
 import squaresState from '../state/atoms/squaresState';
 import tempMoveState from '../state/atoms/tempMoveState';
-import currentMoveIndexState from '../state/selectors/currentMoveIndexState';
 import gameOverState from '../state/selectors/gameOverState';
 import Game from '../engine/Game';
 import MoveType from '../engine/MoveType';
@@ -49,7 +49,6 @@ const log = new Logger('App');
 
 const App = () => {
   const isGameOver = useRecoilValue(gameOverState);
-  const currentMoveIndex = useRecoilValue(currentMoveIndexState);
 
   const setPreviousSquares = useSetRecoilState(previousSquaresState);
   const setSquares = useSetRecoilState(squaresState);
@@ -64,12 +63,11 @@ const App = () => {
   const [showInformationModal, setShowInformationModal] = useRecoilState(informationModalState);
   const [confirmationDisabled, setConfirmationDisabled] = useRecoilState(confirmationDisabledState);
   const [isComputerMove, setComputerMove] = useRecoilState(computerMoveState);
+  const [moveIndex, setMoveIndex] = useRecoilState(moveIndexState);
 
-  useEffect(() => {
-    if (isGameOver) {
-      setShowGameOverModal(true);
-    }
-  }, [game]);
+  useEffect(() => updatePreviousSquares(), [moveIndex]);
+
+  useEffect(() => isGameOver && setShowGameOverModal(true), [game]);
 
   useEffect(() => {
     if (isComputerMove && !isGameOver) {
@@ -88,9 +86,8 @@ const App = () => {
     setShowInformationModal(false);
     setTempMove(null);
     setComputerMove(false);
+    setMoveIndex(0);
   };
-
-  const cloneGame = (gameToClone) => new Game(gameToClone || game);
 
   const closeHintModal = () => {
     setHint(null);
@@ -148,23 +145,13 @@ const App = () => {
     setShowInformationModal(true);
   };
 
-  const moveBackward = () => {
-    const updatedGame = game.moveBackward();
-    setGame(updatedGame);
-  };
-
-  const moveForward = () => {
-    const updatedGame = game.moveForward();
-    setGame(updatedGame);
-  };
-
-  const moveJump = (moveIndex) => {
-    const updatedGame = game.moveJump(moveIndex);
-    setGame(updatedGame);
-  };
-
   const updatePreviousSquares = useRecoilCallback(({ snapshot }) => async (move) => {
     const previousSquares = [];
+    if (!move) {
+      const { moveHistory } = await snapshot.getPromise(gameState);
+      const currentMoveIndex = await snapshot.getPromise(moveIndexState);
+      move = moveHistory[currentMoveIndex - 1];
+    }
     if (move) {
       const currentSquares = await snapshot.getPromise(squaresState);
       previousSquares.push(currentSquares[move.fromIndex]);
@@ -236,18 +223,21 @@ const App = () => {
   const computerMove = useRecoilCallback(({ snapshot }) => async () => {
     log.debug('computer move');
     const currentGame = await snapshot.getPromise(gameState);
+    const currentMoveIndex = await snapshot.getPromise(moveIndexState);
     const move = getMove(currentGame);
-    const updatedGame = cloneGame(currentGame).doMove(move);
+    const updatedGame = Game.clone({ ...currentGame, moveIndex: currentMoveIndex }).doMove(move);
     setGame(updatedGame);
-    updatePreviousSquares(move);
+    setMoveIndex(currentMoveIndex + 1);
     setComputerMove(false);
   }, []);
 
   const confirmMove = useRecoilCallback(({ snapshot }) => async () => {
     const currentGame = await snapshot.getPromise(gameState);
+    const currentMoveIndex = await snapshot.getPromise(moveIndexState);
     const currentTempMove = await snapshot.getPromise(tempMoveState);
-    const updatedGame = cloneGame(currentGame).doMove(currentTempMove);
+    const updatedGame = Game.clone({ ...currentGame, moveIndex: currentMoveIndex }).doMove(currentTempMove);
     setGame(updatedGame);
+    setMoveIndex(currentMoveIndex + 1);
     setTempMove(null);
 
     const currentIsGameOver = await snapshot.getPromise(gameOverState);
@@ -258,8 +248,7 @@ const App = () => {
 
   const cancelMove = () => {
     setTempMove(null);
-    const move = game.moveHistory[currentMoveIndex];
-    updatePreviousSquares(move);
+    updatePreviousSquares();
   };
 
   const informationModal = showInformationModal
@@ -303,9 +292,6 @@ const App = () => {
           activePlayer={game.activePlayer}
         />
         <GameDetails
-          moveBackward={moveBackward}
-          moveForward={moveForward}
-          moveJump={moveJump}
           confirmMove={confirmMove}
           cancelMove={cancelMove}
         />
