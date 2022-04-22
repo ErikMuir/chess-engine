@@ -30,8 +30,6 @@ A javascript chess engine with React GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- broken when move confirmation is disabled
-- computer tries to move even when game is over
 - captured pieces keep disappearing
 - onClickPawnPromotion might be broken?
 - move navigation / currentMoveIndex

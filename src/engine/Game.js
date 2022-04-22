@@ -146,7 +146,6 @@ export default class Game {
     this.generateMoves();
     this.updateFullMoveNumber(move);
     this.handleMates();
-    // this.updateMove(move);
     move = this.updateMove(move);
     this.appendToPgn(move, [...this.legalMoves]);
     this.archiveMove(move);
@@ -214,11 +213,6 @@ export default class Game {
     }
   };
 
-  // updateMove = (move) => {
-  //   if (this.isCheck) move.isCheck = true;
-  //   if (this.isCheckmate) move.isCheckmate = true;
-  // };
-
   updateMove = (move) => {
     const newMove = Move.clone(move);
     if (this.isCheck) newMove.isCheck = true;
@@ -227,7 +221,6 @@ export default class Game {
   };
 
   appendToPgn = (move, legalMoves) => {
-    this.debug('appendToPgn', { pgn: this.pgn });
     const moveSymbol = PGN.get(move, legalMoves);
     this.pgn = [...this.pgn, moveSymbol];
     if (this.isStalemate) {
