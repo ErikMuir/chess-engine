@@ -3,6 +3,9 @@ import { useRecoilValue } from 'recoil';
 import { Piece, pieceTypeFromPieceId } from '../engine';
 import { capturedPiecesState } from '../state';
 import { clearCanvas } from '../utils';
+import Logger from '../Logger';
+
+const log = new Logger('CapturePieces');
 
 const blackCanvasId = 'captured-black-pieces-canvas';
 const whiteCanvasId = 'captured-white-pieces-canvas';
@@ -54,11 +57,12 @@ const CapturedPieces = () => {
   const [blackCtx, setBlackCtx] = useState(null);
   const [whiteCtx, setWhiteCtx] = useState(null);
   const { blackPieces, whitePieces } = useRecoilValue(capturedPiecesState);
+  log.debug({ blackPieces, whitePieces });
 
   const draw = () => {
     if (!blackCtx || !whiteCtx) return;
-    drawPieces(blackPieces.sort(ascending), blackCtx, blackCanvasId);
-    drawPieces(whitePieces.sort(descending), whiteCtx, whiteCanvasId);
+    drawPieces([...blackPieces].sort(ascending), blackCtx, blackCanvasId);
+    drawPieces([...whitePieces].sort(descending), whiteCtx, whiteCanvasId);
   };
 
   useEffect(() => {

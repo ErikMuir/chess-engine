@@ -30,8 +30,9 @@ A javascript chess engine with React GUI
 ## Known Bugs
 
 <!-- - _none_ -->
-- captured pieces keep disappearing
 - onClickPawnPromotion might be broken?
+- illegal moves are allowed
+- resignation is broken
 
 ## Attributions
 
