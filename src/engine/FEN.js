@@ -1,10 +1,14 @@
-import Piece from './Piece';
-import { white, black, noColor } from './PieceColors';
-import { king, queen } from './PieceTypes';
+/* eslint-disable import/no-cycle */
 import {
+  Piece,
+  white,
+  black,
+  noColor,
+  king,
+  queen,
   getSquareIndexFromCoordinates,
   getCoordinatesFromSquareIndex,
-} from './utils';
+} from '.';
 import { isDigit } from '../utils';
 
 class FEN {

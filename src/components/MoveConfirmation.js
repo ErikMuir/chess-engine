@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '@mdi/react';
 import { mdiCheck, mdiClose } from '@mdi/js';
-import { iconColor } from '../engine/utils';
+import { iconColor } from '../engine';
 
 const MoveConfirmation = ({ confirmMove, cancelMove }) => (
   <div className="move-confirmation">

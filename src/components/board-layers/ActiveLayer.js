@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import activeSquareState from '../../state/atoms/activeSquareState';
+import { activeSquareState } from '../../state';
 import {
   squareSize,
   boardSize,
   activeOverlay,
   overlayOpacity,
-} from '../../engine/utils';
+} from '../../engine';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'active-layer';

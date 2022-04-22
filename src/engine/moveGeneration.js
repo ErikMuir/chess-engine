@@ -1,17 +1,15 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable no-continue */
 import { randomElement } from '../utils';
-import Game from './Game';
-import Move from './Move';
-import MoveType from './MoveType';
-import Piece from './Piece';
 import {
+  Game,
+  Move,
+  MoveType,
+  Piece,
   white,
   black,
   pieceColorFromPieceId,
   oppositeColor,
-} from './PieceColors';
-import {
   king,
   pawn,
   knight,
@@ -19,12 +17,10 @@ import {
   rook,
   queen,
   pieceTypeFromPieceId,
-} from './PieceTypes';
-import {
   getNumSquaresToEdge,
   directionIndex,
   directionOffsets,
-} from './utils';
+} from '.';
 
 const generatePawnMoves = (fromIndex, piece, squares, enPassantTargetSquare) => {
   const moves = [];

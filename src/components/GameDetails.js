@@ -3,8 +3,8 @@ import { useRecoilValue } from 'recoil';
 import MoveList from './MoveList';
 import MoveConfirmation from './MoveConfirmation';
 import MoveNavigation from './MoveNavigation';
-import tempMoveState from '../state/atoms/tempMoveState';
-import { boardSize } from '../engine/utils';
+import { tempMoveState } from '../state';
+import { boardSize } from '../engine';
 
 const GameDetails = ({
   confirmMove,

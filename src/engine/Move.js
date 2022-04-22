@@ -1,7 +1,14 @@
-import MoveType from './MoveType';
-import { white, pieceColorFromPieceId, oppositeColor } from './PieceColors';
-import { pawn, queen, pieceTypeFromPieceId } from './PieceTypes';
-import { getRank } from './utils';
+/* eslint-disable import/no-cycle */
+import {
+  MoveType,
+  white,
+  pieceColorFromPieceId,
+  oppositeColor,
+  pawn,
+  queen,
+  pieceTypeFromPieceId,
+  getRank,
+} from '.';
 
 class Move {
   constructor(type, fromIndex, toIndex, squares) {

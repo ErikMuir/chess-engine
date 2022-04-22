@@ -17,29 +17,34 @@ import Information from './Information';
 import Hint from './Hint';
 import GameOver from './GameOver';
 import Logger from '../Logger';
-import activeSquareState from '../state/atoms/activeSquareState';
-import computerMoveState from '../state/atoms/computerMoveState';
-import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
-import gameState from '../state/atoms/gameState';
-import gameOverModalState from '../state/atoms/gameOverModalState';
-import hintState from '../state/atoms/hintState';
-import informationModalState from '../state/atoms/informationModalState';
-import moveIndexState from '../state/atoms/moveIndexState';
-import possibleSquaresState from '../state/atoms/possibleSquaresState';
-import previousSquaresState from '../state/atoms/previousSquaresState';
-import resignationModalState from '../state/atoms/resignationModalState';
-import squaresState from '../state/atoms/squaresState';
-import tempMoveState from '../state/atoms/tempMoveState';
-import gameOverState from '../state/selectors/gameOverState';
-import Game from '../engine/Game';
-import MoveType from '../engine/MoveType';
-import Piece from '../engine/Piece';
-import Square from '../engine/Square';
-import { white, pieceColorFromPieceId } from '../engine/PieceColors';
-import PGN from '../engine/PGN';
-import { importGameFromJson } from '../engine/import';
-import { getFile } from '../engine/utils';
-import { getMove } from '../engine/moveGeneration';
+import {
+  activeSquareState,
+  computerMoveState,
+  confirmationDisabledState,
+  gameState,
+  gameOverModalState,
+  hintState,
+  informationModalState,
+  moveIndexState,
+  possibleSquaresState,
+  previousSquaresState,
+  resignationModalState,
+  squaresState,
+  tempMoveState,
+  gameOverState,
+} from '../state';
+import {
+  Game,
+  MoveType,
+  Piece,
+  Square,
+  white,
+  pieceColorFromPieceId,
+  PGN,
+  importGameFromJson,
+  getFile,
+  getMove,
+} from '../engine';
 import { sleep } from '../utils';
 import '../styles/app.css';
 import '../styles/modal.css';

@@ -5,32 +5,38 @@ import {
   useSetRecoilState,
   useRecoilCallback,
 } from 'recoil';
+import {
+  ActiveLayer,
+  InteractiveLayer,
+  LabelsLayer,
+  PiecesLayer,
+  PossibleLayer,
+  PreviousLayer,
+  SquaresLayer,
+} from './board-layers';
 import CapturedPieces from './CapturedPieces';
-import ActiveLayer from './board-layers/ActiveLayer';
-import InteractiveLayer from './board-layers/InteractiveLayer';
-import LabelsLayer from './board-layers/LabelsLayer';
-import PiecesLayer from './board-layers/PiecesLayer';
-import PossibleLayer from './board-layers/PossibleLayer';
-import PreviousLayer from './board-layers/PreviousLayer';
-import SquaresLayer from './board-layers/SquaresLayer';
 import PawnPromotion from './PawnPromotion';
-import activeSquareState from '../state/atoms/activeSquareState';
-import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
-import dragPieceState from '../state/atoms/dragPieceState';
-import gameOverModalState from '../state/atoms/gameOverModalState';
-import gameState from '../state/atoms/gameState';
-import moveIndexState from '../state/atoms/moveIndexState';
-import possibleSquaresState from '../state/atoms/possibleSquaresState';
-import promotionModalState from '../state/atoms/promotionModalState';
-import squaresState from '../state/atoms/squaresState';
-import tempMoveState from '../state/atoms/tempMoveState';
-import fenHistoryState from '../state/selectors/fenHistoryState';
-import Game from '../engine/Game';
-import Move from '../engine/Move';
-import { promotionTypes } from '../engine/PieceTypes';
-import Piece from '../engine/Piece';
-import Square from '../engine/Square';
-import { squareSize, boardSize, getSquareIndexFromEvent } from '../engine/utils';
+import {
+  activeSquareState,
+  confirmationDisabledState,
+  dragPieceState,
+  fenHistoryState,
+  gameState,
+  gameOverModalState,
+  moveIndexState,
+  possibleSquaresState,
+  promotionModalState,
+  squaresState,
+  tempMoveState,
+} from '../state';
+import {
+  Game,
+  Move,
+  promotionTypes,
+  Piece,
+  Square,
+  squareSize, boardSize, getSquareIndexFromEvent,
+} from '../engine';
 import Logger from '../Logger';
 
 const log = new Logger('Board');

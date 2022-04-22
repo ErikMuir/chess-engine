@@ -1,23 +1,23 @@
 /* eslint-disable import/no-cycle */
-import FEN from './FEN';
-import Move from './Move';
-import MoveType from './MoveType';
-import PGN from './PGN';
-import Piece from './Piece';
 import {
+  FEN,
+  Move,
+  MoveType,
+  PGN,
+  Piece,
   white,
   black,
   pieceColorFromPieceId,
-} from './PieceColors';
-import {
   king,
   pawn,
   rook,
   queen,
   pieceTypeFromPieceId,
-} from './PieceTypes';
-import { getPseudoLegalMoves, getLegalMoves } from './moveGeneration';
-import { getFile, startPosition } from './utils';
+  getPseudoLegalMoves,
+  getLegalMoves,
+  getFile,
+  startPosition,
+} from '.';
 import Logger from '../Logger';
 
 const log = new Logger('Game');

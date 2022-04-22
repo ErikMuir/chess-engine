@@ -1,5 +1,5 @@
-import Game from './Game';
-import Move from './Move';
+// eslint-disable-next-line import/no-cycle
+import { Game, Move } from '.';
 import Logger from '../Logger';
 
 const log = new Logger('import');

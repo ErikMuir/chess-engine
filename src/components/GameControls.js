@@ -11,9 +11,8 @@ import {
   mdiLightbulbOn,
   mdiInformation,
 } from '@mdi/js';
-import confirmationDisabledState from '../state/atoms/confirmationDisabledState';
-import gameOverState from '../state/selectors/gameOverState';
-import { boardSize, iconColor, disabledIconColor } from '../engine/utils';
+import { confirmationDisabledState, gameOverState } from '../state';
+import { boardSize, iconColor, disabledIconColor } from '../engine';
 import Logger from '../Logger';
 
 const log = new Logger('Controls');

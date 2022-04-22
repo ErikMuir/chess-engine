@@ -1,19 +1,14 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useRef } from 'react';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import gameState from '../state/atoms/gameState';
-import moveIndexState from '../state/atoms/moveIndexState';
+import { gameState, moveIndexState } from '../state';
 import * as pieceColors from '../engine/PieceColors';
-import { getMovesFromPgn } from '../engine/utils';
-import Logger from '../Logger';
-
-const log = new Logger('MoveList');
+import { getMovesFromPgn } from '../engine';
 
 const MoveList = () => {
   const currentMoveRef = useRef(null);
   const { pgn } = useRecoilValue(gameState);
   const [moveIndex, setMoveIndex] = useRecoilState(moveIndexState);
-  log.debug({ pgn, moveIndex });
 
   const scrollToBottom = () => {
     currentMoveRef.current?.scrollIntoView({ behavior: 'smooth' });

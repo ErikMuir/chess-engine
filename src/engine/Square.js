@@ -1,4 +1,5 @@
-import { lightColor, darkColor, squareSize } from './utils';
+// eslint-disable-next-line import/no-cycle
+import { lightColor, darkColor, squareSize } from '.';
 
 export default class Square {
   constructor(file, rank) {

@@ -1,6 +1,12 @@
-import { pieceColorFromPieceId, pieceColorFromFEN, getSymbolForColor } from './PieceColors';
-import { pieceTypeFromPieceId, pieceTypeFromFEN } from './PieceTypes';
-import { getPieceImage } from './PieceImages';
+/* eslint-disable import/no-cycle */
+import {
+  pieceColorFromPieceId,
+  pieceColorFromFEN,
+  getSymbolForColor,
+  pieceTypeFromPieceId,
+  pieceTypeFromFEN,
+  getPieceImage,
+} from '.';
 
 class Piece {
   constructor(color, type) {

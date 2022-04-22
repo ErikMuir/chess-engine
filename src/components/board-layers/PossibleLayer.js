@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import possibleSquaresState from '../../state/atoms/possibleSquaresState';
-import { boardSize, possibleOverlay, proportion } from '../../engine/utils';
+import { possibleSquaresState } from '../../state';
+import { boardSize, possibleOverlay, proportion } from '../../engine';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'possible-layer';

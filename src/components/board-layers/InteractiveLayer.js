@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import DragLayer from './DragLayer';
-import dragPieceState from '../../state/atoms/dragPieceState';
-import { boardSize } from '../../engine/utils';
+import { dragPieceState } from '../../state';
+import { boardSize } from '../../engine';
 
 const canvasId = 'interactive-layer';
 

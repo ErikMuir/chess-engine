@@ -1,9 +1,13 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import Modal from 'react-modal';
-import gameState from '../state/atoms/gameState';
-import { getColorString, oppositeColor } from '../engine/PieceColors';
-import { modalOverlayStyle, modalContentStyle } from '../engine/utils';
+import { gameState } from '../state';
+import {
+  getColorString,
+  oppositeColor,
+  modalOverlayStyle,
+  modalContentStyle,
+} from '../engine';
 
 const getMessage = () => {
   const {

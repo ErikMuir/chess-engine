@@ -1,6 +1,12 @@
-import MoveType from './MoveType';
-import { pawn, ambiguousTypes } from './PieceTypes';
-import { getFile, getRank, getCoordinatesFromSquareIndex } from './utils';
+/* eslint-disable import/no-cycle */
+import {
+  MoveType,
+  pawn,
+  ambiguousTypes,
+  getFile,
+  getRank,
+  getCoordinatesFromSquareIndex,
+} from '.';
 
 class PGN {
   static get = (move, legalMoves) => {

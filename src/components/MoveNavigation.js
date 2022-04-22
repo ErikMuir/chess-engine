@@ -2,9 +2,8 @@ import React from 'react';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import Icon from '@mdi/react';
 import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
-import gameState from '../state/atoms/gameState';
-import moveIndexState from '../state/atoms/moveIndexState';
-import { iconColor } from '../engine/utils';
+import { gameState, moveIndexState } from '../state';
+import { iconColor } from '../engine';
 
 const MoveNavigation = () => {
   const { moveHistory } = useRecoilValue(gameState);

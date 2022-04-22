@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { modalOverlayStyle, modalContentStyle } from '../engine/utils';
+import { modalOverlayStyle, modalContentStyle } from '../engine';
 
 const Information = ({ closeInformationModal }) => (
   <Modal

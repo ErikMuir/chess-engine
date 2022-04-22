@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import Piece from '../engine/Piece';
-import { pieceTypeFromPieceId } from '../engine/PieceTypes';
-import capturedPiecesState from '../state/selectors/capturedPiecesState';
+import { Piece, pieceTypeFromPieceId } from '../engine';
+import { capturedPiecesState } from '../state';
 import { clearCanvas } from '../utils';
 
 const blackCanvasId = 'captured-black-pieces-canvas';

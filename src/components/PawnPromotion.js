@@ -1,8 +1,11 @@
 import React from 'react';
 import Modal from 'react-modal';
-import Piece from '../engine/Piece';
-import { promotionTypes } from '../engine/PieceTypes';
-import { modalContentStyle, modalOverlayStyle } from '../engine/utils';
+import {
+  Piece,
+  promotionTypes,
+  modalContentStyle,
+  modalOverlayStyle,
+} from '../engine';
 
 const canvasId = 'promotion-canvas';
 const pieceSize = 80;

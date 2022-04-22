@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import Modal from 'react-modal';
-import hintState from '../state/atoms/hintState';
-import { modalOverlayStyle, modalContentStyle } from '../engine/utils';
+import { hintState } from '../state';
+import { modalOverlayStyle, modalContentStyle } from '../engine';
 
 const Hint = ({ closeHintModal }) => {
   const hint = useRecoilValue(hintState);

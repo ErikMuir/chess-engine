@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import previousSquaresState from '../../state/atoms/previousSquaresState';
+import { previousSquaresState } from '../../state';
 import {
   squareSize,
   boardSize,
   previousOverlay,
   overlayOpacity,
-} from '../../engine/utils';
+} from '../../engine';
 import { clearCanvas } from '../../utils';
 
 const canvasId = 'previous-layer';

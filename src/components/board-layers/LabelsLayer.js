@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import squaresState from '../../state/atoms/squaresState';
-import { boardSize, proportion, squareSize } from '../../engine/utils';
+import { squaresState } from '../../state';
+import { boardSize, proportion, squareSize } from '../../engine';
 
 const canvasId = 'labels-layer';
 
